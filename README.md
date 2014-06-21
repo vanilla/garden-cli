@@ -1,7 +1,7 @@
 Garden CLI
 ==========
 
-Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api.
+Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api. [![Build Status](https://travis-ci.org/vanilla/garden-cli.svg?branch=master)](https://travis-ci.org/vanilla/garden-cli)
 
 Why use Garden CLI?
 -------------------
@@ -128,6 +128,7 @@ $args = $cli->parse($argv);
 
 Like the basic example, `parse()` will return a `Garden\Cli\Args` object on a successful parse. Here are some things to note about this example.
 
+* The `Cli::create()` method is provided if you want to have a 100% fluent interface when defining your command schema.
 * Call the `command()` method to define a new command.
 * If you call `command('*')` then you can define options that are global to all commands.
 * The `arg()` method lets you define arguments that go after the options on the command line. More on this below.
@@ -138,7 +139,7 @@ Listing Commands
 Calling a script that has commands with no options or just the `--help` option will display a list of commands. Here is the output from the multiple commands example above.
 
 <pre>
-<b>usage: </b>nit.php <command> [<options>] [<args>]
+<b>usage: </b>nit.php <command> [&lt;options&gt;] [&lt;args&gt;]
 
 <b>COMMANDS</b>
   push   Push data to a remote server.
