@@ -10,7 +10,7 @@ namespace Garden\Cli;
 /**
  * This class represents the parsed and validated argument list.
  */
-class Args implements \JsonSerializable {
+class Args implements \JsonSerializable, \ArrayAccess {
     protected $command;
     protected $opts;
     protected $args;
@@ -145,5 +145,57 @@ class Args implements \JsonSerializable {
             'args' => $this->args,
             'meta' => $this->meta
         ];
+    }
+
+    /**
+     * Whether a offset exists.
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     * @param mixed $offset <p>
+     * An offset to check for.
+     * </p>
+     * @return boolean true on success or false on failure.
+     * </p>
+     * <p>
+     * The return value will be casted to boolean if non-boolean was returned.
+     */
+    public function offsetExists($offset) {
+        return isset($this->opts[$offset]);
+    }
+
+    /**
+     * Offset to retrieve.
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     * @param mixed $offset <p>
+     * The offset to retrieve.
+     * </p>
+     * @return mixed Can return all value types.
+     */
+    public function offsetGet($offset) {
+        return $this->getOpt($offset, null);
+    }
+
+    /**
+     * Offset to set.
+     *
+     * @param mixed $offset The offset to assign the value to.
+     * @param mixed $value The value to set.
+     * @return void
+     * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     */
+    public function offsetSet($offset, $value) {
+        $this->setOpt($offset, $value);
+    }
+
+    /**
+     * Offset to unset.
+     *
+     * @param mixed $offset The offset to unset.
+     * @return void
+     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     */
+    public function offsetUnset($offset) {
+        unset($this->opts[$offset]);
     }
 }
