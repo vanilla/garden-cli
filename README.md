@@ -62,7 +62,7 @@ Displaying Help
 If you were to call the basic example with a `--help` option then you'd see the following help printed:
 
 <pre>
-usage: dbdump.php [&lt;options&gt;]
+<b>usage: </b>dbdump.php [&lt;options&gt;]
 
 Dump some information from your database.
 
@@ -100,3 +100,55 @@ $user = $args->getOpt('user'); // get user
 $database = $args['database']; // use the args like an array too
 $port = $args->getOpt('port', 123); // get port with default 123
 ```
+
+Multiple Commands Example
+-------------------------
+
+Let's say you are writing a git-like command line utility called `nit.php` that pushes and pulls information from a remote repository.
+
+```php
+// Define a cli with commands.
+$cli = Cli::create()
+    // Define the first command: push.
+    ->command('push')
+    ->description('Push data to a remote server.')
+    ->opt('force', 'Force an overwrite.', false, 'boolean', 'f')
+    ->opt('set-upstream', 'Add a reference to the upstream repo.', false, 'boolean', 'u')
+    // Define the second command: pull.
+    ->command('pull')
+    ->description('Pull data from a remote server.')
+    ->opt('commit', 'Perform the merge and commit the result.', false, 'boolean')
+    // Set some global options.
+    ->command('*')
+    ->opt('verbose', 'Output verbose information.', false, 'boolean', 'v')
+    ->arg('repo', 'The repository to sync with.', true);
+
+$args = $cli->parse($argv);
+```
+
+Like the basic example, `parse()` will return a `Garden\Cli\Args` object on a successful parse. Here are some things to note about this example.
+
+* Call the `command()` method to define a new command.
+* If you call `command('*')` then you can define options that are global to all commands.
+* The `arg()` method lets you define arguments that go after the options on the command line. More on this below.
+
+Listing Commands
+----------------
+
+Calling a script that has commands with no options or just the `--help` option will display a list of commands. Here is the output from the multiple commands example above.
+
+<pre>
+<b>usage: </b>nit.php <command> [<options>] [<args>]
+
+<b>COMMANDS</b>
+  push   Push data to a remote server.
+  pull   Pull data from a remote server.
+</pre>
+
+##Args and Opts
+
+The `Garden\Cli\Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
+
+* Opts are passed by `--name` full name or `-s` short code. They are named and can have types.
+* Args are passed after the options as just strings separated by spaces.
+* When calling a script from the command line you can use `--` to separate opts from args if there is ambiguity.
