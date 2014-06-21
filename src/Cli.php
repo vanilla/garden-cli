@@ -271,7 +271,7 @@ class Cli {
             $this->writeUsage($args);
             $this->writeCommands();
             $result = null;
-        } elseif ($args->getOpt('help')) {
+        } elseif ($args->getOpt('help') || $args->getOpt('?')) {
             // Write the help.
             $this->writeUsage($args);
             $this->writeHelp($this->getSchema($args->command()));
@@ -811,35 +811,40 @@ class Cli {
 
         unset($schema[Cli::META]);
 
-        if (count($schema)) {
-            echo Cli::bold('OPTIONS')."\n";
+        // Add the help.
+        $schema['help'] = [
+            'description' => 'Display this help.',
+            'type' => 'boolean',
+            'short' => '?'
+        ];
 
-            ksort($schema);
+        echo Cli::bold('OPTIONS')."\n";
 
-            $table = new Table();
-            $table->format = $this->format;
+        ksort($schema);
 
-            foreach ($schema as $key => $definition) {
-                $table->row();
+        $table = new Table();
+        $table->format = $this->format;
 
-                // Write the keys.
-                $keys = "--{$key}";
-                if ($shortKey = Cli::val('short', $definition, false)) {
-                    $keys .= ", -$shortKey";
-                }
-                if (Cli::val('required', $definition)) {
-                    $table->bold($keys);
-                } else {
-                    $table->cell($keys);
-                }
+        foreach ($schema as $key => $definition) {
+            $table->row();
 
-                // Write the description.
-                $table->cell(Cli::val('description', $definition, ''));
+            // Write the keys.
+            $keys = "--{$key}";
+            if ($shortKey = Cli::val('short', $definition, false)) {
+                $keys .= ", -$shortKey";
+            }
+            if (Cli::val('required', $definition)) {
+                $table->bold($keys);
+            } else {
+                $table->cell($keys);
             }
 
-            $table->write();
-            echo "\n";
+            // Write the description.
+            $table->cell(Cli::val('description', $definition, ''));
         }
+
+        $table->write();
+        echo "\n";
 
         $args = Cli::val(Cli::ARGS, $meta, []);
         if (!empty($args)) {

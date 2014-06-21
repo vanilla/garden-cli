@@ -76,7 +76,7 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
     public function testCommandsHelp() {
         $cli = $this->getCommandCli();
 
-        $args = $cli->parse(['nit.php', 'push', '--help'], false);
+        $args = $cli->parse(['nit.php', 'push', '-?'], false);
     }
 
     /**
