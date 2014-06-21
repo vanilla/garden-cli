@@ -1,19 +1,19 @@
 {
-    "name": "vanilla/garden-cli",
-    "description": "A command line argument parser.",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Todd Burry",
-            "email": "todd@vanillaforums.com"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Garden\\Cli\\": "src"
-        }
-    }
+	"name": "vanilla/garden-cli",
+	"description": "A command line argument parser you'll want to use.",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Todd Burry",
+			"email": "todd@vanillaforums.com"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Garden\\Cli\\": "src"
+		}
+	}
 }
