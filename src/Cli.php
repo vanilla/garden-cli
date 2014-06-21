@@ -13,6 +13,7 @@ class Cli {
     /// Constants ///
 
     const META = '__meta';
+    const ARGS = '__args';
 
     /// Properties ///
     /**
@@ -44,7 +45,7 @@ class Cli {
     /// Methods ///
 
     /**
-     * Creates a {@see Cli} instance representing a command line parser for a given schema.
+     * Creates a {@link Cli} instance representing a command line parser for a given schema.
      */
     public function __construct() {
         $this->commandSchemas = ['*' => [Cli::META => []]];
@@ -53,6 +54,16 @@ class Cli {
         $this->currentSchema =& $this->commandSchemas['*'];
     }
 
+    /**
+     * Construct and return a new {@link Cli} object.
+     *
+     * This method is mainly here so that an entire cli schema can be created and defined with fluent method calls.
+     *
+     * @return Cli Returns a new Cli object.
+     */
+    public static function create() {
+        return new Cli();
+    }
 
     /**
      * Breaks a cell into several lines according to a given width.
@@ -157,7 +168,7 @@ class Cli {
     }
 
     /**
-     * Determins whether a command has options.
+     * Determines whether a command has options.
      *
      * @param string $command The name of the command or an empty string for any command.
      * @return Returns true if the command has options. False otherwise.
@@ -178,6 +189,47 @@ class Cli {
             }
         }
         return false;
+    }
+
+    /**
+     * Determines whether or not a command has args.
+     *
+     * @param string $command The command name to check.
+     * @return int Returns one of the following.
+     * - 0: The command has no args.
+     * - 1: The command has optional args.
+     * - 2: The command has required args.
+     */
+    public function hasArgs($command = '') {
+        $args = null;
+
+        if ($command) {
+            // Check to see if the specific command has args.
+            $def = $this->getSchema($command);
+            if (isset($def[Cli::META][Cli::ARGS])) {
+                $args = $def[Cli::META][Cli::ARGS];
+            }
+        } else {
+            foreach ($this->commandSchemas as $pattern => $def) {
+                if (isset($def[Cli::META][Cli::ARGS])) {
+                    $args = $def[Cli::META][Cli::ARGS];
+                }
+            }
+            if (!empty($args)) {
+                return 1;
+            }
+        }
+
+        if (!$args || empty($args)) {
+            return 0;
+        }
+
+        foreach ($args as $arg) {
+            if (!Cli::val('required', $arg)) {
+                return 1;
+            }
+        }
+        return 2;
     }
 
     /**
@@ -507,7 +559,7 @@ class Cli {
         $result = [];
         foreach ($this->commandSchemas as $pattern => $opts) {
             if (fnmatch($pattern, $command)) {
-                $result = array_replace($result, $opts);
+                $result = array_replace_recursive($result, $opts);
             }
         }
         return $result;
@@ -566,6 +618,20 @@ class Cli {
     }
 
     /**
+     * Define an arg on the current command.
+     *
+     * @param string $name The name of the arg.
+     * @param string $description The arg description.
+     * @param bool $required Whether or not the arg is required.
+     * @return Cli Returns $this for fluent calls.
+     */
+    public function arg($name, $description, $required = false) {
+        $this->currentSchema[Cli::META][Cli::ARGS][$name] =
+            ['description' => $description, 'required' => $required];
+        return $this;
+    }
+
+    /**
      * Selects the current command schema name.
      *
      * @param string $pattern The command pattern.
@@ -573,7 +639,7 @@ class Cli {
      */
     public function command($pattern) {
         if (!isset($this->commandSchemas[$pattern])) {
-            $this->commandSchemas[$pattern] = [Cli::META];
+            $this->commandSchemas[$pattern] = [Cli::META => []];
         }
         $this->currentSchema =& $this->commandSchemas[$pattern];
 
@@ -723,7 +789,7 @@ class Cli {
                 $table
                     ->row()
                     ->cell($pattern)
-                    ->cell(val('description', Cli::val(Cli::META, $schema), ''));
+                    ->cell(Cli::val('description', Cli::val(Cli::META, $schema), ''));
             }
         }
         $table->write();
@@ -731,6 +797,7 @@ class Cli {
 
     /**
      * Writes the help for a given schema.
+     *
      * @param array $schema A command line scheme returned from {@see Cli::getSchema()}.
      */
     protected function writeHelp($schema) {
@@ -773,6 +840,28 @@ class Cli {
             $table->write();
             echo "\n";
         }
+
+        $args = Cli::val(Cli::ARGS, $meta, []);
+        if (!empty($args)) {
+            echo Cli::bold('ARGUMENTS')."\n";
+
+            $table = new Table();
+            $table->format = $this->format;
+
+            foreach ($args as $aname => $arg) {
+                $table->row();
+
+                if (Cli::val('required', $definition)) {
+                    $table->bold($aname);
+                } else {
+                    $table->cell($aname);
+                }
+
+                $table->cell(Cli::val('description', $arg, ''));
+            }
+            $table->write();
+            echo "\n";
+        }
     }
 
     /**
@@ -798,6 +887,10 @@ class Cli {
 
             if ($this->hasOptions($args->command())) {
                 echo " [<options>]";
+            }
+
+            if ($hasArgs = $this->hasArgs($args->command())) {
+                echo $hasArgs === 2 ? " <args>" : " [<args>]";
             }
 
             echo "\n\n";
