@@ -128,7 +128,7 @@ class Cli {
     }
 
     /**
-     * Sets the description for the current schema.
+     * Sets the description for the current command.
      *
      * @param string $str The description for the current schema or null to get the current description.
      * @return Cli Returns this class for fluent calls.
@@ -198,7 +198,9 @@ class Cli {
      * Note that the `$argv` array must have at least one element and it must represent the path to the command that
      * invoked the command. This is used to write usage information.
      * @param bool $exit Whether to exit the application when there is an error or when writing help.
-     * @return Args|null Returns an {@see Args} instance when a command should be executed or `null` when one shouldn't.
+     * @return Args|null Returns an {@see Args} instance when a command should be executed
+     * or `null` when one should not be executed.
+     * @throws \Exception Throws an exception when {@link $exit} is false and the help or errors need to be displayed.
      */
     public function parse($argv = null, $exit = true) {
         // Only format commands if we are exiting.
@@ -248,7 +250,7 @@ class Cli {
      * @return Args Returns the raw parsed arguments.
      * @throws \Exception Throws an exception when {@see $argv} isn't an array.
      */
-    public function parseRaw($argv = null) {
+    protected function parseRaw($argv = null) {
         if ($argv === null) {
             $argv = $GLOBALS['argv'];
         }
@@ -408,6 +410,8 @@ class Cli {
         $command = $args->command();
         $valid = new Args($command);
         $schema = $this->getSchema($command);
+        ksort($schema);
+
         $meta = $schema[Cli::META];
         unset($schema[Cli::META]);
         $opts = $args->opts();
@@ -656,7 +660,7 @@ class Cli {
      * @param array $wrap The format to wrap in the form ['before', 'after'].
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
-    public function formatString($text, array $wrap) {
+    protected function formatString($text, array $wrap) {
         if ($this->format) {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
