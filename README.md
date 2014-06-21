@@ -29,7 +29,7 @@ Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accep
 Basic Example
 -------------
 
-Here is a basic example of a command line script the uses Garden CLI to parse its options. Let's say you are writing a script called `dbdump.php` to dump some data from your database.
+Here is a basic example of a command line script that uses Garden CLI to parse its options. Let's say you are writing a script called `dbdump.php` to dump some data from your database.
 
 ```php
 <?php
@@ -50,7 +50,7 @@ $cli->description('Dump some information from your database.')
 $args = $cli->parse($argv, true);
 ```
 
-This example returns a `Garden\Cli\Args` object or exits to show help or an error message. Here are some things to note about the exmple.
+This example returns a `Garden\Cli\Args` object or exits to show help or an error message. Here are some things to note about the example.
 
 * You can throw an exception instead of exiting by passing `false` as the second argument to `parse()`.
 * The `opt()` method has the following parameters: `name`, `description`, `required`, `type`, and `shortcode`. Most parameters have sensible defaults.
@@ -79,7 +79,7 @@ All of the options are printed in a compact table and required options are print
 Displaying Errors
 -----------------
 
-Let's say you call the basic example with just `-P foo` which is an error and some required options are missing. What you'd see is the following error:
+Let's say you call the basic example with just `-P foo`. What you'd see is the following error message:
 
 <pre>
 The value of --port (-P) is not a valid integer.
