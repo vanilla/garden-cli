@@ -1,7 +1,9 @@
 Garden CLI
 ==========
 
-Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api. [![Build Status](https://travis-ci.org/vanilla/garden-cli.svg?branch=master)](https://travis-ci.org/vanilla/garden-cli)
+[![Build Status](https://travis-ci.org/vanilla/garden-cli.svg?branch=master)](https://travis-ci.org/vanilla/garden-cli)
+
+Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api.
 
 Why use Garden CLI?
 -------------------
