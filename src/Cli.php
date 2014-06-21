@@ -746,6 +746,7 @@ class Cli {
             ksort($schema);
 
             $table = new Table();
+            $table->format = $this->format;
 
             foreach ($schema as $key => $definition) {
                 $table->row();
@@ -755,14 +756,14 @@ class Cli {
                 if ($shortKey = Cli::val('short', $definition, false)) {
                     $keys .= ", -$shortKey";
                 }
-                if (val('required', $definition)) {
+                if (Cli::val('required', $definition)) {
                     $table->bold($keys);
                 } else {
                     $table->cell($keys);
                 }
 
                 // Write the description.
-                $table->cell(val('description', $definition));
+                $table->cell(Cli::val('description', $definition, ''));
             }
 
             $table->write();

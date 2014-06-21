@@ -8,9 +8,14 @@ class Table {
     /// Properties ///
 
     /**
-     * @var int An array of column widths.
+     * @var array An array of column widths.
      */
     protected $columnWidths;
+
+    /**
+     * @var bool Whether or not to format the console commands.
+     */
+    public $format = true;
 
     /**
      * @var array An array of the row data.
@@ -176,7 +181,11 @@ class Table {
                     if (isset($lines[$i])) {
                         $wrap = $row[$i][1];
 
-                        echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
+                        if ($this->format) {
+                            echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
+                        } else {
+                            echo str_repeat(' ', $padding).$lines[$i];
+                        }
                     } elseif ($j < count($this->columnWidths) - 1) {
                         // This is an empty line. Write the spaces.
                         echo str_repeat(' ', $padding + $this->columnWidths[$j]);
