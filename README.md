@@ -35,6 +35,9 @@ Here is a basic example of a command line script that uses Garden CLI to parse i
 
 ```php
 <?php
+// All of the command line classes are in the Garden\Cli namespace.
+use Garden\Cli\Cli;
+
 // Require composer's autoloader.
 require_once 'vendor/autoload.php';
 
@@ -52,7 +55,7 @@ $cli->description('Dump some information from your database.')
 $args = $cli->parse($argv, true);
 ```
 
-This example returns a `Garden\Cli\Args` object or exits to show help or an error message. Here are some things to note about the example.
+This example returns a `Args` object or exits to show help or an error message. Here are some things to note about the example.
 
 * You can throw an exception instead of exiting by passing `false` as the second argument to `parse()`.
 * The `opt()` method has the following parameters: `name`, `description`, `required`, `type`, and `shortcode`. Most parameters have sensible defaults.
@@ -129,7 +132,7 @@ $cli = Cli::create()
 $args = $cli->parse($argv);
 ```
 
-Like the basic example, `parse()` will return a `Garden\Cli\Args` object on a successful parse. Here are some things to note about this example.
+Like the basic example, `parse()` will return a `Args` object on a successful parse. Here are some things to note about this example.
 
 * The `Cli::create()` method is provided if you want to have a 100% fluent interface when defining your command schema.
 * Call the `command()` method to define a new command.
@@ -151,7 +154,7 @@ Calling a script that has commands with no options or just the `--help` option w
 
 ##Args and Opts
 
-The `Garden\Cli\Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
+The `Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
 
 * Opts are passed by `--name` full name or `-s` short code. They are named and can have types.
 * Args are passed after the options as just strings separated by spaces.
