@@ -89,11 +89,11 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
         $cli = new Cli();
 
         $cli->description('Dump some information from your database.')
-            ->opt('host', 'Connect to host.', false, 'string', 'h')
-            ->opt('port', 'Port number to use.', false, 'integer', 'P')
-            ->opt('user', 'User for login if not current user.', true, 'string', 'u')
-            ->opt('password', 'Password to use when connecting to server.', false, 'string', 'p')
-            ->opt('database', 'The name of the database to dump.', true, 'string', 'd');
+            ->opt('host:h', 'Connect to host.', false, 'string')
+            ->opt('port:P', 'Port number to use.', false, 'integer')
+            ->opt('user:u', 'User for login if not current user.', true, 'string')
+            ->opt('password:p', 'Password to use when connecting to server.', false, 'string')
+            ->opt('database:d', 'The name of the database to dump.', true, 'string');
 
         return $cli;
     }
@@ -109,15 +109,15 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
             // Define the first command: push.
             ->command('push')
             ->description('Push data to a remote server.')
-            ->opt('force', 'Force an overwrite.', false, 'boolean', 'f')
-            ->opt('set-upstream', 'Add a reference to the upstream repo.', false, 'boolean', 'u')
+            ->opt('force:f', 'Force an overwrite.', false, 'boolean')
+            ->opt('set-upstream:u', 'Add a reference to the upstream repo.', false, 'boolean')
             // Define the second command: pull.
             ->command('pull')
             ->description('Pull data from a remote server.')
             ->opt('commit', 'Perform the merge and commit the result.', false, 'boolean')
             // Set some global options.
             ->command('*')
-            ->opt('verbose', 'Output verbose information.', false, 'boolean', 'v')
+            ->opt('verbose:v', 'Output verbose information.', false, 'boolean')
             ->arg('repo', 'The repository to sync with.', true);
 
         return $cli;

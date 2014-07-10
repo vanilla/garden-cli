@@ -586,16 +586,16 @@ class Cli {
     /**
      * Adds an option (opt) to the current schema.
      *
-     * @param string $name The long name of the parameter.
+     * @param string $name The long name(s) of the parameter.
+     * You can use either just one name or a string in the form 'long:short' to specify the long and short name.
      * @param string $description A human-readable description for the column.
      * @param bool $required Whether or not the opt is required.
      * @param string $type The type of parameter.
      * This must be one of string, bool, integer.
-     * @param string $short The short name of the opt.
      * @return Cli Returns this object for fluent calls.
      * @throws \Exception Throws an exception when the type is invalid.
      */
-    public function opt($name, $description, $required = false, $type = 'string', $short = '') {
+    public function opt($name, $description, $required = false, $type = 'string') {
         switch ($type) {
             case 'str':
             case 'string':
@@ -613,7 +613,12 @@ class Cli {
                 throw new \Exception("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
         }
 
-        $this->currentSchema[$name] = ['description' => $description, 'required' => $required, 'type' => $type, 'short' => $short];
+        // Break the name up into its long and short form.
+        $parts = explode(':', $name, 2);
+        $long = $parts[0];
+        $short = static::val(1, $parts, '');
+
+        $this->currentSchema[$long] = ['description' => $description, 'required' => $required, 'type' => $type, 'short' => $short];
         return $this;
     }
 

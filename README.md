@@ -45,11 +45,11 @@ require_once 'vendor/autoload.php';
 $cli = new Cli();
 
 $cli->description('Dump some information from your database.')
-    ->opt('host', 'Connect to host.', true, 'string', 'h')
-    ->opt('port', 'Port number to use.', false, 'integer', 'P')
-    ->opt('user', 'User for login if not current user.', true, 'string', 'u')
-    ->opt('password', 'Password to use when connecting to server.', false, 'string', 'p')
-    ->opt('database', 'The name of the database to dump.', true, 'string', 'd');
+    ->opt('host:h', 'Connect to host.', true)
+    ->opt('port:P', 'Port number to use.', false, 'integer')
+    ->opt('user:u', 'User for login if not current user.', true)
+    ->opt('password:p', 'Password to use when connecting to server.')
+    ->opt('database:d', 'The name of the database to dump.', true);
 
 // Parse and return cli args.
 $args = $cli->parse($argv, true);
@@ -58,7 +58,8 @@ $args = $cli->parse($argv, true);
 This example returns a `Args` object or exits to show help or an error message. Here are some things to note about the example.
 
 * You can throw an exception instead of exiting by passing `false` as the second argument to `parse()`.
-* The `opt()` method has the following parameters: `name`, `description`, `required`, `type`, and `shortcode`. Most parameters have sensible defaults.
+* The `opt()` method has the following parameters: `name`, `description`, `required`, and `type`. Most parameters have sensible defaults.
+* If you want your option to have a short code then specify in with `name` argument separated by a colon.
 * If you specify a short code for an option this will act like an alias for the parameter name in `$argv` only. You always access an option by its full name after parsing.
 
 Displaying Help

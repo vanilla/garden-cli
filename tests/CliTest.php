@@ -101,10 +101,10 @@ EOT;
     protected function getBasicCli() {
         $cli = new Cli();
 
-        $cli->opt('hello', 'Hello world.', true, 'string', 'h')
-            ->opt('enabled', 'Enabled or not.', false, 'boolean', 'e')
-            ->opt('disabled', 'Disabled or not', false, 'bool', 'd')
-            ->opt('count', 'The count of things.', false, 'integer', 'c');
+        $cli->opt('hello:h', 'Hello world.', true, 'string')
+            ->opt('enabled:e', 'Enabled or not.', false, 'boolean')
+            ->opt('disabled:d', 'Disabled or not', false, 'bool')
+            ->opt('count:c', 'The count of things.', false, 'integer');
 
         return $cli;
     }
