@@ -1,7 +1,7 @@
 Garden CLI
 ==========
 
-[![Build Status](https://travis-ci.org/vanilla/garden-cli.svg?branch=master)](https://travis-ci.org/vanilla/garden-cli)
+[![Build Status](https://img.shields.io/travis/vanilla/garden-cli.svg?style=flat)](https://travis-ci.org/vanilla/garden-cli) [![Coverage](http://img.shields.io/scrutinizer/coverage/g/vanilla/garden-cli.svg?style=flat)](https://scrutinizer-ci.com/g/vanilla/garden-cli/)
 
 Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api.
 
@@ -10,7 +10,7 @@ Why use Garden CLI?
 
 Php's `getopt()` provides little functionality and is prone to failure where one typo in your command line options can wreck and entire command call. Garden CLI solves this problem and provides additional functionality.
 
- * You commands get automatic support for `--help` to print out help for your commands.
+ * Your commands get automatic support for `--help` to print out help for your commands.
  * Support a single command or multiple commands. (ex. git pull, git push, etc.)
  * Have command options parsed and validated with error information automatically printed out.
  * A simple, elegant syntax so that even your most basic command line scripts will take little effort to implement robust parsing.
