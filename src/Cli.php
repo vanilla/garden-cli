@@ -92,7 +92,7 @@ class Cli {
      * @param string $line The text of the line.
      * @param int $width The width of the cell.
      * @param bool $addSpaces Whether or not to right pad the lines with spaces.
-     * @return array Returns an array of lines, broken on word boundries.
+     * @return array Returns an array of lines, broken on word boundaries.
      */
     protected static function breakString($line, $width, $addSpaces = true) {
         $words = explode(' ', $line);
@@ -471,7 +471,7 @@ class Cli {
 
         // Check to see if the command is correct.
         if ($command && !$this->hasCommand($command) && $this->hasCommand()) {
-            echo $this->red("Invalid command: $command.\n");
+            echo $this->red("Invalid command: $command.".PHP_EOL);
             $isValid = false;
         }
 
@@ -490,7 +490,7 @@ class Cli {
                 if ($this->validateType($value, $type)) {
                     $valid->setOpt($key, $value);
                 } else {
-                    echo $this->red("The value of --$key is not a valid $type.\n");
+                    echo $this->red("The value of --$key is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts[$key]);
@@ -500,7 +500,7 @@ class Cli {
                 if ($this->validateType($value, $type)) {
                     $valid->setOpt($key, $value);
                 } else {
-                    echo $this->red("The value of --$key (-{$definition['short']}) is not a valid $type.\n");
+                    echo $this->red("The value of --$key (-{$definition['short']}) is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts[$definition['short']]);
@@ -509,12 +509,12 @@ class Cli {
                 $value = $opts['no-'.$key];
 
                 if ($type !== 'boolean') {
-                    echo $this->red("Cannont apply the --no- prefix on the non boolean --$key.\n");
+                    echo $this->red("Cannont apply the --no- prefix on the non boolean --$key.".PHP_EOL);
                     $isValid = false;
                 } elseif ($this->validateType($value, $type)) {
                     $valid->setOpt($key, !$value);
                 } else {
-                    echo $this->red("The value of --no-$key is not a valid $type.\n");
+                    echo $this->red("The value of --no-$key is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts['no-'.$key]);
@@ -530,21 +530,21 @@ class Cli {
         if (count($missing)) {
             $isValid = false;
             foreach ($missing as $key => $v) {
-                echo $this->red("Missing required option: $key\n");
+                echo $this->red("Missing required option: $key".PHP_EOL);
             }
         }
 
         if (count($opts)) {
             $isValid = false;
             foreach ($opts as $key => $v) {
-                echo $this->red("Invalid option: $key\n");
+                echo $this->red("Invalid option: $key".PHP_EOL);
             }
         }
 
         if ($isValid) {
             return $valid;
         } else {
-            echo "\n";
+            echo PHP_EOL;
             return null;
         }
     }
@@ -781,7 +781,7 @@ class Cli {
      * Writes a lis of all of the commands.
      */
     protected function writeCommands() {
-        echo static::bold("COMMANDS\n");
+        echo static::bold("COMMANDS").PHP_EOL;
 
         $table = new Table();
         foreach ($this->commandSchemas as $pattern => $schema) {
@@ -806,7 +806,7 @@ class Cli {
         $description = Cli::val('description', $meta);
 
         if ($description) {
-            echo implode("\n", Cli::breakLines($description, 80, false))."\n\n";
+            echo implode("\n", Cli::breakLines($description, 80, false)).PHP_EOL.PHP_EOL;
         }
 
         unset($schema[Cli::META]);
@@ -818,7 +818,7 @@ class Cli {
             'short' => '?'
         ];
 
-        echo Cli::bold('OPTIONS')."\n";
+        echo Cli::bold('OPTIONS').PHP_EOL;
 
         ksort($schema);
 
@@ -844,11 +844,11 @@ class Cli {
         }
 
         $table->write();
-        echo "\n";
+        echo PHP_EOL;
 
         $args = Cli::val(Cli::ARGS, $meta, []);
         if (!empty($args)) {
-            echo Cli::bold('ARGUMENTS')."\n";
+            echo Cli::bold('ARGUMENTS').PHP_EOL;
 
             $table = new Table();
             $table->format = $this->format;
@@ -865,7 +865,7 @@ class Cli {
                 $table->cell(Cli::val('description', $arg, ''));
             }
             $table->write();
-            echo "\n";
+            echo PHP_EOL;
         }
     }
 
@@ -898,7 +898,7 @@ class Cli {
                 echo $hasArgs === 2 ? " <args>" : " [<args>]";
             }
 
-            echo "\n\n";
+            echo PHP_EOL.PHP_EOL;
         }
     }
 

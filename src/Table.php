@@ -191,7 +191,7 @@ class Table {
                         echo str_repeat(' ', $padding + $this->columnWidths[$j]);
                     }
                 }
-                echo "\n";
+                echo PHP_EOL;
             }
         }
     }
