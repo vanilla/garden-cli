@@ -24,7 +24,7 @@ Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accep
 
 ```json
 "require": {
-    "vanilla/garden-cli": "*"
+    "vanilla/garden-cli": "~1.0"
 }
 ```
 
