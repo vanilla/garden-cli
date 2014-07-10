@@ -34,7 +34,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Add an argument to the args array.
      *
      * @param string $value The argument to add.
-     * @return Args Returns $this for fluent calling.
+     * @return Args Returns $this for fluent calls.
      */
     public function addArg($value) {
         $this->args[] = $value;
@@ -42,34 +42,43 @@ class Args implements \JsonSerializable, \ArrayAccess {
     }
 
     /**
-     * Get or set the argument array.
+     * Get the args array.
      *
-     * The argument array is the array of files that usually go after the command options.
-     * The arguments should not be confused with the options.
-     *
-     * @param array $value Set a new args array or pass null to get the current args array.
-     * @return Args|array Returns the current args or $this for fluent setting.
+     * @return array Returns the args array.
      */
-    public function args(array $value = null) {
-        if ($value !== null) {
-            $this->args = $value;
-            return $this;
-        }
+    public function getArgs() {
         return $this->args;
     }
 
     /**
-     * Get or set the command name associated with the args.
+     * Set the args array.
      *
-     * @param string $value Set a new command or pass null to get the current command.
-     * @return Args|string Returns the current command or $this for fluent setting.
+     * @param array $args The new args array.
+     * @return Args Returns $this for fluent calls.
      */
-    public function command($value = null) {
-        if ($value !== null) {
-            $this->command = $value;
-            return $this;
-        }
+    public function setArgs(array $args) {
+        $this->args = $args;
+        return $this;
+    }
+
+    /**
+     * Get the name of the command associated with the args.
+     *
+     * @return string Returns the name of the command.
+     */
+    public function getCommand() {
         return $this->command;
+    }
+
+    /**
+     * Set the name of the command associated with the args.
+     *
+     * @param string $command The new command.
+     * @return Args Returns $this for fluent calls.
+     */
+    public function setCommand($command) {
+        $this->command = $command;
+        return $this;
     }
 
     /**
@@ -136,7 +145,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
     /**
      * Return the json serializable data for the args.
      *
-     * @return array Reurns an array of data that can be used to serialize the args to json.
+     * @return array Returns an array of data that can be used to serialize the args to json.
      */
     public function jsonSerialize() {
         return [
@@ -150,14 +159,10 @@ class Args implements \JsonSerializable, \ArrayAccess {
     /**
      * Whether a offset exists.
      *
-     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
-     * @param mixed $offset <p>
-     * An offset to check for.
-     * </p>
+     * @param mixed $offset An offset to check for.
      * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
      * The return value will be casted to boolean if non-boolean was returned.
+     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      */
     public function offsetExists($offset) {
         return isset($this->opts[$offset]);
@@ -166,11 +171,9 @@ class Args implements \JsonSerializable, \ArrayAccess {
     /**
      * Offset to retrieve.
      *
-     * @link http://php.net/manual/en/arrayaccess.offsetget.php
-     * @param mixed $offset <p>
-     * The offset to retrieve.
-     * </p>
+     * @param mixed $offset The offset to retrieve.
      * @return mixed Can return all value types.
+     * @link http://php.net/manual/en/arrayaccess.offsetget.php
      */
     public function offsetGet($offset) {
         return $this->getOpt($offset, null);

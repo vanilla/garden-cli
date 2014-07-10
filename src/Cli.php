@@ -266,7 +266,7 @@ class Cli {
         $hasCommand = $this->hasCommand();
 
 
-        if ($hasCommand && !$args->command()) {
+        if ($hasCommand && !$args->getCommand()) {
             // If no command is given then write a list of commands.
             $this->writeUsage($args);
             $this->writeCommands();
@@ -274,7 +274,7 @@ class Cli {
         } elseif ($args->getOpt('help') || $args->getOpt('?')) {
             // Write the help.
             $this->writeUsage($args);
-            $this->writeHelp($this->getSchema($args->command()));
+            $this->writeHelp($this->getSchema($args->getCommand()));
             $result = null;
         } else {
             // Validate the arguments against the schema.
@@ -323,13 +323,13 @@ class Cli {
             if (substr($argv[0], 0, 1) != '-') {
                 $arg0 = array_shift($argv);
                 if ($hasCommand) {
-                    $parsed->command($arg0);
+                    $parsed->setCommand($arg0);
                 } else {
                     $parsed->addArg($arg0);
                 }
             }
             // Get the data types for all of the commands.
-            $schema = $this->getSchema($parsed->command());
+            $schema = $this->getSchema($parsed->getCommand());
             $types = [];
             foreach ($schema as $sname => $srow) {
                 if ($sname === Cli::META) {
@@ -459,7 +459,7 @@ class Cli {
      */
     public function validate(Args $args) {
         $isValid = true;
-        $command = $args->command();
+        $command = $args->getCommand();
         $valid = new Args($command);
         $schema = $this->getSchema($command);
         ksort($schema);
@@ -476,7 +476,7 @@ class Cli {
         }
 
         // Add the args.
-        $valid->args($args->args());
+        $valid->setArgs($args->getArgs());
 
         foreach ($schema as $key => $definition) {
             // No Parameter (default)
@@ -881,25 +881,25 @@ class Cli {
      */
     protected function writeUsage(Args $args) {
         if ($filename = $args->getMeta('filename')) {
-            $schema = $this->getSchema($args->command());
+            $schema = $this->getSchema($args->getCommand());
             unset($schema[Cli::META]);
 
             echo static::bold("usage: ").$filename;
 
             if ($this->hasCommand()) {
-                if ($args->command() && isset($this->commandSchemas[$args->command()])) {
-                    echo ' '.$args->command();
+                if ($args->getCommand() && isset($this->commandSchemas[$args->getCommand()])) {
+                    echo ' '.$args->getCommand();
 
                 } else {
                     echo ' <command>';
                 }
             }
 
-            if ($this->hasOptions($args->command())) {
+            if ($this->hasOptions($args->getCommand())) {
                 echo " [<options>]";
             }
 
-            if ($hasArgs = $this->hasArgs($args->command())) {
+            if ($hasArgs = $this->hasArgs($args->getCommand())) {
                 echo $hasArgs === 2 ? " <args>" : " [<args>]";
             }
 

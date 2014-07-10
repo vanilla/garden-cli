@@ -23,7 +23,7 @@ class Table {
     protected $rows;
 
     /**
-     * @var array A pointer to the current row.
+     * @var array|null A pointer to the current row.
      */
     protected $currentRow;
 
@@ -45,12 +45,16 @@ class Table {
 
     /// Methods ///
 
+    /**
+     * Initialize an instance of the {@link Table} class.
+     */
     public function __construct() {
         $this->reset();
     }
 
     /**
      * Add a cell to the table.
+     *
      * @param string $text The text of the cell.
      * @param array $wrap A two element array used to wrap the text in the cell.
      * @return $this Returns this object for fluent calls.
@@ -138,6 +142,7 @@ class Table {
 
     /**
      * Start a new row.
+     * 
      * @return $this Returns this object for fluent calls.
      */
     public function row() {

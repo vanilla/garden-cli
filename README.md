@@ -75,7 +75,7 @@ Dump some information from your database.
 <b>OPTIONS</b>
   <b>--database, -d</b>   The name of the database to dump.
   --help, -?       Display this help.
-  --host, -h       Connect to host.
+  <b>--host, -h</b>       Connect to host.
   --password, -p   Password to use when connecting to server.
   --port, -P       Port number to use.
   <b>--user, -u</b>       User for login if not current user.
