@@ -28,7 +28,7 @@ class CliTest extends PHPUnit_Framework_TestCase {
             'enabled' => true,
             'disabled' => false,
             'count' => 3
-        ], $parsed->opts());
+        ], $parsed->getOpts());
     }
 
     /**
@@ -90,7 +90,7 @@ EOT;
         ]);
 
         $parsed = $cli->parse(['script', '--hello=foo', '--enabled', '--count=123']);
-        $this->assertEquals(['hello' => 'foo', 'enabled' => true, 'count' => 123], $parsed->opts());
+        $this->assertEquals(['hello' => 'foo', 'enabled' => true, 'count' => 123], $parsed->getOpts());
     }
 
     /**

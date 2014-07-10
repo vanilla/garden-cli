@@ -466,7 +466,7 @@ class Cli {
 
         $meta = $schema[Cli::META];
         unset($schema[Cli::META]);
-        $opts = $args->opts();
+        $opts = $args->getOpts();
         $missing = [];
 
         // Check to see if the command is correct.

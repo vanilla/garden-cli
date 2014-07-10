@@ -105,17 +105,23 @@ class Args implements \JsonSerializable, \ArrayAccess {
     }
 
     /**
-     * Gets or sets the entire options array.
+     * Gets the entire options array.
+     *
+     * @return array Returns the current options array.
+     */
+    public function getOpts() {
+        return $this->opts;
+    }
+
+    /**
+     * Sets the entire options array.
      *
      * @param array $value Pass an array to set a new options array.
-     * @return Args|array Returns either the current options array or $this for fluent setting.
+     * @return Args Returns $this for fluent calls.
      */
-    public function opts(array $value = null) {
-        if ($value !== null) {
-            $this->opts = $value;
-            return $this;
-        }
-        return $this->opts;
+    public function setOpts(array $value) {
+        $this->opts = $value;
+        return $this;
     }
 
     /**
