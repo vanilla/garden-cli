@@ -132,11 +132,11 @@ EOT;
      */
     public function provideInvalidTypes() {
         $result = [
-            [['script', '-hw', '--enabled=13'], 'The value of --enabled is not a valid boolean.'],
-            [['script', '-hw', '--enabled=foo'], 'The value of --enabled is not a valid boolean.'],
-            [['script', '-hw', '--no-enabled', 'foo'], 'The value of --no-enabled is not a valid boolean.'],
-            [['script', '-hw', '--count=foo'], 'The value of --count is not a valid integer.'],
-            [['script', '-hw', '--no-count=22'], 'Cannont apply the --no- prefix on the non boolean --count.'],
+            [['script', '-hw', '--enabled=13'], 'The value of --enabled (-e) is not a valid boolean.'],
+            [['script', '-hw', '--enabled=foo'], 'The value of --enabled (-e) is not a valid boolean.'],
+            [['script', '-hw', '--no-enabled', 'foo'], 'The value of --enabled (-e) is not a valid boolean.'],
+            [['script', '-hw', '--count=foo'], 'The value of --count (-c) is not a valid integer.'],
+            [['script', '-hw', '--no-count=22'], 'Cannot apply the --no- prefix on the non boolean --count.'],
             [['script', '-hw', '-c', 'foo'], 'The value of --count (-c) is not a valid integer.'],
         ];
 

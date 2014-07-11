@@ -491,20 +491,18 @@ class Cli {
             if (isset($opts[$key])) {
                 // Check for --key.
                 $value = $opts[$key];
-                if ($this->validateType($value, $type)) {
+                if ($this->validateType($value, $type, $key, $definition)) {
                     $valid->setOpt($key, $value);
                 } else {
-                    echo $this->red("The value of --$key is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts[$key]);
             } elseif (isset($definition['short']) && isset($opts[$definition['short']])) {
                 // Check for -s.
                 $value = $opts[$definition['short']];
-                if ($this->validateType($value, $type)) {
+                if ($this->validateType($value, $type, $key, $definition)) {
                     $valid->setOpt($key, $value);
                 } else {
-                    echo $this->red("The value of --$key (-{$definition['short']}) is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts[$definition['short']]);
@@ -513,12 +511,11 @@ class Cli {
                 $value = $opts['no-'.$key];
 
                 if ($type !== 'boolean') {
-                    echo $this->red("Cannont apply the --no- prefix on the non boolean --$key.".PHP_EOL);
+                    echo $this->red("Cannot apply the --no- prefix on the non boolean --$key.".PHP_EOL);
                     $isValid = false;
-                } elseif ($this->validateType($value, $type)) {
+                } elseif ($this->validateType($value, $type, $key, $definition)) {
                     $valid->setOpt($key, !$value);
                 } else {
-                    echo $this->red("The value of --no-$key is not a valid $type.".PHP_EOL);
                     $isValid = false;
                 }
                 unset($opts['no-'.$key]);
@@ -748,42 +745,54 @@ class Cli {
      *
      * @param mixed &$value The value to validate.
      * @param string $type One of: bool, int, string.
+     * @param string $name The name of the option if you want to print an error message.
+     * @param array|null $def The option def if you want to print an error message.
      * @return bool Returns `true` if the value is the correct type.
      * @throws \Exception Throws an exception when {@see $type} is not a known value.
      */
-    protected function validateType(&$value, $type) {
+    protected function validateType(&$value, $type, $name = '', $def = null) {
+        $valid = false;
         switch ($type) {
             case 'boolean':
                 if (is_bool($value)) {
-                    return true;
+                    $valid = true;
                 } elseif ($value === 0) {
                     // 0 doesn't work well with in_array() so check it seperately.
                     $value = false;
-                    return true;
+                    $valid = true;
                 } elseif (in_array($value, [null, '', '0', 'false', 'no', 'disabled'])) {
                     $value = false;
-                    return true;
+                    $valid = true;
                 } elseif (in_array($value, [1, '1', 'true', 'yes', 'enabled'])) {
                     $value = true;
-                    return true;
+                    $valid = true;
                 } else {
-                    return false;
+                    $valid = false;
                 }
-                // Everything returns, no break.
+                break;
             case 'integer':
                 if (is_numeric($value)) {
                     $value = (int)$value;
-                    return true;
+                    $valid = true;
                 } else {
-                    return false;
+                    $valid = false;
                 }
-                // Everything returns, no break.
+                break;
             case 'string':
                 $value = (string)$value;
-                return true;
+                $valid = true;
+                break;
             default:
                 throw new \Exception("Unknown type: $type.", 400);
         }
+
+        if (!$valid && $name) {
+            $short = static::val('short', $def);
+            $nameStr = "--$name".($short ? " (-$short)" : '');
+            echo $this->red("The value of $nameStr is not a valid $type.".PHP_EOL);
+        }
+
+        return $valid;
     }
 
     /**
