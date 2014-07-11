@@ -318,7 +318,7 @@ class Cli {
         $parsed->setMeta('path', $path);
         $parsed->setMeta('filename', basename($path));
 
-        if ($argc = count($argv)) {
+        if (count($argv)) {
             // Get possible command.
             if (substr($argv[0], 0, 1) != '-') {
                 $arg0 = array_shift($argv);
@@ -464,7 +464,7 @@ class Cli {
         $schema = $this->getSchema($command);
         ksort($schema);
 
-        $meta = $schema[Cli::META];
+//        $meta = $schema[Cli::META];
         unset($schema[Cli::META]);
         $opts = $args->getOpts();
         $missing = [];
@@ -480,9 +480,7 @@ class Cli {
 
         foreach ($schema as $key => $definition) {
             // No Parameter (default)
-            $required = Cli::val('required', $definition, false);
             $type = Cli::val('type', $definition, 'string');
-            $value = null;
 
             if (isset($opts[$key])) {
                 // Check for --key.
@@ -765,7 +763,6 @@ class Cli {
                 } else {
                     return false;
                 }
-                break;
             case 'integer':
                 if (is_numeric($value)) {
                     $value = (int)$value;
@@ -773,7 +770,6 @@ class Cli {
                 } else {
                     return false;
                 }
-                break;
             case 'string':
                 $value = (string)$value;
                 return true;
@@ -858,13 +854,13 @@ class Cli {
             $table = new Table();
             $table->format = $this->format;
 
-            foreach ($args as $aname => $arg) {
+            foreach ($args as $argName => $arg) {
                 $table->row();
 
-                if (Cli::val('required', $definition)) {
-                    $table->bold($aname);
+                if (Cli::val('required', $arg)) {
+                    $table->bold($argName);
                 } else {
-                    $table->cell($aname);
+                    $table->cell($argName);
                 }
 
                 $table->cell(Cli::val('description', $arg, ''));
