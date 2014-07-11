@@ -751,7 +751,6 @@ class Cli {
      * @throws \Exception Throws an exception when {@see $type} is not a known value.
      */
     protected function validateType(&$value, $type, $name = '', $def = null) {
-        $valid = false;
         switch ($type) {
             case 'boolean':
                 if (is_bool($value)) {
@@ -787,7 +786,7 @@ class Cli {
         }
 
         if (!$valid && $name) {
-            $short = static::val('short', $def);
+            $short = static::val('short', (array)$def);
             $nameStr = "--$name".($short ? " (-$short)" : '');
             echo $this->red("The value of $nameStr is not a valid $type.".PHP_EOL);
         }
