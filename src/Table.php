@@ -170,7 +170,7 @@ class Table {
 
             // Split the cells into lines.
             foreach ($row as $i => $cell) {
-                list($text, $wrap) = $cell;
+                list($text,) = $cell;
                 $width = $this->columnWidths[$i];
 
                 $lines = Cli::breakLines($text, $width, $i < count($this->columnWidths) - 1);
