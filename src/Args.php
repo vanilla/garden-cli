@@ -140,12 +140,15 @@ class Args implements \JsonSerializable, \ArrayAccess {
      *
      * @param string $option The name of the option.
      * @param mixed $value The value of the option.
+     * @return Args Returns $this for fluent calls.
      */
     public function setOpt($option, $value) {
         if ($value === null) {
             unset($this->opts[$option]);
+        } else {
+            $this->opts[$option] = $value;
         }
-        $this->opts[$option] = $value;
+        return $this;
     }
 
     /**
