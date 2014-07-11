@@ -176,19 +176,25 @@ class Cli {
     public function hasOptions($command = '') {
         if ($command) {
             $def = $this->getSchema($command);
-            if (count($def) > 1 || (count($def) > 0 && !isset($def[Cli::META]))) {
-                return true;
-            } else {
-                return false;
-            }
+            return $this->hasOptionsDef($def);
         } else {
             foreach ($this->commandSchemas as $pattern => $def) {
-                if (count($def) > 1 || (count($def) > 0 && !isset($def[Cli::META]))) {
+                if ($this->hasOptionsDef($def)) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Determines whether or not a command definition has options.
+     *
+     * @param array $commandDef The command definition as returned from {@link Cli::getSchema()}.
+     * @return bool Returns true if the command def has options or false otherwise.
+     */
+    protected function hasOptionsDef($commandDef) {
+        return count($commandDef) > 1 || (count($commandDef) > 0 && !isset($commandDef[Cli::META]));
     }
 
     /**
@@ -763,6 +769,7 @@ class Cli {
                 } else {
                     return false;
                 }
+                // Everything returns, no break.
             case 'integer':
                 if (is_numeric($value)) {
                     $value = (int)$value;
@@ -770,6 +777,7 @@ class Cli {
                 } else {
                     return false;
                 }
+                // Everything returns, no break.
             case 'string':
                 $value = (string)$value;
                 return true;
