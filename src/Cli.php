@@ -363,8 +363,11 @@ class Cli {
                     $parts = explode('=', $str);
                     $key = $parts[0];
 
-                    // Does not have an =, so choose the next arg as its value
-                    if (count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
+                    // Does not have an =, so choose the next arg as its value,
+                    // unless it is defined as 'bool' in which case there is no
+                    // value to seek in next arg
+                    if ((!isset($types[$str]) || (isset($types[$str]) && $types[$str] != 'bool')) &&
+                        count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
                         $v = $argv[$i + 1];
                         $i++;
                     } elseif (count($parts) == 2) {// Has a =, so pick the second piece
