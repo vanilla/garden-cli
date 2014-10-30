@@ -67,7 +67,7 @@ class Cli {
 
     /**
      * Breaks a cell into several lines according to a given width.
-     * 
+     *
      * @param string $text The text of the cell.
      * @param int $width The width of the cell.
      * @param bool $addSpaces Whether or not to right-pad the cell with spaces.
@@ -363,8 +363,11 @@ class Cli {
                     $parts = explode('=', $str);
                     $key = $parts[0];
 
-                    // Does not have an =, so choose the next arg as its value
-                    if (count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
+                    // Does not have an =, so choose the next arg as its value,
+                    // unless it is defined as 'boolean' in which case there is no
+                    // value to seek in next arg
+                    if ( (Cli::val($key, $types) != 'boolean') &&
+                        count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
                         $v = $argv[$i + 1];
                         $i++;
                     } elseif (count($parts) == 2) {// Has a =, so pick the second piece
