@@ -67,7 +67,7 @@ class Cli {
 
     /**
      * Breaks a cell into several lines according to a given width.
-     * 
+     *
      * @param string $text The text of the cell.
      * @param int $width The width of the cell.
      * @param bool $addSpaces Whether or not to right-pad the cell with spaces.
@@ -686,6 +686,16 @@ class Cli {
     }
 
     /**
+     * Bold some text.
+     *
+     * @param string $text The text to format.
+     * @return string Returns the text surrounded by formatting commands.
+     */
+    public static function boldText($text) {
+        return "\033[1m{$text}\033[0m";
+    }
+
+    /**
      * Make some text red.
      *
      * @param string $text The text to format.
@@ -693,6 +703,16 @@ class Cli {
      */
     public function red($text) {
         return $this->formatString($text, ["\033[1;31m", "\033[0m"]);
+    }
+
+    /**
+     * Make some text red.
+     *
+     * @param string $text The text to format.
+     * @return string Returns  text surrounded by formatting commands.
+     */
+    public static function redText($text) {
+        return "\033[1;31m{$text}\033[0m";
     }
 
     /**
@@ -706,6 +726,16 @@ class Cli {
     }
 
     /**
+     * Make some text green.
+     *
+     * @param string $text The text to format.
+     * @return string Returns  text surrounded by formatting commands.
+     */
+    public static function greenText($text) {
+        return "\033[1;32m{$text}\033[0m";
+    }
+
+    /**
      * Make some text blue.
      *
      * @param string $text The text to format.
@@ -716,6 +746,16 @@ class Cli {
     }
 
     /**
+     * Make some text blue.
+     *
+     * @param string $text The text to format.
+     * @return string Returns  text surrounded by formatting commands.
+     */
+    public static function blueText($text) {
+        return "\033[1;34m{$text}\033[0m";
+    }
+
+    /**
      * Make some text purple.
      *
      * @param string $text The text to format.
@@ -723,6 +763,16 @@ class Cli {
      */
     public function purple($text) {
         return $this->formatString($text, ["\033[0;35m", "\033[0m"]);
+    }
+
+    /**
+     * Make some text purple.
+     *
+     * @param string $text The text to format.
+     * @return string Returns  text surrounded by formatting commands.
+     */
+    public static function purpleText($text) {
+        return "\033[0;35m{$text}\033[0m";
     }
 
     /**
@@ -737,6 +787,18 @@ class Cli {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
             return $text;
+        }
+    }
+
+    /**
+     * Sleep for a number of seconds, echoing out a dot on each second.
+     *
+     * @param int $seconds The number of seconds to sleep.
+     */
+    public static function sleep($seconds) {
+        for ($i = 0; $i < $seconds; $i++) {
+            sleep(1);
+            echo '.';
         }
     }
 
