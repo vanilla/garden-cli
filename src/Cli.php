@@ -363,10 +363,24 @@ class Cli {
                     $parts = explode('=', $str);
                     $key = $parts[0];
 
-                    // Does not have an =, so choose the next arg as its value
+                    // Does not have an =, so choose the next arg as its value,
+                    // unless it is defined as 'boolean' in which case there is no
+                    // value to seek in next arg
                     if (count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
                         $v = $argv[$i + 1];
-                        $i++;
+                        if(Cli::val($key, $types) == 'boolean') {
+                            if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
+                              // The next arg looks like a boolean to me.
+                              $i++;
+                            }
+                            else {
+                              // Next arg is not a boolean: set the flag on, and use next arg in its own iteration
+                              $v = true;
+                            }
+                        }
+                        else {
+                            $i++;
+                        }
                     } elseif (count($parts) == 2) {// Has a =, so pick the second piece
                         $v = $parts[1];
                     } else {
