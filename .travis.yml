@@ -24,7 +24,7 @@ after_script:
 notifications:
     hipchat:
         rooms:
-            secure: INzlQJ8pzRWZzBvotDzhtoM+ePP0KcmCUfMjoPBgeY7i2fHwEaL+k31U6iKjP54lX3qMFLpY3F99/E4Ucj3OsRH+3RFxcxCaPZhuMRwv5X2PcQQjPKXV1uxwUpmkkIpeKADMCxUxsz8Pt67PGnyTYVw5jPMgdvxcVZ+Qp+fY3CA=
+            secure: nsgPkFc5PvdyGOYpH2MkZCrmIw3OnfjldV+wAskqvhTQt726OjlF3aeeu1zVpkEYy0GaWbASdz7QffzMTwdoSdyC0VfG+PcJN7MbthGn+7s2eSo87v23MdxmZO1SH4LpDZU0w0hvVIn5BN9WajJC6fFbEqXT555vUoMN/ATu1+g=
         template:
             - >
                 Build <a href="%{build_url}">#%{build_number}</a>
@@ -33,4 +33,4 @@ notifications:
                 by %{author}: %{message}
         format: html
     slack:
-        secure: ynpl6cvDaoB1jWNtT6buzX/TJNSVomV6uqVV8iEKj0EwRD4eueDy/MyiGDifg4qpWtlEPuXPVdBQMi4jc3JrJP81VumrPv5QCAf3Z3Yl2UhC8LGWJndwj1tWQwXzjAzZExA+6/wScNFDU7VEHkKxbzbkCLO5fh5WL5tFeSUPx9Q=
+        secure: "EMwrufwlxpr5UqV93dJr55ngTD415lZGXx3J3PP6CJKLasGHea7ZnYX2JN5TRTrkT3C+eDFiiQdoz2u9eQU8BuqrUNQdAphMUhnWwjQqddudEvSiwH6GmwOG9Bc/m0mMUfK3/qCA+2wpDfHHsdaZmSeylfKClHpSwVgjYxOB7xA="
