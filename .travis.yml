@@ -20,3 +20,17 @@ script: phpunit -c phpunit.xml.dist --coverage-clover=coverage.clover
 after_script:
     - wget https://scrutinizer-ci.com/ocular.phar
     - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+
+notifications:
+    hipchat:
+        rooms:
+            secure: INzlQJ8pzRWZzBvotDzhtoM+ePP0KcmCUfMjoPBgeY7i2fHwEaL+k31U6iKjP54lX3qMFLpY3F99/E4Ucj3OsRH+3RFxcxCaPZhuMRwv5X2PcQQjPKXV1uxwUpmkkIpeKADMCxUxsz8Pt67PGnyTYVw5jPMgdvxcVZ+Qp+fY3CA=
+        template:
+            - >
+                Build <a href="%{build_url}">#%{build_number}</a>
+                (<a href="%{compare_url}">%{commit}</a>)
+                of <a href="https://github.com/%{repository}/tree/%{branch}">%{repository}@%{branch}</a>
+                by %{author}: %{message}
+        format: html
+    slack:
+        secure: ynpl6cvDaoB1jWNtT6buzX/TJNSVomV6uqVV8iEKj0EwRD4eueDy/MyiGDifg4qpWtlEPuXPVdBQMi4jc3JrJP81VumrPv5QCAf3Z3Yl2UhC8LGWJndwj1tWQwXzjAzZExA+6/wScNFDU7VEHkKxbzbkCLO5fh5WL5tFeSUPx9Q=
