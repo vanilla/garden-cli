@@ -40,7 +40,7 @@ class CliTest extends PHPUnit_Framework_TestCase {
     public function testMissingOpt() {
         $cli = $this->getBasicCli();
 
-        $parsed = $cli->parse(['script', '-e'], false);
+        $cli->parse(['script', '-e'], false);
     }
 
     /**
@@ -54,7 +54,7 @@ class CliTest extends PHPUnit_Framework_TestCase {
         $this->setExpectedException('\Exception', $message, null);
 
         $cli = $this->getBasicCli();
-        $parsed = $cli->parse($argv, false);
+        $cli->parse($argv, false);
     }
 
     /**
@@ -75,7 +75,7 @@ EOT;
 
         $this->setExpectedException('\Exception', $expectedHelp);
 
-        $parsed = $cli->parse(['script', '--help'], false);
+        $cli->parse(['script', '--help'], false);
     }
 
     /**

@@ -22,7 +22,7 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
         $argv = ['dbdump.php', '--help'];
 
         // Parse and return cli args.
-        $args = $cli->parse($argv, false);
+        $cli->parse($argv, false);
     }
 
     /**
@@ -34,7 +34,7 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
         $cli = $this->getBasicCli();
         $argv = ['dbdump.php', '-P', 'foo'];
 
-        $args = $cli->parse($argv, false);
+        $cli->parse($argv, false);
     }
 
     /**
@@ -65,7 +65,7 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
     public function testCommandsUsage() {
         $cli = $this->getCommandCli();
 
-        $args = $cli->parse(['nit.php', '--help'], false);
+        $cli->parse(['nit.php', '--help'], false);
     }
 
     /**
@@ -76,7 +76,7 @@ class ReadmeTest extends PHPUnit_Framework_TestCase {
     public function testCommandsHelp() {
         $cli = $this->getCommandCli();
 
-        $args = $cli->parse(['nit.php', 'push', '-?'], false);
+        $cli->parse(['nit.php', 'push', '-?'], false);
     }
 
     /**
