@@ -8,7 +8,7 @@ Garden CLI is a PHP command line interface library meant to provide a full set o
 Why use Garden CLI?
 -------------------
 
-Php's `getopt()` provides little functionality and is prone to failure where one typo in your command line options can wreck and entire command call. Garden CLI solves this problem and provides additional functionality.
+PHP's `getopt()` provides little functionality and is prone to failure where one typo in your command line options can wreck and entire command call. Garden CLI solves this problem and provides additional functionality.
 
  * Your commands get automatic support for `--help` to print out help for your commands.
  * Support a single command or multiple commands. (ex. git pull, git push, etc.)
@@ -18,7 +18,7 @@ Php's `getopt()` provides little functionality and is prone to failure where one
 Installation
 ------------
 
-*Garden CLI requres PHP 5.4 or higher*
+*Garden CLI requires PHP 5.4 or higher*
 
 Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md) compliant and can be installed using [composer](//getcomposer.org). Just add `vanilla/garden-cli` to your composer.json.
 
@@ -55,7 +55,7 @@ $cli->description('Dump some information from your database.')
 $args = $cli->parse($argv, true);
 ```
 
-This example returns a `Args` object or exits to show help or an error message. Here are some things to note about the example.
+This example returns an `Args` object or exits to show help or an error message. Here are some things to note about the example.
 
 * You can throw an exception instead of exiting by passing `false` as the second argument to `parse()`.
 * The `opt()` method has the following parameters: `name`, `description`, `required`, and `type`. Most parameters have sensible defaults.
