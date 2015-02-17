@@ -171,7 +171,7 @@ class Cli {
      * Determines whether a command has options.
      *
      * @param string $command The name of the command or an empty string for any command.
-     * @return Returns true if the command has options. False otherwise.
+     * @return bool Returns true if the command has options. False otherwise.
      */
     public function hasOptions($command = '') {
         if ($command) {
@@ -280,7 +280,7 @@ class Cli {
         } elseif ($args->getOpt('help') || $args->getOpt('?')) {
             // Write the help.
             $this->writeUsage($args);
-            $this->writeHelp($this->getSchema($args->getCommand()));
+            $this->writeHelp($args->getCommand());
             $result = null;
         } else {
             // Validate the arguments against the schema.
@@ -301,7 +301,7 @@ class Cli {
     /**
      * Parse an array of arguments.
      *
-     * If the first item in the array is in the form of a command (no preceeding - or --),
+     * If the first item in the array is in the form of a command (no preceding - or --),
      * 'command' is filled with its value.
      *
      * @param array $argv An array of arguments passed in a form compatible with the global `$argv` variable.
@@ -337,15 +337,15 @@ class Cli {
             // Get the data types for all of the commands.
             $schema = $this->getSchema($parsed->getCommand());
             $types = [];
-            foreach ($schema as $sname => $srow) {
-                if ($sname === Cli::META) {
+            foreach ($schema as $sName => $sRow) {
+                if ($sName === Cli::META) {
                     continue;
                 }
 
-                $type = Cli::val('type', $srow, 'string');
-                $types[$sname] = $type;
-                if (isset($srow['short'])) {
-                    $types[$srow['short']] = $type;
+                $type = Cli::val('type', $sRow, 'string');
+                $types[$sName] = $type;
+                if (isset($sRow['short'])) {
+                    $types[$sRow['short']] = $type;
                 }
             }
 
@@ -448,8 +448,8 @@ class Cli {
                                 $j += strlen($matches[1]);
                             } else {
                                 // Treat the option as either multiple flags.
-                                $optval = $parsed->getOpt($opt, 0);
-                                $parsed->setOpt($opt, $optval + 1);
+                                $optVal = $parsed->getOpt($opt, 0);
+                                $parsed->setOpt($opt, $optVal + 1);
                             }
                         } else {
                             // This should not happen unless we've put a bug in our code.
@@ -565,9 +565,9 @@ class Cli {
     }
 
     /**
-     * Gets the schema full cli schema.
+     * Gets the full cli schema.
      *
-     * @param string $command The name of the command.
+     * @param string $command The name of the command. This can be left blank if there is no command.
      * @return array Returns the schema that matches the command.
      */
     public function getSchema($command = '') {
@@ -675,8 +675,8 @@ class Cli {
      *
      * ```
      * [
-     *     type:name[:shortcode][?],
-     *     type:name[:shortcode][?],
+     *     type:name[:shortCode][?],
+     *     type:name[:shortCode][?],
      *     ...
      * ]
      * ```
@@ -832,7 +832,7 @@ class Cli {
                 if (is_bool($value)) {
                     $valid = true;
                 } elseif ($value === 0) {
-                    // 0 doesn't work well with in_array() so check it seperately.
+                    // 0 doesn't work well with in_array() so check it separately.
                     $value = false;
                     $valid = true;
                 } elseif (in_array($value, [null, '', '0', 'false', 'no', 'disabled'])) {
@@ -889,11 +889,21 @@ class Cli {
     }
 
     /**
+     * Writes the cli help.
+     *
+     * @param string $command The name of the command or blank if there is no command.
+     */
+    public function writeHelp($command = '') {
+        $schema = $this->getSchema($command);
+        $this->writeSchemaHelp($schema);
+    }
+
+    /**
      * Writes the help for a given schema.
      *
      * @param array $schema A command line scheme returned from {@see Cli::getSchema()}.
      */
-    protected function writeHelp($schema) {
+    protected function writeSchemaHelp($schema) {
         // Write the command description.
         $meta = Cli::val(Cli::META, $schema, []);
         $description = Cli::val('description', $meta);
