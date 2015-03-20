@@ -184,7 +184,12 @@ class Table {
                     $padding = $j === 0 ? $this->indent : $this->padding;
 
                     if (isset($lines[$i])) {
-                        $wrap = $row[$i][1];
+                        if(isset($row[$i])) {
+                            $wrap = $row[$i][1];
+                        } else {
+                            // if we're out of array, use the latest wraps
+                            $wrap = $row[count($row)-1][1];
+                        }
 
                         if ($this->format) {
                             echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
