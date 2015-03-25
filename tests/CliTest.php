@@ -167,9 +167,7 @@ EOT;
     protected function getLongDescCli() {
         $cli = new Cli();
 
-        $description = 'Very ';
-        for($a=0;$a<30;$a++) { $description .= 'long '; }
-        $description .= 'description';
+        $description = 'Very'.str_repeat(' long ', 30).' description';
 
         $cli->command('command-long')
             ->description($description)
