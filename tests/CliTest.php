@@ -79,6 +79,56 @@ EOT;
     }
 
     /**
+     * Test the help that gets printed with long command description
+     */
+    public function testLongHelp() {
+        $cli = $this->getLongDescCli();
+
+        $expectedHelp = <<<EOT
+usage: script <command> [<options>] [<args>]
+
+COMMANDS
+  command-long   Very long long long long long long long long long long long
+                 long long long long long long long long long long long long
+                 long long long long long long long description
+EOT;
+
+        $this->setExpectedException('\Exception', $expectedHelp);
+
+        $cli->parse(['script', '--help'], false);
+    }
+
+    /**
+     * Test the help that gets printed with long command, option and argument descriptions
+     */
+    public function testLongCommandHelp() {
+        $cli = $this->getLongDescCli();
+
+        $expectedHelp = <<<EOT
+usage: script command-long [<options>] [<args>]
+
+Very long long long long long long long long long long long long long long long
+long long long long long long long long long long long long long long long
+description
+
+OPTIONS
+  --help, -?   Display this help.
+  --opt-long   Very long long long long long long long long long long long long
+               long long long long long long long long long long long long long
+               long long long long long description
+
+ARGUMENTS
+  arg-long   Very long long long long long long long long long long long long
+             long long long long long long long long long long long long long
+             long long long long long description
+EOT;
+
+        $this->setExpectedException('\Exception', $expectedHelp);
+
+        $cli->parse(['script', 'command-long', '--help'], false);
+    }
+
+    /**
      * Test a command line scheme created with {@link Cli::schema()}.
      */
     public function testSchema() {
@@ -105,6 +155,26 @@ EOT;
             ->opt('enabled:e', 'Enabled or not.', false, 'boolean')
             ->opt('disabled:d', 'Disabled or not', false, 'bool')
             ->opt('count:c', 'The count of things.', false, 'integer');
+
+        return $cli;
+    }
+
+    /**
+     * Get a sample {@link Cli} object with long option, arg and command descriptions
+     *
+     * @return Cli Returns the sample {@link Cli} instance.
+     */
+    protected function getLongDescCli() {
+        $cli = new Cli();
+
+        $description = 'Very ';
+        for($a=0;$a<30;$a++) { $description .= 'long '; }
+        $description .= 'description';
+
+        $cli->command('command-long')
+            ->description($description)
+            ->opt('opt-long', $description, false, 'string')
+            ->arg('arg-long', $description, false, 'string');
 
         return $cli;
     }
