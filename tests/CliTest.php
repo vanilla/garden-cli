@@ -12,6 +12,27 @@ use Garden\Cli\Cli;
  */
 class CliTest extends PHPUnit_Framework_TestCase {
     /**
+     * Test a cli run with named arguments.
+     *
+     * @throws Exception
+     */
+    public function testArgNames() {
+        $cli = new Cli();
+        $cli->description('A cli with named args.')
+            ->arg('from', 'The path from.')
+            ->arg('to', 'The path to.');
+
+        $args = $cli->parse(['script', '/var/foo.txt', '/var/bar.txt'], false);
+
+        $this->assertSame('/var/foo.txt', $args->getArg('from'));
+        $this->assertSame('/var/bar.txt', $args->getArg('to'));
+
+        $this->assertSame('/var/foo.txt', $args->getArg(0));
+        $this->assertSame('/var/bar.txt', $args->getArg(1));
+    }
+
+
+    /**
      * Test a cli run with no commands.
      *
      * @param array $argv The args to test.

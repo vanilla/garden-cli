@@ -55,6 +55,21 @@ class Cli {
     }
 
     /**
+     * Add an argument to an {@link Args} object, checking for a correct name.
+     *
+     * @param array $schema The schema for the args.
+     * @param Args $args The args object to add the argument to.
+     * @param $arg The value of the argument.
+     */
+    private function addArg(array $schema, Args $args, $arg) {
+        $argsCount = count($args->getArgs());
+        $schemaArgs = isset($schema[self::META][self::ARGS]) ? array_keys($schema[self::META][self::ARGS]) : [];
+        $name = isset($schemaArgs[$argsCount]) ? $schemaArgs[$argsCount] : $argsCount;
+
+        $args->addArg($arg, $name);
+    }
+
+    /**
      * Construct and return a new {@link Cli} object.
      *
      * This method is mainly here so that an entire cli schema can be created and defined with fluent method calls.
@@ -331,11 +346,14 @@ class Cli {
                 if ($hasCommand) {
                     $parsed->setCommand($arg0);
                 } else {
-                    $parsed->addArg($arg0);
+                    $schema = $this->getSchema($parsed->getCommand());
+                    $this->addArg($schema, $parsed, $arg0);
                 }
             }
             // Get the data types for all of the commands.
-            $schema = $this->getSchema($parsed->getCommand());
+            if (!isset($schema)) {
+                $schema = $this->getSchema($parsed->getCommand());
+            }
             $types = [];
             foreach ($schema as $sName => $sRow) {
                 if ($sName === Cli::META) {
@@ -464,7 +482,7 @@ class Cli {
 
             // Grab the remaining args.
             for (; $i < count($argv); $i++) {
-                $parsed->addArg($argv[$i]);
+                $this->addArg($schema, $parsed, $argv[$i]);
             }
         }
 

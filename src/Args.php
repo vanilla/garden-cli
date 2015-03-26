@@ -34,10 +34,48 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Add an argument to the args array.
      *
      * @param string $value The argument to add.
+     * @param string? $index The index to add the arg at.
      * @return Args Returns $this for fluent calls.
      */
-    public function addArg($value) {
-        $this->args[] = $value;
+    public function addArg($value, $index = null) {
+        if ($index !== null) {
+            $this->args[$index] = $value;
+        } else {
+            $this->args[] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Get an argument at a given index.
+     *
+     * Arguments can be accessed by name or index.
+     *
+     * @param string|int $index
+     * @param mixed $default The default value to return if the argument is not found.
+     * @return mixed Returns the argument at {@link $index} or {@link $default}.
+     */
+    public function getArg($index, $default = null) {
+        if (array_key_exists($index, $this->args)) {
+            return $this->args[$index];
+        } elseif (is_int($index)) {
+            $values = array_values($this->args);
+            if (array_key_exists($index, $values)) {
+                return $values[$index];
+            }
+        }
+        return $default;
+    }
+
+    /**
+     * Set an argument in the args array.
+     *
+     * @param string|int $index The index to set at.
+     * @param mixed $value The value of the arg.
+     * @return Args $this Returns $this for fluent calls.
+     */
+    public function setArg($index, $value) {
+        $this->args[$index] = $value;
         return $this;
     }
 
