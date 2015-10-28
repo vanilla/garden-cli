@@ -53,6 +53,20 @@ class CliTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test a cli with different arg forms.
+     *
+     * @param array $argv The args to test.
+     * @dataProvider provideBasicArgForms
+     */
+    public function testArgForms(array $argv) {
+        $cli = $this->getBasicCli();
+
+        $parsed = $cli->parse($argv, false);
+
+        $this->assertSame('world', $parsed->getOpt('hello'));
+    }
+
+    /**
      * Test a missing option.
      *
      * @expectedException \Exception
@@ -210,6 +224,22 @@ EOT;
             [['script', '-hworld', '-e1', '-d0', '-ccc']],
             [['script', '--hello', 'world', '-ed0c2c']],
             [['script', 'filename', '--hello', 'world', '-c3', '--no-disabled', '-e']],
+        ];
+        return $result;
+    }
+
+    /**
+     * Provide some args in different forms to make sure they all procvide the same opt value.
+     *
+     * @return array Returns args for {@link CliTest::testArgForms()}.
+     */
+    public function provideBasicArgForms() {
+        $result = [
+            'long =' => [['script', '--hello=world']],
+            'long space' => [['script', '--hello', 'world']],
+            'short' => [['script', '-hworld']],
+            'short = ' => [['script', '-h=world']],
+            'short space' => [['script', '-h', 'world']],
         ];
         return $result;
     }

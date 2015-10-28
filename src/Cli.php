@@ -386,17 +386,15 @@ class Cli {
                     // value to seek in next arg
                     if (count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
                         $v = $argv[$i + 1];
-                        if(Cli::val($key, $types) == 'boolean') {
+                        if (Cli::val($key, $types) == 'boolean') {
                             if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
-                              // The next arg looks like a boolean to me.
-                              $i++;
+                                // The next arg looks like a boolean to me.
+                                $i++;
+                            } else {
+                                // Next arg is not a boolean: set the flag on, and use next arg in its own iteration
+                                $v = true;
                             }
-                            else {
-                              // Next arg is not a boolean: set the flag on, and use next arg in its own iteration
-                              $v = true;
-                            }
-                        }
-                        else {
+                        } else {
                             $i++;
                         }
                     } elseif (count($parts) == 2) {// Has a =, so pick the second piece
@@ -417,7 +415,7 @@ class Cli {
                         $nextArg = $argv[$i + 1];
 
                         if ($type === 'boolean') {
-                            if (in_array($nextArg, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
+                            if ($this->isStrictBoolean($nextArg)) {
                                 // The next arg looks like a boolean to me.
                                 $v = $nextArg;
                                 $i++;
@@ -445,6 +443,16 @@ class Cli {
                         $opt = $str[$j];
                         $remaining = substr($str, $j + 1);
                         $type = Cli::val($opt, $types, 'boolean');
+
+                        // Check for an explicit equals sign.
+                        if (substr($remaining, 0, 1) === '=') {
+                            $remaining = substr($remaining, 1);
+                            if ($type === 'boolean') {
+                                // Bypass the boolean flag checking below.
+                                $parsed->setOpt($opt, $remaining);
+                                break;
+                            }
+                        }
 
                         if ($type === 'boolean') {
                             if (preg_match('`^([01])`', $remaining, $matches)) {
@@ -684,6 +692,31 @@ class Cli {
         return $this;
     }
 
+
+    /**
+     * Determine weather or not a value can be represented as a boolean.
+     *
+     * This method is sort of like {@link Cli::validateType()} but requires a more strict check of a boolean value.
+     *
+     * @param mixed $value The value to test.
+     * @return bool
+     */
+    protected function isStrictBoolean($value, &$boolValue = null) {
+        if ($value === true || $value === false) {
+            $boolValue = $value;
+            return true;
+        } elseif (in_array($value, ['0', 'false', 'off', 'no'])) {
+            $boolValue = false;
+            return true;
+        } elseif (in_array($value, ['1', 'true', 'on', 'yes'])) {
+            $boolValue = true;
+            return true;
+        } else {
+            $boolValue = null;
+            return false;
+        }
+    }
+
     /**
      * Set the schema for a command.
      *
@@ -835,7 +868,7 @@ class Cli {
     }
 
     /**
-     * Validate the type of a value an coerce it into the proper type.
+     * Validate the type of a value and coerce it into the proper type.
      *
      * @param mixed &$value The value to validate.
      * @param string $type One of: bool, int, string.
