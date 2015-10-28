@@ -67,6 +67,24 @@ class CliTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test a cli against various ways of providing boolean arguments.
+     *
+     * @param array $argv The args to test.
+     * @param array $expectedOpts The expected opt output.
+     * @dataProvider provideBoolArgForms
+     */
+    public function testBoolArgForms(array $argv, array $expectedOpts) {
+        $cli = new Cli();
+        $cli->opt('boola:a', 'A bool.', false, 'boolean')
+            ->opt('boolb:b', 'Another bool.', false, 'boolean')
+            ->opt('str:s', 'A string', false);
+
+        $parsed = $cli->parse($argv, false);
+
+        $this->assertSame($expectedOpts, $parsed->getOpts());
+    }
+
+    /**
      * Test a missing option.
      *
      * @expectedException \Exception
@@ -240,6 +258,22 @@ EOT;
             'short' => [['script', '-hworld']],
             'short = ' => [['script', '-h=world']],
             'short space' => [['script', '-h', 'world']],
+        ];
+        return $result;
+    }
+
+    /**
+     * Provide data for {@link CliTest::testBoolArgForms()}.
+     *
+     * @return array Returns an array in the form `[$argv, $expectedOpts]`.
+     */
+    public function provideBoolArgForms() {
+        $result = [
+            'plain flags' => [['script', '-ab'], ['boola' => true, 'boolb' => true]],
+            'flags and string' => [['script', '-abswut'], ['boola' => true, 'boolb' => true, 'str' => 'wut']],
+            'flag value and string' => [['script', '-a1b0s=wut'], ['boola' => true, 'boolb' => false, 'str' => 'wut']],
+            'flag followed by opt' => [['script', '-a', '-swut'], ['boola' => true, 'str' => 'wut']],
+            '--no prefix' => [['script', '--no-boola', '--no-boolb'], ['boola' => false, 'boolb' => false]]
         ];
         return $result;
     }
