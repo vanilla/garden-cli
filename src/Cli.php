@@ -562,8 +562,6 @@ class Cli {
             } elseif ($definition['required']) {
                 // The key was not supplied. Is it required?
                 $missing[$key] = true;
-            } elseif ($type === 'boolean') {
-                // The value os not required, but can maybe be coerced into a type.
                 $valid->setOpt($key, false);
             }
         }
