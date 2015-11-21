@@ -34,7 +34,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Add an argument to the args array.
      *
      * @param string $value The argument to add.
-     * @param string? $index The index to add the arg at.
+     * @param string|null $index The index to add the arg at.
      * @return Args Returns $this for fluent calls.
      */
     public function addArg($value, $index = null) {
