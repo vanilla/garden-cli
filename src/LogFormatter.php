@@ -126,7 +126,7 @@ class LogFormatter {
 
         $pastMaxLevel = $this->currentLevel() > $this->getMaxLevel();
         if ($pastMaxLevel) {
-            if ($force && isset($taskStr)) {
+            if ($force && isset($taskStr) && isset($taskOutput)) {
                 if (!$taskOutput) {
                     // Output the full task string if it hasn't already been output.
                     $str = $taskStr.' '.$str;
@@ -158,10 +158,11 @@ class LogFormatter {
      * When formatting is turned on, success messages are output in green.
      *
      * @param string $str The message to output.
+     * @param bool $force Whether or not to force a message past the max level to be output.
      * @return LogFormatter Returns `$this` for fluent calls.
      */
-    public function endSuccess($str) {
-        return $this->end($this->formatString($str, ["\033[1;32m", "\033[0m"]));
+    public function endSuccess($str, $force = false) {
+        return $this->end($this->formatString($str, ["\033[1;32m", "\033[0m"]), $force);
     }
 
     /**
@@ -184,18 +185,19 @@ class LogFormatter {
      * response code to this message.
      *
      * @param int $httpStatus The HTTP status code that represents the completion of a task.
+     * @param bool $force Whether or not to force message output.
      * @return $this Returns `$this` for fluent calls.
      * @see LogFormatter::endSuccess(), LogFormatter::endError().
      */
-    public function endHttpStatus($httpStatus) {
+    public function endHttpStatus($httpStatus, $force = false) {
         $statusStr = sprintf('%03d', $httpStatus);
 
         if ($httpStatus == 0 || $httpStatus >= 400) {
             $this->endError($statusStr);
-        } elseif ($httpStatus <= 200) {
-            $this->endSuccess($statusStr);
+        } elseif ($httpStatus >= 200 && $httpStatus < 300) {
+            $this->endSuccess($statusStr, $force);
         } else {
-            $this->message($statusStr);
+            $this->end($statusStr, $force);
         }
 
         return $this;
@@ -285,6 +287,13 @@ class LogFormatter {
         return $result;
     }
 
+    /**
+     * Create a message string.
+     *
+     * @param string $str The message to output.
+     * @param bool $eol Whether or not to add an EOL.
+     * @return string Returns the message.
+     */
     protected function messageStr($str, $eol = true) {
         return $this->fullMessageStr(time(), $str, null, $eol);
     }
@@ -304,6 +313,14 @@ class LogFormatter {
         }
     }
 
+    /**
+     * Guess whether or not to format the output with colors.
+     *
+     * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
+     * machines do not support terminal colors so formatting should be suppressed on them too.
+     *
+     * @return bool Returns **true** if the output can be formatter or **false** otherwise.
+     */
     public function guessFormatOutput() {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
             return false;
