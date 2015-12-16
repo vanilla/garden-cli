@@ -325,8 +325,11 @@ class Cli {
      * @throws \Exception Throws an exception when {@link $exit} is false and the help or errors need to be displayed.
      */
     public function parse($argv = null, $exit = true) {
+        $formatOutputBak = $this->formatOutput;
         // Only format commands if we are exiting.
-        $this->formatOutput = $exit;
+        if (!$exit) {
+            $this->formatOutput = false;
+        }
         if (!$exit) {
             ob_start();
         }
@@ -352,6 +355,7 @@ class Cli {
             $result = $validArgs;
         }
         if (!$exit) {
+            $this->formatOutput = $formatOutputBak;
             $output = ob_get_clean();
             if ($result === null) {
                 throw new \Exception(trim($output));
