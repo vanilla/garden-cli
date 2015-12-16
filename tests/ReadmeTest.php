@@ -4,13 +4,14 @@
  * @copyright 2009-2014 Vanilla Forums Inc.
  * @license MIT
  */
+namespace Garden\Cli\Tests;
 
 use Garden\Cli\Cli;
 
 /**
  * Provides tests for the sample code in README.md.
  */
-class ReadmeTest extends PHPUnit_Framework_TestCase {
+class ReadmeTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * Test the basic example help.

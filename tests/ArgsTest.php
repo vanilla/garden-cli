@@ -4,6 +4,7 @@
  * @copyright 2009-2014 Vanilla Forums Inc.
  * @license MIT
  */
+namespace Garden\Cli\Tests;
 
 use Garden\Cli\Args;
 

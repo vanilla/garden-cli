@@ -4,13 +4,14 @@
  * @copyright 2009-2014 Vanilla Forums Inc.
  * @license MIT
  */
+namespace Garden\Cli\Tests;
 
 use Garden\Cli\Cli;
 
 /**
  * Unit tests for the various command line interface classes.
  */
-class CliTest extends PHPUnit_Framework_TestCase {
+class CliTest extends \PHPUnit_Framework_TestCase {
     /**
      * Test a cli run with named arguments.
      *
