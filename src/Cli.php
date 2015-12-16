@@ -53,7 +53,7 @@ class Cli {
         // Select the current schema.
         $this->currentSchema =& $this->commandSchemas['*'];
 
-        $this->formatOutput = $this->guessFormatOutput();
+        $this->formatOutput = static::guessFormatOutput();
     }
 
     /**
@@ -910,7 +910,7 @@ class Cli {
      *
      * @return bool Returns **true** if the output can be formatter or **false** otherwise.
      */
-    public function guessFormatOutput() {
+    public static function guessFormatOutput() {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
             return false;
         } elseif (function_exists('posix_isatty')) {
@@ -1042,7 +1042,7 @@ class Cli {
         ksort($schema);
 
         $table = new Table();
-        $table->format = $this->formatOutput;
+        $table->setFormatOutput($this->formatOutput);
 
         foreach ($schema as $key => $definition) {
             $table->row();
@@ -1070,7 +1070,7 @@ class Cli {
             echo Cli::bold('ARGUMENTS').PHP_EOL;
 
             $table = new Table();
-            $table->format = $this->formatOutput;
+            $table->setFormatOutput($this->formatOutput);
 
             foreach ($args as $argName => $arg) {
                 $table->row();

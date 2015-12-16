@@ -15,7 +15,7 @@ class Table {
     /**
      * @var bool Whether or not to format the console commands.
      */
-    public $format = true;
+    protected $formatOutput = true;
 
     /**
      * @var array An array of the row data.
@@ -49,7 +49,55 @@ class Table {
      * Initialize an instance of the {@link Table} class.
      */
     public function __construct() {
+        $this->formatOutput = Cli::guessFormatOutput();
         $this->reset();
+    }
+
+    /**
+     * Backwards compatibility for the **format** property.
+     *
+     * @param string $name Must be **format**.
+     * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
+     */
+    public function __get($name) {
+        if ($name === 'format') {
+            trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
+            return $this->getFormatOutput();
+        }
+        return null;
+    }
+
+    /**
+     * Backwards compatibility for the **format** property.
+     *
+     * @param string $name Must be **format**.
+     * @param bool $value One of **true** or **false**.
+     */
+    public function __set($name, $value) {
+        if ($name === 'format') {
+            trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
+            $this->setFormatOutput($value);
+        }
+    }
+
+    /**
+     * Get whether or not output should be formatted.
+     *
+     * @return boolean Returns **true** if output should be formatted or **false** otherwise.
+     */
+    public function getFormatOutput() {
+        return $this->formatOutput;
+    }
+
+    /**
+     * Set whether or not output should be formatted.
+     *
+     * @param boolean $formatOutput Whether or not to format output.
+     * @return LogFormatter Returns `$this` for fluent calls.
+     */
+    public function setFormatOutput($formatOutput) {
+        $this->formatOutput = $formatOutput;
+        return $this;
     }
 
     /**
@@ -191,7 +239,7 @@ class Table {
                             $wrap = $row[count($row)-1][1];
                         }
 
-                        if ($this->format) {
+                        if ($this->formatOutput) {
                             echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
                         } else {
                             echo str_repeat(' ', $padding).$lines[$i];
