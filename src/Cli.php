@@ -29,7 +29,7 @@ class Cli {
     /**
      * @var bool Whether or not to format output with console codes.
      */
-    public $format = true;
+    protected $formatOutput;
 
     protected static $types = [
 //        '=' => 'base64',
@@ -52,6 +52,55 @@ class Cli {
 
         // Select the current schema.
         $this->currentSchema =& $this->commandSchemas['*'];
+
+        $this->formatOutput = $this->guessFormatOutput();
+    }
+
+    /**
+     * Backwards compatibility for the **format** property.
+     *
+     * @param string $name Must be **format**.
+     * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
+     */
+    public function __get($name) {
+        if ($name === 'format') {
+            trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
+            return $this->getFormatOutput();
+        }
+        return null;
+    }
+
+    /**
+     * Backwards compatibility for the **format** property.
+     *
+     * @param string $name Must be **format**.
+     * @param bool $value One of **true** or **false**.
+     */
+    public function __set($name, $value) {
+        if ($name === 'format') {
+            trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
+            $this->setFormatOutput($value);
+        }
+    }
+
+    /**
+     * Get whether or not output should be formatted.
+     *
+     * @return boolean Returns **true** if output should be formatted or **false** otherwise.
+     */
+    public function getFormatOutput() {
+        return $this->formatOutput;
+    }
+
+    /**
+     * Set whether or not output should be formatted.
+     *
+     * @param boolean $formatOutput Whether or not to format output.
+     * @return LogFormatter Returns `$this` for fluent calls.
+     */
+    public function setFormatOutput($formatOutput) {
+        $this->formatOutput = $formatOutput;
+        return $this;
     }
 
     /**
@@ -277,7 +326,7 @@ class Cli {
      */
     public function parse($argv = null, $exit = true) {
         // Only format commands if we are exiting.
-        $this->format = $exit;
+        $this->formatOutput = $exit;
         if (!$exit) {
             ob_start();
         }
@@ -846,10 +895,28 @@ class Cli {
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
     protected function formatString($text, array $wrap) {
-        if ($this->format) {
+        if ($this->formatOutput) {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
             return $text;
+        }
+    }
+
+    /**
+     * Guess whether or not to format the output with colors.
+     *
+     * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
+     * machines do not support terminal colors so formatting should be suppressed on them too.
+     *
+     * @return bool Returns **true** if the output can be formatter or **false** otherwise.
+     */
+    public function guessFormatOutput() {
+        if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
+            return false;
+        } elseif (function_exists('posix_isatty')) {
+            return posix_isatty(STDOUT);
+        } else {
+            return true;
         }
     }
 
@@ -975,7 +1042,7 @@ class Cli {
         ksort($schema);
 
         $table = new Table();
-        $table->format = $this->format;
+        $table->format = $this->formatOutput;
 
         foreach ($schema as $key => $definition) {
             $table->row();
@@ -1003,7 +1070,7 @@ class Cli {
             echo Cli::bold('ARGUMENTS').PHP_EOL;
 
             $table = new Table();
-            $table->format = $this->format;
+            $table->format = $this->formatOutput;
 
             foreach ($args as $argName => $arg) {
                 $table->row();

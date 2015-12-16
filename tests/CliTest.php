@@ -248,7 +248,7 @@ EOT;
     }
 
     /**
-     * Provide some args in different forms to make sure they all procvide the same opt value.
+     * Provide some args in different forms to make sure they all provide the same opt value.
      *
      * @return array Returns args for {@link CliTest::testArgForms()}.
      */

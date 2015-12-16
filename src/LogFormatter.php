@@ -243,18 +243,18 @@ class LogFormatter {
     }
 
     /**
-     * Get the format.
+     * Get whether or not output should be formatted.
      *
-     * @return boolean Returns the format.
+     * @return boolean Returns **true** if output should be formatted or **false** otherwise.
      */
     public function getFormatOutput() {
         return $this->formatOutput;
     }
 
     /**
-     * Set the format.
+     * Set whether or not output should be formatted.
      *
-     * @param boolean $formatOutput
+     * @param boolean $formatOutput Whether or not to format output.
      * @return LogFormatter Returns `$this` for fluent calls.
      */
     public function setFormatOutput($formatOutput) {
