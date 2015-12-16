@@ -14,7 +14,7 @@ class LogFormatter {
     /**
      * @var string The date format as passed to {@link strftime()}.
      */
-    protected $dateFormat = '[%F %R]';
+    protected $dateFormat = '[%F %T]';
 
     /**
      * @var string The end of line string to use.
