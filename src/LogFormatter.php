@@ -37,6 +37,11 @@ class LogFormatter {
     protected $maxLevel = 2;
 
     /**
+     * @var bool Whether or not to show durations for tasks.
+     */
+    protected $showDurations = true;
+
+    /**
      * @var array An array of currently running tasks.
      */
     protected $taskStack = [];
@@ -114,7 +119,7 @@ class LogFormatter {
      * @param bool $force Whether or not to always output the message even if the task is past the max depth.
      * @return $this Returns `$this` for fluent calls.
      */
-    public function end($str, $force = false) {
+    public function end($str = '', $force = false) {
         // Find the task we are finishing.
         $task = array_pop($this->taskStack);
         if ($task !== null) {
@@ -129,7 +134,7 @@ class LogFormatter {
             if ($force && isset($taskStr) && isset($taskOutput)) {
                 if (!$taskOutput) {
                     // Output the full task string if it hasn't already been output.
-                    $str = $taskStr.' '.$str;
+                    $str = trim($taskStr.' '.$str);
                 }
                 if (!$this->isNewline) {
                     echo $this->getEol();
@@ -138,6 +143,10 @@ class LogFormatter {
             } else {
                 return $this;
             }
+        }
+
+        if (!empty($timespan) && $this->getShowDurations()) {
+            $str = trim($str.' '.$this->formatString($this->formatDuration($timespan), ["\033[1;34m", "\033[0m"]));
         }
 
         if ($this->isNewline) {
@@ -201,6 +210,40 @@ class LogFormatter {
         }
 
         return $this;
+    }
+
+    /**
+     * Format a time duration.
+     *
+     * @param float $duration The duration in seconds and fractions of a second.
+     * @return string Returns the duration formatted for humans.
+     * @see microtime()
+     */
+    public function formatDuration($duration) {
+        $suffixes = [0.000001 => 'μs', 1 => 'ms', 60 => 's', 3600 => 'm'];
+
+        if ($duration < 1.0e-3) {
+            $n = number_format($duration * 1.0e6, 0);
+            $sx = 'μs';
+        } elseif ($duration < 1) {
+            $n = number_format($duration * 1000, 0);
+            $sx = 'ms';
+        } elseif ($duration < 60) {
+            $n = number_format($duration, 2);
+            $sx = 's';
+        } elseif ($duration < 3600) {
+            $n = number_format($duration / 60, 1);
+            $sx = 'm';
+        } elseif ($duration < 86400) {
+            $n = number_format($duration / 3600, 1);
+            $sx = 'h';
+        } else {
+            $n = number_format($duration / 86400, 1);
+            $sx = 'd';
+        }
+
+        $result = rtrim($n, '0.').$sx;
+        return $result;
     }
 
     /**
@@ -302,7 +345,7 @@ class LogFormatter {
      * Format some text for the console.
      *
      * @param string $text The text to format.
-     * @param array $wrap The format to wrap in the form ['before', 'after'].
+     * @param string[] $wrap The format to wrap in the form ['before', 'after'].
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
     protected function formatString($text, array $wrap) {
@@ -374,6 +417,26 @@ class LogFormatter {
      */
     public function setEol($eol) {
         $this->eol = $eol;
+        return $this;
+    }
+
+    /**
+     * Get the showDurations.
+     *
+     * @return boolean Returns the showDurations.
+     */
+    public function getShowDurations() {
+        return $this->showDurations;
+    }
+
+    /**
+     * Set the showDurations.
+     *
+     * @param boolean $showDurations
+     * @return LogFormatter Returns `$this` for fluent calls.
+     */
+    public function setShowDurations($showDurations) {
+        $this->showDurations = $showDurations;
         return $this;
     }
 }
