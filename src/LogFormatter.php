@@ -45,7 +45,7 @@ class LogFormatter {
      * LogFormatter constructor.
      */
     public function __construct() {
-        $this->formatOutput = $this->guessFormatOutput();
+        $this->formatOutput = Cli::guessFormatOutput();
     }
 
     /**
@@ -243,18 +243,18 @@ class LogFormatter {
     }
 
     /**
-     * Get the format.
+     * Get whether or not output should be formatted.
      *
-     * @return boolean Returns the format.
+     * @return boolean Returns **true** if output should be formatted or **false** otherwise.
      */
     public function getFormatOutput() {
         return $this->formatOutput;
     }
 
     /**
-     * Set the format.
+     * Set whether or not output should be formatted.
      *
-     * @param boolean $formatOutput
+     * @param boolean $formatOutput Whether or not to format output.
      * @return LogFormatter Returns `$this` for fluent calls.
      */
     public function setFormatOutput($formatOutput) {
@@ -310,24 +310,6 @@ class LogFormatter {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
             return $text;
-        }
-    }
-
-    /**
-     * Guess whether or not to format the output with colors.
-     *
-     * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
-     * machines do not support terminal colors so formatting should be suppressed on them too.
-     *
-     * @return bool Returns **true** if the output can be formatter or **false** otherwise.
-     */
-    public function guessFormatOutput() {
-        if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-            return false;
-        } elseif (function_exists('posix_isatty')) {
-            return posix_isatty(STDOUT);
-        } else {
-            return true;
         }
     }
 
