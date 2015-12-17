@@ -8,12 +8,13 @@
 namespace Garden\Cli\Tests;
 
 
+use Garden\Cli\Cli;
 use Garden\Cli\LogFormatter;
 
 /**
  * Includes tests for the {@link \Garden\Cli\LogFormatter} class.
  */
-class LogFormatterTest extends \PHPUnit_Framework_TestCase {
+class LogFormatterTest extends CliTestCase {
 
     /**
      * Create a new {@link LogFormatter} object with settings appropriate for most tests.
@@ -194,5 +195,61 @@ EOT
 
 EOT
         );
+    }
+
+    /**
+     * Test the lower bounds of the various duration types.
+     */
+    public function testFormatDurationMinimums() {
+        $log = new LogFormatter();
+        $this->assertSame('1μs', $log->formatDuration(1e-6));
+        $this->assertSame('1ms', $log->formatDuration(1e-3));
+        $this->assertSame('1s', $log->formatDuration(1));
+        $this->assertSame('1m', $log->formatDuration(60));
+        $this->assertSame('1h', $log->formatDuration(strtotime('1 hour', 0)));
+        $this->assertSame('1d', $log->formatDuration(strtotime('1 day', 0)));
+    }
+
+    /**
+     * The {@link LogFormatter} should not take a negative max level.
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testBadMaxLevel() {
+        $log = new LogFormatter();
+        $log->setMaxLevel(-1);
+    }
+
+    /**
+     * Test calling {@LogFormatter::end()} too many times.
+     */
+    public function testTooManyEnds() {
+        $log = $this->createTestLogger();
+
+        $log->begin('Begin')
+            ->end('done')
+            ->end('done 2');
+
+        $this->assertErrorNumber(E_USER_NOTICE);
+        $this->expectOutputString(<<<EOT
+[d] Begin done
+[d] done 2
+
+EOT
+        );
+    }
+
+    /**
+     * Test some basic color formatting.
+     */
+    public function testColors() {
+        $log = $this->createTestLogger();
+        $log->setFormatOutput(true)
+            ->setDateFormat('');
+
+        $log->success('y')
+            ->error('n');
+
+        $this->expectOutputString(Cli::greenText('y')."\n".Cli::redText('n')."\n");
     }
 }

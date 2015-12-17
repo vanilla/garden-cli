@@ -11,13 +11,16 @@ use Garden\Cli\Args;
 /**
  * Tests for the {@link Args} class.
  */
-class ArgsTest extends \PHPUnit_Framework_TestCase {
+class ArgsTest extends CliTestCase {
 
     /**
      * Test basic get/set functionality.
      */
     public function testGetSet() {
         $args = new Args();
+
+        $args->setArg('key', 'value');
+        $this->assertSame('value', $args->getArg('key'));
 
         $args->setArgs(['foo']);
         $this->assertSame(['foo'], $args->getArgs());
@@ -46,6 +49,29 @@ class ArgsTest extends \PHPUnit_Framework_TestCase {
 
         unset($args['foo']);
         $this->assertNull($args['foo']);
+    }
+
+    /**
+     * Test {@link Args::addArg()} with a **null** index.
+     */
+    public function testAddArgNull() {
+        $args = new Args();
+
+        $args->addArg('foo');
+        $this->assertSame(['foo'], $args->getArgs());
+
+        $args->addArg('bar');
+        $this->assertSame(['foo', 'bar'], $args->getArgs());
+    }
+
+    public function testGetArg() {
+        $args = new Args();
+
+        $args->addArg('bar', 'foo');
+        $this->assertSame('bar', $args->getArg('foo'));
+        $this->assertSame('bar', $args->getArg(0));
+
+        $this->assertSame('default', $args->getArg('baz', 'default'));
     }
 
     /**

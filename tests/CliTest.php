@@ -11,7 +11,7 @@ use Garden\Cli\Cli;
 /**
  * Unit tests for the various command line interface classes.
  */
-class CliTest extends \PHPUnit_Framework_TestCase {
+class CliTest extends CliTestCase {
     /**
      * Test a cli run with named arguments.
      *
@@ -295,5 +295,23 @@ EOT;
         ];
 
         return $result;
+    }
+
+    /**
+     * Test that the backwards compatibility of the format property works.
+     */
+    public function testFormatCompat() {
+        $cli = new Cli();
+
+        $format = $cli->format;
+        $this->assertErrorNumber(E_USER_DEPRECATED);
+        $this->assertSame($cli->getFormatOutput(), $format);
+
+        $this->clearErrors();
+
+        $format2 = !$format;
+        $cli->format = $format2;
+        $this->assertErrorNumber(E_USER_DEPRECATED);
+        $this->assertSame($format2, $cli->getFormatOutput());
     }
 }
