@@ -96,7 +96,7 @@ class Cli {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return Cli Returns `$this` for fluent calls.
      */
     public function setFormatOutput($formatOutput) {
         $this->formatOutput = $formatOutput;
@@ -895,7 +895,7 @@ class Cli {
      * Format some text for the console.
      *
      * @param string $text The text to format.
-     * @param array $wrap The format to wrap in the form ['before', 'after'].
+     * @param string[] $wrap The format to wrap in the form ['before', 'after'].
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
     protected function formatString($text, array $wrap) {
