@@ -2,7 +2,7 @@
 /**
  * @author Todd Burry <todd@vanillaforums.com>
  * @copyright 2009-2015 Vanilla Forums Inc.
- * @license Proprietary
+ * @license MIT
  */
 
 namespace Garden\Cli\Tests;
@@ -26,7 +26,8 @@ class LogFormatterTest extends \PHPUnit_Framework_TestCase {
         $log->setDateFormat('[d]')
             ->setFormatOutput(false)
             ->setEol("\n")
-            ->setMaxLevel($maxLevel);
+            ->setMaxLevel($maxLevel)
+            ->setShowDurations(false);
         return $log;
     }
 
@@ -194,5 +195,18 @@ EOT
 
 EOT
         );
+    }
+
+    /**
+     * Test the lower bounds of the various duration types.
+     */
+    public function testFormatDurationMinimums() {
+        $log = new LogFormatter();
+        $this->assertSame('1μs', $log->formatDuration(1e-6));
+        $this->assertSame('1ms', $log->formatDuration(1e-3));
+        $this->assertSame('1s', $log->formatDuration(1));
+        $this->assertSame('1m', $log->formatDuration(60));
+        $this->assertSame('1h', $log->formatDuration(strtotime('1 hour', 0)));
+        $this->assertSame('1d', $log->formatDuration(strtotime('1 day', 0)));
     }
 }
