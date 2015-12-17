@@ -156,10 +156,54 @@ Calling a script that has commands with no options or just the `--help` option w
   pull   Pull data from a remote server.
 </pre>
 
-##Args and Opts
+Args and Opts
+-------------
 
 The `Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
 
 * Opts are passed by `--name` full name or `-s` short code. They are named and can have types.
 * Args are passed after the options as just strings separated by spaces.
 * When calling a script from the command line you can use `--` to separate opts from args if there is ambiguity.
+
+Formatting Output with the LogFormatter
+---------------------------------------
+
+The `LogFormatter` class helps you output task-based information to the console in a nice, compact style. It's good for
+things like install scripts, scripts that take a long time, or scripts you put into a cron job.
+
+When using the `LogFormatter` you want to think in terms of messages and tasks. A message is a single message to output
+to the user. A task has a begin and an end and can be nested as much as you want.
+
+By default, the `LogFormatter` will only output tasks two levels deep, but you can change that with
+`LogFormatter::setMaxLevel()`. Use this property to give your CLI scripts a quiet or verbose mode without littering your
+own code with if statements.
+
+The `LogFormatter` also has special methods for errors and success messages and adds a bit of color to the output to
+help them stand out at a glance. When you output an error message it will always display, even if it's deeply nested and
+would normally be hidden.
+
+###Example
+
+```php
+$log = new LogFormatter();
+
+$log->message('This is a message.')
+    ->error('This is an error.') // outputs in red
+    ->success('This is what success looks like.') // outputs in green
+
+    ->begin('Begin a task')
+    // code task code goes here...
+    ->end('done.')
+
+    ->begin('Make an API call')
+    ->endHttpStatus(200) // treated as error or success depending on code
+
+    ->begin('Multi-step task')
+    ->message('Step 1')
+    ->message('Step 2')
+    ->begin('Step 3')
+    ->message('Step 3.1') // steps will be hidden because they are level 3
+    ->message('Step 3.2')
+    ->end('done.')
+    ->end('done.');
+```

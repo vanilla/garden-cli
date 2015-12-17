@@ -2,7 +2,7 @@
 /**
  * @author Todd Burry <todd@vanillaforums.com>
  * @copyright 2009-2015 Vanilla Forums Inc.
- * @license Proprietary
+ * @license MIT
  */
 
 namespace Garden\Cli\Tests;
@@ -27,7 +27,8 @@ class LogFormatterTest extends CliTestCase {
         $log->setDateFormat('[d]')
             ->setFormatOutput(false)
             ->setEol("\n")
-            ->setMaxLevel($maxLevel);
+            ->setMaxLevel($maxLevel)
+            ->setShowDurations(false);
         return $log;
     }
 
