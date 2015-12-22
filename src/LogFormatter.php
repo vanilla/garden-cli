@@ -99,11 +99,11 @@ class LogFormatter {
 
         if ($output) {
             if (!$this->isNewline) {
-                echo $this->getEol();
+                $this->write($this->getEol());
                 $this->isNewline = true;
             }
 
-            echo $this->messageStr($str, false);
+            $this->write($this->messageStr($str, false));
             $this->isNewline = false;
         }
 
@@ -137,7 +137,7 @@ class LogFormatter {
                     $str = trim($taskStr.' '.$str);
                 }
                 if (!$this->isNewline) {
-                    echo $this->getEol();
+                    $this->write($this->getEol());
                     $this->isNewline = true;
                 }
             } else {
@@ -154,7 +154,7 @@ class LogFormatter {
             $this->message($str, $force);
         } else {
             // Output the end message on the same line.
-            echo ' '.$str.$this->getEol();
+            $this->write(' '.$str.$this->getEol());
             $this->isNewline = true;
         }
 
@@ -263,10 +263,10 @@ class LogFormatter {
                     list($taskStr, $taskTimestamp, $taskOutput) = $this->taskStack[$indent];
                     if (!$taskOutput) {
                         if (!$this->isNewline) {
-                            echo $this->eol;
+                            $this->write($this->eol);
                             $this->isNewline = true;
                         }
-                        echo $this->fullMessageStr($taskTimestamp, $taskStr, $indent, true);
+                        $this->write($this->fullMessageStr($taskTimestamp, $taskStr, $indent, true));
                         $this->taskStack[$indent][2] = true;
                     } else {
                         continue;
@@ -278,10 +278,10 @@ class LogFormatter {
         }
 
         if (!$this->isNewline) {
-            echo $this->eol;
+            $this->write($this->eol);
             $this->isNewline = true;
         }
-        echo $this->messageStr($str, true);
+        $this->write($this->messageStr($str, true));
         return $this;
     }
 
@@ -438,5 +438,17 @@ class LogFormatter {
     public function setShowDurations($showDurations) {
         $this->showDurations = $showDurations;
         return $this;
+    }
+
+    /**
+     * Write a string to the CLI.
+     *
+     * This method is intended to centralize the echoing of output in case the class is subclassed and the behaviour
+     * needs to change.
+     *
+     * @param string $str The string to write.
+     */
+    public function write($str) {
+        echo $str;
     }
 }
