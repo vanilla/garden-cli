@@ -453,6 +453,9 @@ class LogFormatter {
      * @return LogFormatter Returns `$this` for fluent calls.
      */
     public function setOutputHandle($handle) {
+        if (feof($handle)) {
+            throw new \InvalidArgumentException("The provided file handle must be open.", 416);
+        }
         $this->outputHandle = $handle;
         return $this;
     }
