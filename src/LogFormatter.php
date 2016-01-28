@@ -27,6 +27,11 @@ class LogFormatter {
     protected $formatOutput;
 
     /**
+     * @var resource The output file handle.
+     */
+    protected $outputHandle;
+
+    /**
      * @var bool Whether or not the console is on a new line.
      */
     protected $isNewline = true;
@@ -51,6 +56,7 @@ class LogFormatter {
      */
     public function __construct() {
         $this->formatOutput = Cli::guessFormatOutput();
+        $this->outputHandle = STDOUT;
     }
 
     /**
@@ -441,6 +447,17 @@ class LogFormatter {
     }
 
     /**
+     * Set the output file handle.
+     *
+     * @param resource $handle
+     * @return LogFormatter Returns `$this` for fluent calls.
+     */
+    public function setOutputHandle($handle) {
+        $this->outputHandle = $handle;
+        return $this;
+    }
+
+    /**
      * Write a string to the CLI.
      *
      * This method is intended to centralize the echoing of output in case the class is subclassed and the behaviour
@@ -449,6 +466,8 @@ class LogFormatter {
      * @param string $str The string to write.
      */
     public function write($str) {
-        echo $str;
+        if (!feof($this->outputHandle)) {
+            fwrite($this->outputHandle, $str);
+        }
     }
 }
