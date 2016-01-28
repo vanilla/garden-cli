@@ -220,8 +220,6 @@ class LogFormatter {
      * @see microtime()
      */
     public function formatDuration($duration) {
-        $suffixes = [0.000001 => 'μs', 1 => 'ms', 60 => 's', 3600 => 'm'];
-
         if ($duration < 1.0e-3) {
             $n = number_format($duration * 1.0e6, 0);
             $sx = 'μs';
@@ -229,7 +227,7 @@ class LogFormatter {
             $n = number_format($duration * 1000, 0);
             $sx = 'ms';
         } elseif ($duration < 60) {
-            $n = number_format($duration, 2);
+            $n = number_format($duration, 1);
             $sx = 's';
         } elseif ($duration < 3600) {
             $n = number_format($duration / 60, 1);
