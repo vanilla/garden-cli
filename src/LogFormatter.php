@@ -56,7 +56,7 @@ class LogFormatter {
      */
     public function __construct() {
         $this->formatOutput = Cli::guessFormatOutput();
-        $this->outputHandle = STDOUT;
+        $this->outputHandle = fopen('php://output', 'w');
     }
 
     /**
