@@ -171,7 +171,7 @@ class Table {
 
     /**
      * Adds a purple cell.
-     * 
+     *
      * @param string $text The text of the cell.
      * @return $this Returns this object for fluent calls.
      */
@@ -190,7 +190,7 @@ class Table {
 
     /**
      * Start a new row.
-     * 
+     *
      * @return $this Returns this object for fluent calls.
      */
     public function row() {
@@ -232,14 +232,14 @@ class Table {
                     $padding = $j === 0 ? $this->indent : $this->padding;
 
                     if (isset($lines[$i])) {
-                        if(isset($row[$i])) {
-                            $wrap = $row[$i][1];
-                        } else {
-                            // if we're out of array, use the latest wraps
-                            $wrap = $row[count($row)-1][1];
-                        }
-
                         if ($this->formatOutput) {
+                            if(isset($row[$i])) {
+                                $wrap = $row[$i][1];
+                            } else {
+                                // if we're out of array, use the latest wraps
+                                $wrap = $row[count($row)-1][1];
+                            }
+
                             echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
                         } else {
                             echo str_repeat(' ', $padding).$lines[$i];
