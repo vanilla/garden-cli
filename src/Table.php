@@ -233,8 +233,8 @@ class Table {
 
                     if (isset($lines[$i])) {
                         if ($this->formatOutput) {
-                            if(isset($row[$i])) {
-                                $wrap = $row[$i][1];
+                            if(isset($row[$j])) {
+                                $wrap = $row[$j][1];
                             } else {
                                 // if we're out of array, use the latest wraps
                                 $wrap = $row[count($row)-1][1];
