@@ -183,6 +183,31 @@ EOT;
     }
 
     /**
+     * Test required option wrapping
+     */
+    public function testOptionWrapping() {
+        $cli = $this->getBasicCli();
+
+        $expectedHelp = <<<EOT
+\033[1mOPTIONS\033[0m
+  --count, -c      The count of things.
+  --disabled, -d   Disabled or not
+  --enabled, -e    Enabled or not.
+  \033[1m--hello, -h   \033[0m   Hello world.
+  --help, -?       Display this help.
+
+
+EOT;
+
+        ob_start();
+            $cli->writeHelp();
+            $help = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertEquals($help, $expectedHelp);
+    }
+
+    /**
      * Test a command line scheme created with {@link Cli::schema()}.
      */
     public function testSchema() {
