@@ -186,8 +186,6 @@ EOT;
      * Test required option wrapping
      */
     public function testOptionWrapping() {
-        $cli = $this->getBasicCli();
-
         $expectedHelp = <<<EOT
 \033[1mOPTIONS\033[0m
   --count, -c      The count of things.
@@ -199,12 +197,8 @@ EOT;
 
 EOT;
 
-        ob_start();
-            $cli->writeHelp();
-            $help = ob_get_contents();
-        ob_end_clean();
-
-        $this->assertEquals($help, $expectedHelp);
+        $this->expectOutputString($expectedHelp);
+        $this->getBasicCli()->writeHelp();
     }
 
     /**
