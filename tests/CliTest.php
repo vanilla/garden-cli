@@ -198,7 +198,7 @@ EOT;
 EOT;
 
         $this->expectOutputString($expectedHelp);
-        $this->getBasicCli()->writeHelp();
+        $this->getBasicCli()->setFormatOutput(true)->writeHelp();
     }
 
     /**
