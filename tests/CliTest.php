@@ -49,7 +49,7 @@ class CliTest extends CliTestCase {
             'hello' => 'world',
             'enabled' => true,
             'disabled' => false,
-            'count' => 3
+            'count' => 3,
         ], $parsed->getOpts());
     }
 
@@ -80,6 +80,23 @@ class CliTest extends CliTestCase {
             ->opt('boolb:b', 'Another bool.', false, 'boolean')
             ->opt('str:s', 'A string', false);
 
+        $parsed = $cli->parse($argv, false);
+
+        $this->assertSame($expectedOpts, $parsed->getOpts());
+    }
+
+    /**
+     * Test a cli against various ways of providing boolean arguments.
+     *
+     * @param array $argv The args to test.
+     * @param array $expectedOpts The expected opt output.
+     * @dataProvider provideOptionalArgValueForm
+     */
+    public function testArgOptionalValue(array $argv, array $expectedOpts) {
+        $cli = new Cli();
+        $cli->opt('optionalFlag:o', 'An optional flag that may take a value.', false, 'string');
+
+        // Test some basic parsing scenarios.
         $parsed = $cli->parse($argv, false);
 
         $this->assertSame($expectedOpts, $parsed->getOpts());
@@ -125,6 +142,7 @@ OPTIONS
   --disabled, -d   Disabled or not
   --enabled, -e    Enabled or not.
   --hello, -h      Hello world.
+  --help, -?       Display this help.
 EOT;
 
         $this->setExpectedException('\Exception', $expectedHelp);
@@ -227,7 +245,8 @@ EOT;
         $cli->opt('hello:h', 'Hello world.', true, 'string')
             ->opt('enabled:e', 'Enabled or not.', false, 'boolean')
             ->opt('disabled:d', 'Disabled or not', false, 'bool')
-            ->opt('count:c', 'The count of things.', false, 'integer');
+            ->opt('count:c', 'The count of things.', false, 'integer')
+            ;
 
         return $cli;
     }
@@ -294,6 +313,24 @@ EOT;
             'flag value and string' => [['script', '-a1b0s=wut'], ['boola' => true, 'boolb' => false, 'str' => 'wut']],
             'flag followed by opt' => [['script', '-a', '-swut'], ['boola' => true, 'str' => 'wut']],
             '--no prefix' => [['script', '--no-boola', '--no-boolb'], ['boola' => false, 'boolb' => false]]
+        ];
+        return $result;
+    }
+
+    /**
+     * Provide data for {@link CliTest::testArgOptionalValue()}.
+     *
+     * @return array Returns an array in the form `[$argv, $expectedOpts]`.
+     */
+    public function provideOptionalArgValueForm() {
+        $result = [
+            'nothing' => [['script'], []],
+            'long form - no value' => [['script', '--optionalFlag'], ['optionalFlag' => '']],
+            'short form - no value' => [['script', '-o'], ['optionalFlag' => '']],
+            'long form - w value' => [['script', '--optionalFlag=used'], ['optionalFlag' => 'used']],
+            'short form - w value' => [['script', '-o=used'], ['optionalFlag' => 'used']],
+            'long form - w value - no equal sign' => [['script', '--optionalFlag', 'used'], ['optionalFlag' => 'used']],
+            'short form - w value - no equal sign' => [['script', '-o', 'used'], ['optionalFlag' => 'used']],
         ];
         return $result;
     }

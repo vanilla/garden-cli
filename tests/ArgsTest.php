@@ -40,7 +40,7 @@ class ArgsTest extends CliTestCase {
         $this->assertSame(['opt' => 'value'], $args->getOpts());
 
         $args->setOpt('opt', null);
-        $this->assertSame([], $args->getOpts());
+        $this->assertSame(['opt' => null], $args->getOpts());
 
         $args['foo'] = 'bar';
         $this->assertTrue(isset($args['foo']));

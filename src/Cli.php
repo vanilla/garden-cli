@@ -338,7 +338,6 @@ class Cli {
 
         $hasCommand = $this->hasCommand();
 
-
         if ($hasCommand && !$args->getCommand()) {
             // If no command is given then write a list of commands.
             $this->writeUsage($args);
@@ -407,6 +406,7 @@ class Cli {
             if (!isset($schema)) {
                 $schema = $this->getSchema($parsed->getCommand());
             }
+
             $types = [];
             foreach ($schema as $sName => $sRow) {
                 if ($sName === Cli::META) {
@@ -424,6 +424,12 @@ class Cli {
             for ($i = 0; $i < count($argv); $i++) {
                 $str = $argv[$i];
 
+                // Parse the help command as a boolean since it is not part of the schema!
+                if (in_array($str, ['-?', '--help'])) {
+                    $parsed->setOpt('help', true);
+                    continue;
+                }
+
                 if ($str === '--') {
                     // --
                     $i++;
@@ -433,27 +439,39 @@ class Cli {
                     $str = substr($str, 2);
                     $parts = explode('=', $str);
                     $key = $parts[0];
+                    $v = null;
 
-                    // Does not have an =, so choose the next arg as its value,
-                    // unless it is defined as 'boolean' in which case there is no
-                    // value to seek in next arg
-                    if (count($parts) == 1 && isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
-                        $v = $argv[$i + 1];
-                        if (Cli::val($key, $types) == 'boolean') {
-                            if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
-                                // The next arg looks like a boolean to me.
-                                $i++;
-                            } else {
-                                // Next arg is not a boolean: set the flag on, and use next arg in its own iteration
-                                $v = true;
-                            }
-                        } else {
-                            $i++;
-                        }
-                    } elseif (count($parts) == 2) {// Has a =, so pick the second piece
+                    // Has a =, so pick the second piece
+                    if (count($parts) == 2) {
                         $v = $parts[1];
+                    // Does not have an =
                     } else {
-                        $v = true;
+                        // If there is a value (even if there are no equals)
+                        if (isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
+                            // so choose the next arg as its value if any,
+                            $v = $argv[$i + 1];
+                            // If this is a boolean we need to coerce the value
+                            if (Cli::val($key, $types) === 'boolean') {
+                                if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
+                                    // The next arg looks like a boolean to me.
+                                    $i++;
+                                } else {
+                                    // Next arg is not a boolean: set the flag on, and use next arg in its own iteration
+                                    $v = true;
+                                }
+                            } else {
+                                $i++;
+                            }
+                        // If there is no value but we have a no- before the command
+                        } elseif (strpos($key, 'no-') === 0) {
+                            $tmpKey = str_replace('no-', null, $key);
+                            if (Cli::val($tmpKey, $types) === 'boolean') {
+                                $key = $tmpKey;
+                                $v = false;
+                            }
+                        } elseif (Cli::val($key, $types) === 'boolean') {
+                            $v = true;
+                        }
                     }
                     $parsed->setOpt($key, $v);
                 } elseif (strlen($str) == 2 && $str[0] == '-') {
@@ -581,7 +599,7 @@ class Cli {
             // No Parameter (default)
             $type = Cli::val('type', $definition, 'string');
 
-            if (isset($opts[$key])) {
+            if (array_key_exists($key, $opts)) {
                 // Check for --key.
                 $value = $opts[$key];
                 if ($this->validateType($value, $type, $key, $definition)) {
@@ -590,7 +608,7 @@ class Cli {
                     $isValid = false;
                 }
                 unset($opts[$key]);
-            } elseif (isset($definition['short']) && isset($opts[$definition['short']])) {
+            } elseif (isset($definition['short']) && array_key_exists($definition['short'], $opts)) {
                 // Check for -s.
                 $value = $opts[$definition['short']];
                 if ($this->validateType($value, $type, $key, $definition)) {
@@ -599,7 +617,7 @@ class Cli {
                     $isValid = false;
                 }
                 unset($opts[$definition['short']]);
-            } elseif (isset($opts['no-'.$key])) {
+            } elseif (array_key_exists('no-'.$key, $opts)) {
                 // Check for --no-key.
                 $value = $opts['no-'.$key];
 
