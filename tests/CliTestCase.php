@@ -2,7 +2,7 @@
 /**
  * @author Todd Burry <todd@vanillaforums.com>
  * @copyright 2009-2015 Vanilla Forums Inc.
- * @license Proprietary
+ * @license MIT
  */
 
 namespace Garden\Cli\Tests;
