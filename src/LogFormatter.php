@@ -85,6 +85,18 @@ class LogFormatter {
     }
 
     /**
+     * Output a warning message.
+     *
+     * When formatting is turned on, warning messages are displayed in yellow.
+     *
+     * @param string $str The message to output.
+     * @return LogFormatter Returns `$this` for fluent calls.
+     */
+    public function warn($str) {
+        return $this->message($this->formatString($str, ["\033[1;33m", "\033[0m"]));
+    }
+
+    /**
      * Get the current depth of tasks.
      *
      * @return int Returns the current level.
