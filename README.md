@@ -131,7 +131,7 @@ $cli = Cli::create()
     ->opt('commit', 'Perform the merge and commit the result.', false, 'boolean')
     // Set some global options.
     ->command('*')
-    ->opt('verbose:v', 'Output verbose information.', false, 'boolean')
+    ->opt('verbose:v', 'Output verbose information.', false, 'integer')
     ->arg('repo', 'The repository to sync with.', true);
 
 $args = $cli->parse($argv);
@@ -142,6 +142,7 @@ Like the basic example, `parse()` will return a `Args` object on a successful pa
 * The `Cli::create()` method is provided if you want to have a 100% fluent interface when defining your command schema.
 * Call the `command()` method to define a new command.
 * If you call `command('*')` then you can define options that are global to all commands.
+* If the type of `opt()` is `integer` then you can count the number of times an option is supplied. In this example, this allowes you to specify multiple levels of verbosity by adding multiple `-v`s.
 * The `arg()` method lets you define arguments that go after the options on the command line. More on this below.
 
 Listing Commands
