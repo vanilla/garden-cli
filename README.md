@@ -123,15 +123,15 @@ $cli = Cli::create()
     // Define the first command: push.
     ->command('push')
     ->description('Push data to a remote server.')
-    ->opt('force', 'Force an overwrite.', false, 'boolean', 'f')
-    ->opt('set-upstream', 'Add a reference to the upstream repo.', false, 'boolean', 'u')
+    ->opt('force:f', 'Force an overwrite.', false, 'boolean')
+    ->opt('set-upstream:u', 'Add a reference to the upstream repo.', false, 'boolean')
     // Define the second command: pull.
     ->command('pull')
     ->description('Pull data from a remote server.')
     ->opt('commit', 'Perform the merge and commit the result.', false, 'boolean')
     // Set some global options.
     ->command('*')
-    ->opt('verbose', 'Output verbose information.', false, 'integer', 'v')
+    ->opt('verbose:v', 'Output verbose information.', false, 'integer')
     ->arg('repo', 'The repository to sync with.', true);
 
 $args = $cli->parse($argv);
