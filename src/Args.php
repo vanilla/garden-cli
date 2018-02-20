@@ -35,7 +35,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      *
      * @param string $value The argument to add.
      * @param string|null $index The index to add the arg at.
-     * @return Args Returns $this for fluent calls.
+     * @return $this
      */
     public function addArg($value, $index = null) {
         if ($index !== null) {
@@ -72,7 +72,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      *
      * @param string|int $index The index to set at.
      * @param mixed $value The value of the arg.
-     * @return Args $this Returns $this for fluent calls.
+     * @return $this
      */
     public function setArg($index, $value) {
         $this->args[$index] = $value;
@@ -92,7 +92,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Set the args array.
      *
      * @param array $args The new args array.
-     * @return Args Returns $this for fluent calls.
+     * @return $this
      */
     public function setArgs(array $args) {
         $this->args = $args;
@@ -112,7 +112,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Set the name of the command associated with the args.
      *
      * @param string $command The new command.
-     * @return Args Returns $this for fluent calls.
+     * @return $this
      */
     public function setCommand($command) {
         $this->command = $command;
@@ -135,7 +135,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      *
      * @param string $name The name of the meta value.
      * @param mixed $value The new meta value.
-     * @return Args Returns $this for fluent setting.
+     * @return $this
      */
     public function setMeta($name, $value) {
         $this->meta[$name] = $value;
@@ -155,7 +155,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Sets the entire options array.
      *
      * @param array $value Pass an array to set a new options array.
-     * @return Args Returns $this for fluent calls.
+     * @return $this
      */
     public function setOpts(array $value) {
         $this->opts = $value;
@@ -178,7 +178,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
      *
      * @param string $option The name of the option.
      * @param mixed $value The value of the option.
-     * @return Args Returns $this for fluent calls.
+     * @return $this
      */
     public function setOpt($option, $value) {
         $this->opts[$option] = $value;

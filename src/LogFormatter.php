@@ -66,7 +66,7 @@ class LogFormatter {
      * are past the maximum display level.
      *
      * @param string $str The message to output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function error($str) {
         return $this->message($this->formatString($str, ["\033[1;31m", "\033[0m"]), true);
@@ -78,7 +78,7 @@ class LogFormatter {
      * When formatting is turned on, success messages are displayed in green.
      *
      * @param string $str The message to output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function success($str) {
         return $this->message($this->formatString($str, ["\033[1;32m", "\033[0m"]));
@@ -186,7 +186,7 @@ class LogFormatter {
      *
      * @param string $str The message to output.
      * @param bool $force Whether or not to force a message past the max level to be output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function endSuccess($str, $force = false) {
         return $this->end($this->formatString($str, ["\033[1;32m", "\033[0m"]), $force);
@@ -199,7 +199,7 @@ class LogFormatter {
      * past the maximum depth.
      *
      * @param string $str The message to output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function endError($str) {
         return $this->end($this->formatString($str, ["\033[1;31m", "\033[0m"]), true);
@@ -314,7 +314,7 @@ class LogFormatter {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function setFormatOutput($formatOutput) {
         $this->formatOutput = $formatOutput;
@@ -408,7 +408,7 @@ class LogFormatter {
      * Set the date format as passed to {@link strftime()}.
      *
      * @param string $dateFormat
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      * @see strftime()
      */
     public function setDateFormat($dateFormat) {
@@ -429,7 +429,7 @@ class LogFormatter {
      * Set the end of line string.
      *
      * @param string $eol The end of line string to use.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function setEol($eol) {
         $this->eol = $eol;
@@ -449,7 +449,7 @@ class LogFormatter {
      * Set the showDurations.
      *
      * @param boolean $showDurations
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function setShowDurations($showDurations) {
         $this->showDurations = $showDurations;
@@ -460,7 +460,7 @@ class LogFormatter {
      * Set the output file handle.
      *
      * @param resource $handle
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return $this
      */
     public function setOutputHandle($handle) {
         if (feof($handle)) {

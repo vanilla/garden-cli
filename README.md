@@ -22,13 +22,13 @@ PHP's `getopt()` provides little functionality and is prone to failure where one
 Installation
 ------------
 
-*Garden CLI requires PHP 5.4 or higher*
+*Garden CLI requires PHP 7.0 or higher*
 
 Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md) compliant and can be installed using [composer](//getcomposer.org). Just add `vanilla/garden-cli` to your composer.json.
 
 ```json
 "require": {
-    "vanilla/garden-cli": "~1.0"
+    "vanilla/garden-cli": "~2.0"
 }
 ```
 

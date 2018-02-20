@@ -105,7 +105,7 @@ class Table {
      *
      * @param string $text The text of the cell.
      * @param array $wrap A two element array used to wrap the text in the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     protected function addCell($text, $wrap = ['', '']) {
         if ($this->currentRow === null) {
@@ -123,7 +123,7 @@ class Table {
      * Adds a cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function cell($text) {
         return $this->addCell($text);
@@ -133,7 +133,7 @@ class Table {
      * Adds a bold cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function bold($text) {
         return $this->addCell($text, ["\033[1m", "\033[0m"]);
@@ -143,7 +143,7 @@ class Table {
      * Adds a red cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function red($text) {
         return $this->addCell($text, ["\033[1;31m", "\033[0m"]);
@@ -153,7 +153,7 @@ class Table {
      * Adds a green cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function green($text) {
         return $this->addCell($text, ["\033[1;32m", "\033[0m"]);
@@ -163,7 +163,7 @@ class Table {
      * Adds a blue cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function blue($text) {
         return $this->addCell($text, ["\033[1;34m", "\033[0m"]);
@@ -173,7 +173,7 @@ class Table {
      * Adds a purple cell.
      *
      * @param string $text The text of the cell.
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function purple($text) {
         return $this->addCell($text, ["\033[0;35m", "\033[0m"]);
@@ -191,7 +191,7 @@ class Table {
     /**
      * Start a new row.
      *
-     * @return $this Returns this object for fluent calls.
+     * @return $this
      */
     public function row() {
         $this->rows[] = [];
