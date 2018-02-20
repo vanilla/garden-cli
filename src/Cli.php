@@ -96,7 +96,7 @@ class Cli {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return Cli Returns `$this` for fluent calls.
+     * @return $this
      */
     public function setFormatOutput($formatOutput) {
         $this->formatOutput = $formatOutput;
@@ -108,7 +108,7 @@ class Cli {
      *
      * @param array $schema The schema for the args.
      * @param Args $args The args object to add the argument to.
-     * @param $arg The value of the argument.
+     * @param mixed $arg The value of the argument.
      */
     private function addArg(array $schema, Args $args, $arg) {
         $argsCount = count($args->getArgs());
@@ -123,10 +123,11 @@ class Cli {
      *
      * This method is mainly here so that an entire cli schema can be created and defined with fluent method calls.
      *
-     * @return Cli Returns a new Cli object.
+     * @param array $args The constructor arguments, if any.
+     * @return static Returns a new Cli object.
      */
-    public static function create() {
-        return new Cli();
+    public static function create(...$args) {
+        return new static(...$args);
     }
 
     /**
@@ -206,7 +207,7 @@ class Cli {
      * Sets the description for the current command.
      *
      * @param string $str The description for the current schema or null to get the current description.
-     * @return Cli Returns this class for fluent calls.
+     * @return $this
      */
     public function description($str = null) {
         return $this->meta('description', $str);
@@ -680,7 +681,7 @@ class Cli {
      *
      * @param string $name The name of the meta key.
      * @param mixed $value Set a new value for the meta key.
-     * @return Cli|mixed Returns the current value of the meta item or `$this` for fluent setting.
+     * @return $this|mixed Returns the current value of the meta item or `$this` for fluent setting.
      */
     public function meta($name, $value = null) {
         if ($value !== null) {
@@ -702,7 +703,7 @@ class Cli {
      * @param bool $required Whether or not the opt is required.
      * @param string $type The type of parameter.
      * This must be one of string, bool, integer.
-     * @return Cli Returns this object for fluent calls.
+     * @return $this
      * @throws \Exception Throws an exception when the type is invalid.
      */
     public function opt($name, $description, $required = false, $type = 'string') {
@@ -738,7 +739,7 @@ class Cli {
      * @param string $name The name of the arg.
      * @param string $description The arg description.
      * @param bool $required Whether or not the arg is required.
-     * @return Cli Returns $this for fluent calls.
+     * @return $this
      */
     public function arg($name, $description, $required = false) {
         $this->currentSchema[Cli::META][Cli::ARGS][$name] =
@@ -750,7 +751,7 @@ class Cli {
      * Selects the current command schema name.
      *
      * @param string $pattern The command pattern.
-     * @return Cli Returns $this for fluent calls.
+     * @return $this
      */
     public function command($pattern) {
         if (!isset($this->commandSchemas[$pattern])) {
