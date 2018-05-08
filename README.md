@@ -209,3 +209,58 @@ $log->message('This is a message.')
     ->end('done.')
     ->end('done.');
 ```
+
+
+Using the Garden Logger (with Writer & Formatter)
+-------------------------------------------------
+
+The `Garden\Cli\Logger\Logger` is a tool that allows for nested logging of information. You are able to add multiple 
+Writers to the Logger via the `Logger::addWriter()` method. Optionally, each Writer may have Formatters added to it
+via the `Writer::addFormatter()` method so that you can get the output _just right_. 
+
+Creating new Writers is as easy as implementing the `Garden\Cli\Logger\Writer\WriterInterface` interface. Creating new 
+Formatters is as easy as implementing the `Garden\Cli\Logger\Formatter\FormatterInterface` interface.
+
+When using the `Garden\Cli\Logger\Logger` you want to think in terms of messages and tasks. A message is a single 
+message to output to the user. A task has a begin and an end and can be nested as much as you want.
+
+By default, the `Garden\Cli\Logger\Logger` will only output tasks two levels deep, but you can change that with
+`Logger::setMaxLevel()`. Use this property to give your CLI scripts a quiet or verbose mode without littering your
+own code with if statements.
+
+### Example
+
+```php
+// initialize the optional formatter, set a specific format for the timestamp
+$formatter = new \Garden\Cli\Logger\Formatter\ColorStreamFormatter;
+$formatter->setDateFormat('[%Y %m %d  %F %T]');
+
+// the StreamWriter takes stream type to initialize
+$writer = new \Garden\Cli\Logger\Writer\StreamWriter('php://output');
+$writer->addFormatter($formatter);
+
+// initialize our logger
+$logger = new \Garden\Cli\Logger\Logger();
+$logger->addWriter($writer);
+
+$logger->message('This is a message.')
+    ->error('This is an error.') // outputs in red per the ColorStreamFormatter
+    ->success('This is what success looks like.') // outputs in green per the ColorStreamFormatter
+
+    ->begin('Begin a task')
+    // code task code goes here...
+    ->end('done.')
+
+    ->begin('Make an API call')
+    ->endHttpStatus(200) // treated as error or success depending on code
+
+    ->begin('Multi-step task')
+    ->message('Step 1')
+    ->message('Step 2')
+    ->begin('Step 3')
+    ->message('Step 3.1') // steps will be hidden because they are level 3
+    ->message('Step 3.2')
+    ->end('done.')
+    ->end('done.');
+```
+
