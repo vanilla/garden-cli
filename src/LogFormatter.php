@@ -1,16 +1,19 @@
 <?php
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2015 Vanilla Forums Inc.
+ * @copyright 2009-2018 Vanilla Forums Inc.
  * @license MIT
  */
 
 namespace Garden\Cli;
 
+use Garden\Cli\Logger\LoggerInterface;
+use Garden\Cli\Logger\LogLevels;
+
 /**
  * A helper class to format CLI output in a log-style format.
  */
-class LogFormatter {
+class LogFormatter implements LoggerInterface {
     /**
      * @var string The date format as passed to {@link strftime()}.
      */
@@ -68,7 +71,7 @@ class LogFormatter {
      * @param string $str The message to output.
      * @return $this
      */
-    public function error($str) {
+    public function error(string $str) {
         return $this->message($this->formatString($str, ["\033[1;31m", "\033[0m"]), true);
     }
 
@@ -80,7 +83,7 @@ class LogFormatter {
      * @param string $str The message to output.
      * @return $this
      */
-    public function success($str) {
+    public function success(string $str) {
         return $this->message($this->formatString($str, ["\033[1;32m", "\033[0m"]));
     }
 
@@ -92,7 +95,7 @@ class LogFormatter {
      * @param string $str The message to output.
      * @return LogFormatter Returns `$this` for fluent calls.
      */
-    public function warn($str) {
+    public function warn(string $str) {
         return $this->message($this->formatString($str, ["\033[1;33m", "\033[0m"]));
     }
 
@@ -111,7 +114,7 @@ class LogFormatter {
      * @param string $str The message to output.
      * @return $this Returns `$this` for fluent calls.
      */
-    public function begin($str) {
+    public function begin(string $str) {
         $output = $this->currentLevel() <= $this->getMaxLevel();
         $task = [$str, microtime(true), $output];
 
@@ -135,9 +138,11 @@ class LogFormatter {
      *
      * @param string $str The message to output.
      * @param bool $force Whether or not to always output the message even if the task is past the max depth.
+     * @param string $logLevel An unused parameter to keep the interface happy.
+     *
      * @return $this Returns `$this` for fluent calls.
      */
-    public function end($str = '', $force = false) {
+    public function end(string $str = '', bool $force = false, $logLevel = LogLevels::INFO) {
         // Find the task we are finishing.
         $task = array_pop($this->taskStack);
         if ($task !== null) {
@@ -188,7 +193,7 @@ class LogFormatter {
      * @param bool $force Whether or not to force a message past the max level to be output.
      * @return $this
      */
-    public function endSuccess($str, $force = false) {
+    public function endSuccess(string $str, bool $force = false) {
         return $this->end($this->formatString($str, ["\033[1;32m", "\033[0m"]), $force);
     }
 
@@ -201,7 +206,7 @@ class LogFormatter {
      * @param string $str The message to output.
      * @return $this
      */
-    public function endError($str) {
+    public function endError(string $str) {
         return $this->end($this->formatString($str, ["\033[1;31m", "\033[0m"]), true);
     }
 
@@ -216,7 +221,7 @@ class LogFormatter {
      * @return $this Returns `$this` for fluent calls.
      * @see LogFormatter::endSuccess(), LogFormatter::endError().
      */
-    public function endHttpStatus($httpStatus, $force = false) {
+    public function endHttpStatus(int $httpStatus, bool $force = false) {
         $statusStr = sprintf('%03d', $httpStatus);
 
         if ($httpStatus == 0 || $httpStatus >= 400) {
@@ -237,7 +242,7 @@ class LogFormatter {
      * @return string Returns the duration formatted for humans.
      * @see microtime()
      */
-    public function formatDuration($duration) {
+    public function formatDuration(float $duration) {
         if ($duration < 1.0e-3) {
             $n = number_format($duration * 1.0e6, 0);
             $sx = 'μs';
@@ -269,7 +274,7 @@ class LogFormatter {
      * @param bool $force Whether or not to force output of the message even if it's past the max depth.
      * @return $this Returns `$this` for fluent calls.
      */
-    public function message($str, $force = false) {
+    public function message(string $str, bool $force = false) {
         $pastMaxLevel = $this->currentLevel() > $this->getMaxLevel();
 
         if ($pastMaxLevel) {
@@ -316,7 +321,7 @@ class LogFormatter {
      * @param boolean $formatOutput Whether or not to format output.
      * @return $this
      */
-    public function setFormatOutput($formatOutput) {
+    public function setFormatOutput(bool $formatOutput) {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -385,7 +390,7 @@ class LogFormatter {
      * @param int $maxLevel
      * @return LogFormatter
      */
-    public function setMaxLevel($maxLevel) {
+    public function setMaxLevel(int $maxLevel) {
         if ($maxLevel < 0) {
             throw new \InvalidArgumentException("The max level must be greater than zero.", 416);
         }
@@ -411,7 +416,7 @@ class LogFormatter {
      * @return $this
      * @see strftime()
      */
-    public function setDateFormat($dateFormat) {
+    public function setDateFormat(string $dateFormat) {
         $this->dateFormat = $dateFormat;
         return $this;
     }
@@ -451,7 +456,7 @@ class LogFormatter {
      * @param boolean $showDurations
      * @return $this
      */
-    public function setShowDurations($showDurations) {
+    public function setShowDurations(bool $showDurations) {
         $this->showDurations = $showDurations;
         return $this;
     }

@@ -7,8 +7,10 @@
 
 namespace Garden\Cli\Tests;
 
+use PHPUnit\Framework\TestCase;
 
-class CliTestCase extends \PHPUnit_Framework_TestCase {
+
+class CliTestCase extends TestCase {
     private $errors;
 
     /**

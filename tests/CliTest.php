@@ -122,7 +122,7 @@ class CliTest extends CliTestCase {
      * @dataProvider provideInvalidTypes
      */
     public function testInvalidTypes(array $argv, $message) {
-        $this->setExpectedException('\Exception', $message, null);
+        $this->expectException('\Exception', $message, null);
 
         $cli = $this->getBasicCli();
         $cli->parse($argv, false);
@@ -145,7 +145,7 @@ OPTIONS
   --help, -?       Display this help.
 EOT;
 
-        $this->setExpectedException('\Exception', $expectedHelp);
+        $this->expectException('\Exception', $expectedHelp);
 
         $cli->parse(['script', '--help'], false);
     }
@@ -165,7 +165,7 @@ COMMANDS
                  long long long long long long long description
 EOT;
 
-        $this->setExpectedException('\Exception', $expectedHelp);
+        $this->expectException('\Exception', $expectedHelp);
 
         $cli->parse(['script', '--help'], false);
     }
@@ -195,7 +195,7 @@ ARGUMENTS
              long long long long long description
 EOT;
 
-        $this->setExpectedException('\Exception', $expectedHelp);
+        $this->expectException('\Exception', $expectedHelp);
 
         $cli->parse(['script', 'command-long', '--help'], false);
     }

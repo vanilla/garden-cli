@@ -209,3 +209,64 @@ $log->message('This is a message.')
     ->end('done.')
     ->end('done.');
 ```
+
+
+Using the Garden Logger (with Writer & Formatter)
+-------------------------------------------------
+
+The `Garden\Cli\Logger\Logger` is a tool that allows for nested logging of information. You are able to add multiple 
+Writers to the Logger via the `Logger::addWriter()` method. Optionally, each Writer may have Formatters added to it
+via the `Writer::addFormatter()` method so that you can get the output _just right_. 
+
+Creating new Writers is as easy as implementing the `Garden\Cli\Logger\Writer\WriterInterface` interface. Creating new 
+Formatters is as easy as implementing the `Garden\Cli\Logger\Formatter\FormatterInterface` interface.
+
+When using the `Garden\Cli\Logger\Logger` you want to think in terms of messages and tasks. A message is a single 
+message to output to the user. A task has a begin and an end and can be nested as much as you want.
+
+By default, the `Garden\Cli\Logger\Logger` will only output tasks two levels deep, but you can change that with
+`Logger::setMaxLevel()`. Use this property to give your CLI scripts a quiet or verbose mode without littering your
+own code with if statements.
+
+### Example
+
+```php
+// initialize the optional formatters that will be used by the writer(s)
+$dateFormatter1 = new \Garden\Cli\Logger\Formatter\DateFormatter;
+$dateFormatter2 = new \Garden\Cli\Logger\Formatter\DateFormatter('[%Y %M %d %F %T]'); // optionally include date format
+$durationFormatter = new \Garden\Cli\Logger\Formatter\DurationFormatter;
+$colorFormatter = new \Garden\Cli\Logger\Formatter\ColorizerFormatter;
+
+// initialize the writer(s) that will be used by the logger
+$ioStreamWriter = new \Garden\Cli\Logger\Writer\IoStreamWriter('php://output');
+$fileWriter = new \Garden\Cli\Logger\Writer\IoStreamWriter('/tmp/logs/output.log');
+
+// add the formatters to the writers (order does matter)
+$ioStreamWriter->addFormatter($dateFormatter1)->addFormatter($durationFormatter)->addFormatter($colorFormatter);
+$fileWriter->addFormatter($dateFormatter2)->addFormatter($durationFormatter);
+
+// initialize the logger and add the writer(s) to it
+$logger = new \Garden\Cli\Logger\Logger();
+$logger->addWriter($ioStreamWriter)->addWriter($fileWriter);
+
+$logger->message('This is a message.')
+    ->error('This is an error.') // outputs in red per the ColorizerFormatter in the ioStreamWriter
+    ->success('This is what success looks like.') outputs in green per the ColorizerFormatter in the ioStreamWriter
+
+    ->begin('Begin a task')
+    // code task code goes here...
+    ->end('done.')
+
+    ->begin('Make an API call')
+    ->endHttpStatus(200) // treated as error or success depending on code
+
+    ->begin('Multi-step task')
+    ->message('Step 1')
+    ->message('Step 2')
+    ->begin('Step 3')
+    ->message('Step 3.1') // steps will be hidden because they are level 3
+    ->message('Step 3.2')
+    ->end('done.')
+    ->end('done.');
+```
+
