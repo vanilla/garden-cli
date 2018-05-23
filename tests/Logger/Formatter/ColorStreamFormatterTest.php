@@ -7,13 +7,13 @@
 
 namespace Garden\Cli\Tests\Logger\Formatter;
 
-use Garden\Cli\Tests\CliTestCase;
 use Garden\Cli\Logger\Formatter\ColorStreamFormatter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Includes tests for the {@link \Garden\Cli\Logger\Logger} class.
  */
-class ColorStreamFormatterTest extends CliTestCase {
+class ColorStreamFormatterTest extends TestCase {
 
     /**
      * @var ColorStreamFormatter An instantiated formatter.
@@ -71,29 +71,33 @@ class ColorStreamFormatterTest extends CliTestCase {
 
     public function testFormatSuccess() {
         $timestamp = time();
-        $date = strftime($this->formatter->getDateFormat(), $timestamp);
         $result = $this->formatter->format($timestamp, 'success', 0, 'abc', 0.00004);
-        $this->assertEquals($date . '  [1;32mabc[0m [1;34m4μs[0m', $result);
+        $date = strftime($this->formatter->getDateFormat(), $timestamp);
+        $expected = [$date, 'success', 0, '[1;32mabc[0m', '[1;34m4μs[0m'];
+        $this->assertEquals($expected, $result);
     }
 
     public function testFormatWarning() {
         $timestamp = time();
-        $date = strftime($this->formatter->getDateFormat(), $timestamp);
         $result = $this->formatter->format($timestamp, 'warning', 1, 'abc', null);
-        $this->assertEquals($date . '   -  [1;33mabc[0m', $result);
+        $date = strftime($this->formatter->getDateFormat(), $timestamp);
+        $expected = [$date, 'warning', 1, '[1;33mabc[0m', ''];
+        $this->assertEquals($expected, $result);
     }
 
     public function testFormatError() {
         $timestamp = time();
-        $date = strftime($this->formatter->getDateFormat(), $timestamp);
         $result = $this->formatter->format($timestamp, 'error', 2, 'abc', 42);
-        $this->assertEquals($date . '     -  [1;31mabc[0m [1;34m42s[0m', $result);
+        $date = strftime($this->formatter->getDateFormat(), $timestamp);
+        $expected = [$date, 'error', 2, '[1;31mabc[0m', '[1;34m42s[0m'];
+        $this->assertEquals($expected, $result);
     }
 
     public function testFormatInfo() {
         $timestamp = time();
-        $date = strftime($this->formatter->getDateFormat(), $timestamp);
         $result = $this->formatter->format($timestamp, 'info', 3, 'abc', null);
-        $this->assertEquals($date . '       -  abc[0m', $result);
+        $date = strftime($this->formatter->getDateFormat(), $timestamp);
+        $expected = [$date, 'info', 3, 'abc', ''];
+        $this->assertEquals($expected, $result);
     }
 }

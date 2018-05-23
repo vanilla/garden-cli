@@ -25,5 +25,9 @@
 		"psr-4": {
 			"Garden\\Cli\\Tests\\": "tests"
 		}
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^6",
+		"digitickets/phpunit-errorhandler": "^4.0"
 	}
 }

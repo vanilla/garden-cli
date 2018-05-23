@@ -7,14 +7,14 @@
 
 namespace Garden\Cli\Tests\Logger\Writer;
 
-use Garden\Cli\Tests\CliTestCase;
-use Garden\Cli\Logger\Writer\StreamWriter;
+use Garden\Cli\Logger\Writer\IoStreamWriter;
 use Garden\Cli\Tests\Fixtures\Logger\Formatter\TestFormatter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Includes tests for the {@link \Garden\Cli\Logger\Logger} class.
  */
-class StreamWriterTest extends CliTestCase {
+class IoStreamWriterTest extends TestCase {
 
     /**
      * @var StreamWriter An instantiated writer.
@@ -24,7 +24,7 @@ class StreamWriterTest extends CliTestCase {
     protected function setUp() {
         parent::setUp();
         $stream = 'php://output';
-        $this->writer = new StreamWriter($stream);
+        $this->writer = new IoStreamWriter($stream);
     }
 
     public function testAddFormatterReturnsThis() {
@@ -46,7 +46,7 @@ class StreamWriterTest extends CliTestCase {
         $formatter = new TestFormatter;
         $this->writer->addFormatter($formatter)->write($timestamp, $logLevel, $message, $indentLevel, $duration);
 
-        $expected = $timestamp . ' ' . $logLevel . ' ' . $indentLevel . ' ' . $message . ' ' . $duration . PHP_EOL;
+        $expected = $timestamp . ' ' . strtoupper($logLevel) . '     -  ' . $message . ' ' . $duration . PHP_EOL;
         $this->assertEquals($expected, ob_get_clean());
     }
 }

@@ -231,21 +231,27 @@ own code with if statements.
 ### Example
 
 ```php
-// initialize the optional formatter, set a specific format for the timestamp
-$formatter = new \Garden\Cli\Logger\Formatter\ColorStreamFormatter;
-$formatter->setDateFormat('[%Y %m %d  %F %T]');
+// initialize the optional formatters that will be used by the writer(s)
+$dateFormatter1 = new \Garden\Cli\Logger\Formatter\DateFormatter;
+$dateFormatter2 = new \Garden\Cli\Logger\Formatter\DateFormatter('[%Y %M %d %F %T]'); // optionally include date format
+$durationFormatter = new \Garden\Cli\Logger\Formatter\DurationFormatter;
+$colorFormatter = new \Garden\Cli\Logger\Formatter\ColorizerFormatter;
 
-// the StreamWriter takes stream type to initialize
-$writer = new \Garden\Cli\Logger\Writer\StreamWriter('php://output');
-$writer->addFormatter($formatter);
+// initialize the writer(s) that will be used by the logger
+$ioStreamWriter = new \Garden\Cli\Logger\Writer\IoStreamWriter('php://output');
+$fileWriter = new \Garden\Cli\Logger\Writer\IoStreamWriter('/tmp/logs/output.log');
 
-// initialize our logger
+// add the formatters to the writers (order does matter)
+$ioStreamWriter->addFormatter($dateFormatter1)->addFormatter($durationFormatter)->addFormatter($colorFormatter);
+$fileWriter->addFormatter($dateFormatter2)->addFormatter($durationFormatter);
+
+// initialize the logger and add the writer(s) to it
 $logger = new \Garden\Cli\Logger\Logger();
-$logger->addWriter($writer);
+$logger->addWriter($ioStreamWriter)->addWriter($fileWriter);
 
 $logger->message('This is a message.')
-    ->error('This is an error.') // outputs in red per the ColorStreamFormatter
-    ->success('This is what success looks like.') // outputs in green per the ColorStreamFormatter
+    ->error('This is an error.') // outputs in red per the ColorizerFormatter in the ioStreamWriter
+    ->success('This is what success looks like.') outputs in green per the ColorizerFormatter in the ioStreamWriter
 
     ->begin('Begin a task')
     // code task code goes here...

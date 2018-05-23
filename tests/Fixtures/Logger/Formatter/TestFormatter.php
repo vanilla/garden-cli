@@ -70,15 +70,16 @@ class TestFormatter implements FormatterInterface {
     /**
      * Format a message.
      *
-     * @param int $timestamp The timestamp of the log.
+     * @param int|string $time The time of the log entry.
      * @param string $logLevel The level of the message (e.g. SUCCESS, WARNING, ERROR).
      * @param int $indentLevel The nesting level of the message.
      * @param string $message The message.
-     * @param float|null $duration The duration to add to the message.
+     * @param float|null|string $duration The duration to add to the message.
      *
-     * @return string
+     * @return array
      */
-    public function format(int $timestamp, string $logLevel, int $indentLevel, string $message, $duration) {
-        return trim($timestamp . ' ' . $logLevel . ' ' . $indentLevel . ' ' . $message . ' ' . $duration);
+    public function format($time, string $logLevel, int $indentLevel, string $message, $duration) {
+        // as a test method just pass through exactly what we received
+        return func_get_args();
     }
 }

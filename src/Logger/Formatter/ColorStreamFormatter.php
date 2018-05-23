@@ -111,6 +111,7 @@ class ColorStreamFormatter implements FormatterInterface {
      * @return string
      */
     protected function colorify(string $message, string $logLevel) {
+        $suffix = "\033[0m";
         switch ($logLevel) {
             case LogLevels::SUCCESS:
                 $prefix = "\033[1;32m";
@@ -126,10 +127,10 @@ class ColorStreamFormatter implements FormatterInterface {
                 break;
             case LogLevels::INFO:
             default:
+                $suffix = '';
                 $prefix = '';
             break;
         };
-        $suffix = "\033[0m";
 
         // we only wrap with color if it is supported
         return "{$prefix}$message{$suffix}";
@@ -138,17 +139,16 @@ class ColorStreamFormatter implements FormatterInterface {
     /**
      * Format a message.
      *
-     * @param int $timestamp The timestamp of the log.
+     * @param int $time The timestamp of the log.
      * @param string $logLevel The level of the message.
      * @param int $indentLevel The nesting level of the message.
      * @param string $message The message.
      * @param float|null $duration The duration to add to the message.
      *
-     * @return string
+     * @return array
      */
-    public function format(int $timestamp, string $logLevel, int $indentLevel, string $message, $duration) {
-        $timestamp = strftime($this->getDateFormat(), $timestamp);
-        $indents = $indentLevel ? str_repeat('  ', $indentLevel).'- ' : '';
+    public function format($time, string $logLevel, int $indentLevel, string $message, $duration) {
+        $time = strftime($this->getDateFormat(), $time);
         $message = $this->colorify($message, $logLevel);
 
         if ($this->showDurations && ! is_null($duration)) {
@@ -158,6 +158,6 @@ class ColorStreamFormatter implements FormatterInterface {
             $duration = '';
         }
 
-        return trim($timestamp . ' ' . $indents . ' ' .$message . ' ' . $duration);
+        return [$time, $logLevel, $indentLevel, $message, $duration];
     }
 }

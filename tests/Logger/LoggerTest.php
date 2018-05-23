@@ -7,14 +7,17 @@
 
 namespace Garden\Cli\Tests\Logger;
 
+use DigiTickets\PHPUnit\ErrorHandler;
 use Garden\Cli\Logger\Logger;
-use Garden\Cli\Tests\CliTestCase;
 use Garden\Cli\Tests\Fixtures\Logger\Writer\TestWriter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Includes tests for the {@link \Garden\Cli\Logger\Logger} class.
  */
-class LoggerTest extends CliTestCase {
+class LoggerTest extends TestCase {
+
+    use ErrorHandler;
 
     /**
      * @var Logger An instantiated logger.
@@ -27,7 +30,6 @@ class LoggerTest extends CliTestCase {
     protected $writer;
 
     protected function setUp() {
-        parent::setUp();
         $this->writer = new TestWriter;
         $this->logger = new Logger;
         $this->logger->addWriter($this->writer);
@@ -58,7 +60,7 @@ class LoggerTest extends CliTestCase {
 
     public function testEndCalledWithoutMatchingBeginTriggersError() {
         $this->logger->end('end');
-        $this->assertErrorNumber(E_USER_NOTICE);
+        $this->assertError('Called Logger::end() without calling Logger::begin()', E_USER_NOTICE);
     }
 
     public function testEndTriggersWrite() {
