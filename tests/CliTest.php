@@ -11,7 +11,7 @@ use Garden\Cli\Cli;
 /**
  * Unit tests for the various command line interface classes.
  */
-class CliTest extends CliTestCase {
+class CliTest extends AbstractCliTest {
     /**
      * Test a cli run with named arguments.
      *

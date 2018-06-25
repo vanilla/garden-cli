@@ -14,7 +14,7 @@ use Garden\Cli\LogFormatter;
 /**
  * Includes tests for the {@link \Garden\Cli\LogFormatter} class.
  */
-class LogFormatterTest extends CliTestCase {
+class LogFormatterTest extends AbstractCliTest {
 
     /**
      * Create a new {@link LogFormatter} object with settings appropriate for most tests.
