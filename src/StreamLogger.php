@@ -341,7 +341,7 @@ class StreamLogger implements LoggerInterface {
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
     private function formatString(string $text, array $wrap): string {
-        if ($this->formatOutput()) {
+        if ($this->colorizeOutput()) {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
             return $text;
@@ -394,7 +394,7 @@ class StreamLogger implements LoggerInterface {
      *
      * @return bool Returns the format output setting.
      */
-    public function formatOutput(): bool {
+    public function colorizeOutput(): bool {
         return $this->colorizeOutput;
     }
 
