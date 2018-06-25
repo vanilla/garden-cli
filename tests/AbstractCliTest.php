@@ -8,7 +8,7 @@
 namespace Garden\Cli\Tests;
 
 
-class CliTestCase extends \PHPUnit_Framework_TestCase {
+abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
     private $errors;
 
     /**

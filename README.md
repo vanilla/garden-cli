@@ -1,5 +1,4 @@
-Garden CLI
-==========
+# Garden CLI
 
 [![Build Status](https://img.shields.io/travis/vanilla/garden-cli.svg?style=flat)](https://travis-ci.org/vanilla/garden-cli)
 [![Coverage](https://img.shields.io/scrutinizer/coverage/g/vanilla/garden-cli.svg?style=flat)](https://scrutinizer-ci.com/g/vanilla/garden-cli/)
@@ -9,8 +8,7 @@ Garden CLI
 
 Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api.
 
-Why use Garden CLI?
--------------------
+## Why use Garden CLI?
 
 PHP's `getopt()` provides little functionality and is prone to failure where one typo in your command line options can wreck and entire command call. Garden CLI solves this problem and provides additional functionality.
 
@@ -19,8 +17,7 @@ PHP's `getopt()` provides little functionality and is prone to failure where one
  * Have command options parsed and validated with error information automatically printed out.
  * A simple, elegant syntax so that even your most basic command line scripts will take little effort to implement robust parsing.
 
-Installation
-------------
+## Installation
 
 *Garden CLI requires PHP 7.0 or higher*
 
@@ -32,8 +29,7 @@ Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accep
 }
 ```
 
-Basic Example
--------------
+## Basic Example
 
 Here is a basic example of a command line script that uses Garden CLI to parse its options. Let's say you are writing a script called `dbdump.php` to dump some data from your database.
 
@@ -66,8 +62,7 @@ This example returns an `Args` object or exits to show help or an error message.
 * If you want your option to have a short code then specify in with `name` argument separated by a colon.
 * If you specify a short code for an option this will act like an alias for the parameter name in `$argv` only. You always access an option by its full name after parsing.
 
-Displaying Help
----------------
+## Displaying Help
 
 If you were to call the basic example with a `--help` option then you'd see the following help printed:
 
@@ -87,8 +82,7 @@ Dump some information from your database.
 
 All of the options are printed in a compact table and required options are printed in bold. The table will automatically expand to accommodate longer option names and wrap if you provide extra long descriptions.
 
-Displaying Errors
------------------
+## Displaying Errors
 
 Let's say you call the basic example with just `-P foo`. What you'd see is the following error message:
 
@@ -98,8 +92,7 @@ Missing required option: database
 Missing required option: user
 </pre>
 
-Using the Parsed Options
-------------------------
+## Using the Parsed Options
 
 Once you've successfully parsed the `$argv` using `Cli->parse($argv)` you can use the various methods on the returned `Args` object.
 
@@ -112,8 +105,7 @@ $database = $args['database']; // use the args like an array too
 $port = $args->getOpt('port', 123); // get port with default 123
 ```
 
-Multiple Commands Example
--------------------------
+## Multiple Commands Example
 
 Let's say you are writing a git-like command line utility called `nit.php` that pushes and pulls information from a remote repository.
 
@@ -145,8 +137,7 @@ Like the basic example, `parse()` will return a `Args` object on a successful pa
 * If the type of `opt()` is `integer` then you can count the number of times an option is supplied. In this example, this allowes you to specify multiple levels of verbosity by adding multiple `-v`s.
 * The `arg()` method lets you define arguments that go after the options on the command line. More on this below.
 
-Listing Commands
-----------------
+## Listing Commands
 
 Calling a script that has commands with no options or just the `--help` option will display a list of commands. Here is the output from the multiple commands example above.
 
@@ -158,8 +149,7 @@ Calling a script that has commands with no options or just the `--help` option w
   pull   Pull data from a remote server.
 </pre>
 
-Args and Opts
--------------
+## Args and Opts
 
 The `Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
 
@@ -167,45 +157,77 @@ The `Args` class differentiates between args and opts. There are methods to acce
 * Args are passed after the options as just strings separated by spaces.
 * When calling a script from the command line you can use `--` to separate opts from args if there is ambiguity.
 
-Formatting Output with the LogFormatter
----------------------------------------
+## Formatting Output with the TaskLogger
 
-The `LogFormatter` class helps you output task-based information to the console in a nice, compact style. It's good for
+The `TaskLogger` is a [PSR-3](https://www.php-fig.org/psr/psr-3/) log decorator helps you output task-based information to the console in a nice, compact style. It's good for
 things like install scripts, scripts that take a long time, or scripts you put into a cron job.
 
-When using the `LogFormatter` you want to think in terms of messages and tasks. A message is a single message to output
-to the user. A task has a begin and an end and can be nested as much as you want.
+### Logging Tasks
 
-By default, the `LogFormatter` will only output tasks two levels deep, but you can change that with
-`LogFormatter::setMaxLevel()`. Use this property to give your CLI scripts a quiet or verbose mode without littering your
-own code with if statements.
+When using the `TaskLogger` you want to think in terms of messages and tasks. A message is a single log item to output
+to the user. A task has a begin and an end and can be nested as much as you want. Messages are output using the various PSR-3 methods while tasks are output with `begin()` and `end()`. Here are all of the methods you can use to log tasks.
 
-The `LogFormatter` also has special methods for errors and success messages and adds a bit of color to the output to
-help them stand out at a glance. When you output an error message it will always display, even if it's deeply nested and
-would normally be hidden.
+| Method        | Notes |
+| ------        | ----- |
+| `begin`       | Log the beginning of a task. |
+| `beginDebug`, `beginInfo`, `beginNotice`, `beginWarning`, `beginError`, `beginCritical`, `beginAlert`, `beginEmergency` | Log the beginning of a task with the given log level. |
+| `end`         | Log the end of a task with the same level as it began. |
+| `endError`    | Log the end of a task that resulted in an error. |
+| `endHttpStatus`   | Log the end of a task with an HTTP status. The log level is calculated from the number of the status. |
+
+### Task Nesting and Durations
+
+You can nest tasks as much as you wish by calling a `begin*` method before calling an `end*` method. Each time you nest a task it will output its messages indented another level. Tasks also calculate their duration and output it at after the call to `end`.
+
+### Suppressing Messages
+
+By default, the `TaskLogger` will only output messages that are at a level of `LogLevel::INFO` or higher. You can change this with the `setMinLevel` method. If you begin a task at a level that us suppressed, but a child message is at or above the min level then the begin task message will be output retroactively. This allows you to see what task kicked off the logged message.
 
 ###Example
 
 ```php
-$log = new LogFormatter();
+$log = new TaskLogger();
 
-$log->message('This is a message.')
+$log->info('This is a message.')
     ->error('This is an error.') // outputs in red
-    ->success('This is what success looks like.') // outputs in green
 
-    ->begin('Begin a task')
+    ->beginInfo('Begin a task')
     // code task code goes here...
     ->end('done.')
 
-    ->begin('Make an API call')
+    ->beginDebug('Make an API call')
     ->endHttpStatus(200) // treated as error or success depending on code
 
-    ->begin('Multi-step task')
-    ->message('Step 1')
-    ->message('Step 2')
-    ->begin('Step 3')
-    ->message('Step 3.1') // steps will be hidden because they are level 3
-    ->message('Step 3.2')
+    ->begin(LogLevel::NOTICE, 'Multi-step task')
+    ->info('Step 1')
+    ->info('Step 2')
+    ->beginDebug('Step 3')
+    ->debug('Step 3.1') // steps will be hidden because they are level 3
+    ->debug('Step 3.2')
     ->end('done.')
     ->end('done.');
 ```
+
+## The StreamLogger
+
+If you create and use a `TaskLogger` object it will output nicely to the console out of the box. Under the hood it is using a `StreamLogger` object to handle the formatting of the tasks to an output stream, in this case stdout. You can replace or modify the `StreamLogger` if you want to control logging in a more granular level. Here are some options.
+
+| Method                | Default   | Notes |
+| ------                | -------   | ----- |
+| `setLineFormat`       | `'[{time}] {message}'`    | Set the format of lines. Use the `{level}`, `{time}`, `{message}` strings to move the components around. |
+| `setColorizeOutput`   | automatic | Whether or not to use console colors. |
+| `setBufferBegins`     | `true`    | Attempt to put task begin/end messages on the same line. Turn this off if you plan on writing to the log concurrently. |
+| `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `strftime` string or a callback. |
+| `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant. |
+
+## Implementing Your Own Logger
+
+You can give the `TaskLogger` any PSR-3 compliant logger and it will send its output to it. In order to use some of the special task functionality, you'll have to inspect the `$contenxt` argument of your `log` method. Here the fields that you may receive.
+
+| Field                         | Type  | Notes |
+| -----                         | ----  | ----- |
+| `TaskLogger::FIELD_TIME`      | `int` | The timestamp of the message. |
+| `TaskLogger::FIELD_INDENT`    | `int` | The indent level of the message. |
+| `TaskLogger::FIELD_BEGIN`     | `bool` | True if the message denotes the beginning of a task. |
+| `TaskLogger::FIELD_END`       | `bool` | True if the message denotes the end of a task. |
+| `TaskLogger::FIELD_DURATION`  | `float` | The duration of a task in seconds and milliseconds. |

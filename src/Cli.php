@@ -931,13 +931,18 @@ class Cli {
      * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
      * machines do not support terminal colors so formatting should be suppressed on them too.
      *
+     * @param mixed The stream to interrogate for output format support.
      * @return bool Returns **true** if the output can be formatter or **false** otherwise.
      */
-    public static function guessFormatOutput() {
+    public static function guessFormatOutput($stream = STDOUT) {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
             return false;
         } elseif (function_exists('posix_isatty')) {
-            return posix_isatty(STDOUT);
+            try {
+                return @posix_isatty($stream);
+            } catch (\Throwable $ex) {
+                return false;
+            }
         } else {
             return true;
         }
