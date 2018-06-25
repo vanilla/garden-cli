@@ -183,7 +183,7 @@ You can nest tasks as much as you wish by calling a `begin*` method before calli
 
 By default, the `TaskLogger` will only output messages that are at a level of `LogLevel::INFO` or higher. You can change this with the `setMinLevel` method. If you begin a task at a level that us suppressed, but a child message is at or above the min level then the begin task message will be output retroactively. This allows you to see what task kicked off the logged message.
 
-###Example
+### Example
 
 ```php
 $log = new TaskLogger();
@@ -219,6 +219,24 @@ If you create and use a `TaskLogger` object it will output nicely to the console
 | `setBufferBegins`     | `true`    | Attempt to put task begin/end messages on the same line. Turn this off if you plan on writing to the log concurrently. |
 | `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `strftime` string or a callback. |
 | `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant. |
+
+### Example
+
+The following example creates a `StreamLogger` object and tweaks some of its settings before passing it into the `TaskLogger` constructor.
+
+```php
+$fmt = new StreamLogger(STDOUT);
+
+$fmt->setLineFormat('{level}: {time} {message}');
+
+$fmt->setLevelFormat('strtoupper');
+
+$fmt->setTimeFormat(function ($ts) {
+    return number_format(time() - $ts).' seconds ago';
+});
+
+$log = new TaskLogger($fmt);
+```
 
 ## Implementing Your Own Logger
 
