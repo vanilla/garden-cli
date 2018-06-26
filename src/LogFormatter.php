@@ -9,6 +9,8 @@ namespace Garden\Cli;
 
 /**
  * A helper class to format CLI output in a log-style format.
+ *
+ * @deprecated
  */
 class LogFormatter {
     /**

@@ -81,7 +81,7 @@ class StreamLogger implements LoggerInterface {
      *
      * @param mixed $out Either a path or a stream resource for the output.
      */
-    public function __construct($out = 'php://output') {
+    public function __construct($out = STDOUT) {
         if (is_string($out)) {
             try {
                 $this->defaultStream = $out = fopen($out, 'a+');

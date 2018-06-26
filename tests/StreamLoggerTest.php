@@ -21,7 +21,7 @@ class StreamLoggerTest extends AbstractCliTest {
      */
     public function setUp() {
         parent::setUp();
-        $this->log = new StreamLogger();
+        $this->log = new StreamLogger('php://output');
         $this->log
             ->setShowDurations(false)
             ->setTimeFormat('d');

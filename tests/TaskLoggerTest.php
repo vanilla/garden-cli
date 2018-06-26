@@ -44,15 +44,6 @@ class TaskLoggerTest extends AbstractCliTest {
     }
 
     /**
-     * The default logger should log to STDOUT.
-     */
-    public function testDefaultStdout() {
-        $log = new TaskLogger();
-        $log->info('foo');
-        $this->expectOutputRegex('`foo`');
-    }
-
-    /**
      * I should be able to override the time with the context.
      */
     public function testTimeOverride() {
