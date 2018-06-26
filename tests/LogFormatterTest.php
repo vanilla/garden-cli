@@ -225,6 +225,8 @@ EOT
      * Test calling {@LogFormatter::end()} too many times.
      */
     public function testTooManyEnds() {
+        $this->expectErrors(true);
+
         $log = $this->createTestLogger();
 
         $log->begin('Begin')

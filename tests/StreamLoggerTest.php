@@ -224,6 +224,8 @@ class StreamLoggerTest extends AbstractCliTest {
      * Trying to write to a closed file should emit a warning.
      */
     public function testFileClosed() {
+        $this->expectErrors(true);
+
         $path = __DIR__.'/testCustomFile.log';
         $fp = fopen($path, 'w+');
 

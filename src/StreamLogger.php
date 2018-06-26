@@ -83,7 +83,11 @@ class StreamLogger implements LoggerInterface {
      */
     public function __construct($out = 'php://output') {
         if (is_string($out)) {
-            $this->defaultStream = $out = fopen($out, 'a+');
+            try {
+                $this->defaultStream = $out = fopen($out, 'a+');
+            } catch (\Throwable $ex) {
+                throw new \InvalidArgumentException($ex->getMessage(), 500);
+            }
             if (!is_resource($out)) {
                 throw new \InvalidArgumentException("The supplied path could not be opened: $out", 500);
             }

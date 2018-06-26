@@ -357,6 +357,8 @@ EOT;
      * Test that the backwards compatibility of the format property works.
      */
     public function testFormatCompat() {
+        $this->expectErrors(true);
+
         $cli = new Cli();
 
         $format = $cli->format;

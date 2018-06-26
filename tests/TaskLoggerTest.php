@@ -176,6 +176,8 @@ class TaskLoggerTest extends AbstractCliTest {
      * Logging an end with no begin should work, with exceptions.
      */
     public function testEndNoBegin() {
+        $this->expectErrors(true);
+
         $this->log->end('foo');
 
         $this->assertErrorNumber(E_USER_NOTICE);
@@ -195,7 +197,10 @@ class TaskLoggerTest extends AbstractCliTest {
      * @expectedException Psr\Log\InvalidArgumentException
      */
     public function testInvalidLevelEnd() {
+        $this->expectErrors(true);
+
         $this->log->end('a', [TaskLogger::FIELD_LEVEL => 'invalid']);
+        $this->assertErrorNumber(E_USER_NOTICE);
     }
 
     /**

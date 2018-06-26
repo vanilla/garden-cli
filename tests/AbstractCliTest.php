@@ -11,13 +11,33 @@ namespace Garden\Cli\Tests;
 abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
     private $errors;
 
+    private $expectErrors;
+
     /**
      * Add a custom error handler that tracks PHP errors.
      */
     protected function setUp() {
         $this->errors = [];
+        $this->expectErrors = false;
         set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext) {
-            $this->errors[] = compact("errno", "errstr", "errfile", "errline", "errcontext");
+            $reporting = error_reporting();
+            if ($this->expectErrors) {
+                $this->errors[] = compact("errno", "errstr", "errfile", "errline", "errcontext");
+            } elseif (error_reporting() !== 0) {
+                switch ($errno) {
+                    case E_NOTICE:
+                    case E_USER_NOTICE:
+                    case E_STRICT:
+                        throw new \PHPUnit_Framework_Error_Notice($errstr, $errno, $errfile, $errline);
+                        break;
+                    case E_WARNING:
+                    case E_USER_WARNING:
+                        throw new \PHPUnit_Framework_Error_Warning($errstr, $errno, $errfile, $errline);
+                        break;
+                    default:
+                        throw new \PHPUnit_Framework_Error($errstr, $errno, $errfile, $errline);
+                }
+            }
         });
     }
 
@@ -62,6 +82,10 @@ abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
 
         $this->fail("Error with level number '{$errno}' not found in ",
             var_export($this->errors, true));
+    }
+
+    protected function expectErrors(bool $value) {
+        $this->expectErrors = $value;
     }
 
     /**
