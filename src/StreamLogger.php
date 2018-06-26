@@ -233,10 +233,9 @@ class StreamLogger implements LoggerInterface {
 
         // Explode on "\n" because the input string may have a variety of newlines.
         $lines = explode("\n", $message);
-        $lines = array_map('rtrim', $lines);
-
         if ($fullLine) {
             foreach ($lines as &$line) {
+                $line = rtrim($line);
                 $line = $this->replaceContext($this->getLineFormat(), [
                     'level' => $levelStr,
                     'time' => $timeStr,
@@ -250,7 +249,11 @@ class StreamLogger implements LoggerInterface {
         $result = $this->formatString($result, $wrap);
 
         if (isset($context[TaskLogger::FIELD_DURATION]) && $this->showDurations()) {
-            $result = trim($result.' '.$this->formatString($this->formatDuration($context[TaskLogger::FIELD_DURATION]), ["\033[1;34m", "\033[0m"]));
+            if ($result && !preg_match('`\s$`', $result)) {
+                $result .= ' ';
+            }
+
+            $result .= $this->formatString($this->formatDuration($context[TaskLogger::FIELD_DURATION]), ["\033[1;34m", "\033[0m"]);
         }
 
         return $result;

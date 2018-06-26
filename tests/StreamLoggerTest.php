@@ -271,4 +271,15 @@ class StreamLoggerTest extends AbstractCliTest {
 
         $this->expectOutputString("[1] foo\n");
     }
+
+    /**
+     * Reproduce a bug with empty end messages and a duration was missing a space.
+     */
+    public function testEndEmptyEndMessageDuration() {
+        $this->log->setShowDurations(true);
+        $this->log->info('a', [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info('', [TaskLogger::FIELD_END => true, TaskLogger::FIELD_DURATION => 1]);
+
+        $this->expectOutputString("[d] a 1s\n");
+    }
 }
