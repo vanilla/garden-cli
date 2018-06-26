@@ -83,7 +83,7 @@ class TaskLogger implements LoggerInterface {
      */
     public function begin(string $level, string $message, array $context = []) {
         $output = $this->compareLevel($level, $this->getMinLevel()) >= 0;
-        $context = [self::FIELD_BEGIN => true] + $context;
+        $context = [self::FIELD_BEGIN => true] + $context + [self::FIELD_TIME => microtime(true)];
         $task = [$level, $message, $context, $output];
 
         if ($output) {
@@ -175,7 +175,7 @@ class TaskLogger implements LoggerInterface {
      * @param array $context The log context.
      */
     private function logInternal(string $level, string $message, array $context = []) {
-        $context = $context + [self::FIELD_INDENT => $this->currentIndent(), self::FIELD_TIME => microtime(1)];
+        $context = $context + [self::FIELD_INDENT => $this->currentIndent(), self::FIELD_TIME => microtime(true)];
         $this->logger->log($level, $message, $context);
     }
 
