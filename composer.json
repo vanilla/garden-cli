@@ -32,5 +32,8 @@
 		"psr-4": {
 			"Garden\\Cli\\Tests\\": "tests"
 		}
+	},
+	"scripts": {
+		"psalter": "./vendor/bin/psalter --issues=MissingReturnType,MissingClosureReturnType,InvalidReturnType,InvalidNullableReturnType,InvalidFalsableReturnType,MissingParamType,MismatchingDocblockParamType,MismatchingDocblockReturnType,LessSpecificReturnType,PossiblyUndefinedVariable,PossiblyUndefinedGlobalVariable,UnusedProperty,UnusedVariable"
 	}
 }

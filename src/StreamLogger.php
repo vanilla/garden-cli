@@ -117,7 +117,7 @@ class StreamLogger implements LoggerInterface {
      */
     public function setTimeFormat($format) {
         if (is_string($format)) {
-            $this->timeFormatter = function ($t) use ($format) {
+            $this->timeFormatter = function ($t) use ($format): string {
                 return strftime($format, $t);
             };
         } else {

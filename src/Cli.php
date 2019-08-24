@@ -16,6 +16,10 @@ class Cli {
     const META = '__meta';
     const ARGS = '__args';
 
+    const COMMAND_ARGS_NONE = 0;
+    const COMMAND_ARGS_OPTIONAL = 1;
+    const COMMAND_ARGS_REQUIRED = 2;
+
     /// Properties ///
     /**
      * @var array All of the schemas, indexed by command pattern.
@@ -139,9 +143,11 @@ class Cli {
      * @param string $text The text of the cell.
      * @param int $width The width of the cell.
      * @param bool $addSpaces Whether or not to right-pad the cell with spaces.
-     * @return array Returns an array of strings representing the lines in the cell.
+     * @return string[] Returns an array of strings representing the lines in the cell.
+     *
+     * @psalm-return array<int, string>
      */
-    public static function breakLines($text, $width, $addSpaces = true) {
+    public static function breakLines($text, $width, $addSpaces = true): array {
         $rawLines = explode("\n", $text);
         $lines = [];
 
@@ -160,9 +166,11 @@ class Cli {
      * @param string $line The text of the line.
      * @param int $width The width of the cell.
      * @param bool $addSpaces Whether or not to right pad the lines with spaces.
-     * @return array Returns an array of lines, broken on word boundaries.
+     * @return string[] Returns an array of lines broken on word boundaries.
+     *
+     * @psalm-return array<int, string>
      */
-    protected static function breakString($line, $width, $addSpaces = true) {
+    protected static function breakString(string $line, int $width, bool $addSpaces = true): array {
         $words = explode(' ', $line);
         $result = [];
 
@@ -175,7 +183,7 @@ class Cli {
                 if ($line === '') {
                     // The word is longer than a line.
                     if ($addSpaces) {
-                        $result[] = substr($candidate, 0, $width);
+                        $result[] = (string)substr($candidate, 0, $width);
                     } else {
                         $result[] = $candidate;
                     }
@@ -269,12 +277,9 @@ class Cli {
      * Determines whether or not a command has args.
      *
      * @param string $command The command name to check.
-     * @return int Returns one of the following.
-     * - 0: The command has no args.
-     * - 1: The command has optional args.
-     * - 2: The command has required args.
+     * @return int Returns one of the following `COMMAND_ARGS_*` constants.
      */
-    public function hasArgs($command = '') {
+    public function hasArgs($command = ''): int {
         $args = null;
 
         if ($command) {
@@ -290,20 +295,20 @@ class Cli {
                 }
             }
             if (!empty($args)) {
-                return 1;
+                return self::COMMAND_ARGS_OPTIONAL;
             }
         }
 
         if (!$args || empty($args)) {
-            return 0;
+            return self::COMMAND_ARGS_NONE;
         }
 
         foreach ($args as $arg) {
             if (!Cli::val('required', $arg)) {
-                return 1;
+                return self::COMMAND_ARGS_OPTIONAL;
             }
         }
-        return 2;
+        return self::COMMAND_ARGS_REQUIRED;
     }
 
     /**
@@ -319,16 +324,19 @@ class Cli {
     /**
      * Parses and validates a set of command line arguments the schema.
      *
-     * @param array $argv The command line arguments a form compatible with the global `$argv` variable.
+     *
      *
      * Note that the `$argv` array must have at least one element and it must represent the path to the command that
      * invoked the command. This is used to write usage information.
+     *
+     * @param array $argv The command line arguments a form compatible with the global `$argv` variable.
      * @param bool $exit Whether to exit the application when there is an error or when writing help.
-     * @return Args|null Returns an {@see Args} instance when a command should be executed
-     * or `null` when one should not be executed.
+     *
+     * @return Args Returns an {@see Args} instance when a command should be executed or `null` when one should not be executed.
+     *
      * @throws \Exception Throws an exception when {@link $exit} is false and the help or errors need to be displayed.
      */
-    public function parse($argv = null, $exit = true) {
+    public function parse($argv = null, $exit = true): Args {
         $formatOutputBak = $this->formatOutput;
         // Only format commands if we are exiting.
         if (!$exit) {
@@ -577,6 +585,7 @@ class Cli {
      *
      * @param Args $args The arguments that were returned from {@link Cli::parseRaw()}.
      * @return Args|null
+     * @throws \Exception Throws an exception when validation fails and exceptions are configured.
      */
     public function validate(Args $args) {
         $isValid = true;
@@ -1168,10 +1177,14 @@ class Cli {
      * Parse a schema in short form into a full schema array.
      *
      * @param array $arr The array to parse into a schema.
-     * @return array The full schema array.
+     *
+     * @return array[]
+     *
      * @throws \InvalidArgumentException Throws an exception when an item in the schema is invalid.
+     *
+     * @psalm-return array<string, array>
      */
-    public static function parseSchema(array $arr) {
+    public static function parseSchema(array $arr): array {
         $result = [];
 
         foreach ($arr as $key => $value) {
@@ -1241,10 +1254,14 @@ class Cli {
      *
      * @param string $str The short parameter string to parse.
      * @param array $other An array of other information that might help resolve ambiguity.
+     *
      * @return array Returns an array in the form [name, [param]].
+     *
      * @throws \InvalidArgumentException Throws an exception if the short param is not in the correct format.
+     *
+     * @psalm-return array{name: string, type: mixed, required: bool, short?: mixed}
      */
-    protected static function parseShortParam($str, $other = []) {
+    protected static function parseShortParam($str, $other = []): array {
         // Is the parameter optional?
         if (substr($str, -1) === '?') {
             $required = false;

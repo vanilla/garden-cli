@@ -189,6 +189,8 @@ class Args implements \JsonSerializable, \ArrayAccess {
      * Return the json serializable data for the args.
      *
      * @return array Returns an array of data that can be used to serialize the args to json.
+     *
+     * @psalm-return array{command: mixed, opts: mixed, args: mixed, meta: mixed}
      */
     public function jsonSerialize() {
         return [
