@@ -174,6 +174,16 @@ class Args implements \JsonSerializable, \ArrayAccess {
     }
 
     /**
+     * Determine whether or not an option has been set.
+     *
+     * @param string $option The name of the option.
+     * @return bool Returns **true** if the option has been set or **false** otherwise.
+     */
+    public function hasOpt(string $option): bool {
+        return array_key_exists($option, $this->opts);
+    }
+
+    /**
      * Set an option.
      *
      * @param string $option The name of the option.

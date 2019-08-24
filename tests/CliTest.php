@@ -372,4 +372,50 @@ EOT;
         $this->assertErrorNumber(E_USER_DEPRECATED);
         $this->assertSame($format2, $cli->getFormatOutput());
     }
+
+    /**
+     * Test array opts.
+     *
+     * @param array $argv The input command.
+     * @param array $expectedOpts The expected opts after the command is parsed.
+     * @dataProvider provideArrayOptTests
+     */
+    public function testArrayOpt(array $argv, array $expectedOpts): void {
+        $cli = new Cli();
+
+        $cli->opt('int:i', '', false, 'integer[]')
+            ->opt('str:s', '', false, 'string[]')
+            ->opt('bool:b', '', false, 'boolean[]');
+
+        array_unshift($argv, 'script');
+
+        $args = $cli->parse($argv);
+
+        $this->assertSame($expectedOpts, $args->getOpts());
+    }
+
+    /**
+     * Provide test data for array opt tests.
+     *
+     * @return array Returns a data provider array.
+     */
+    public function provideArrayOptTests(): array {
+        $r = [
+            [['-i123'], ['int' => [123]]],
+            [['-shello'], ['str' => ['hello']]],
+            [['-b'], ['bool' => [true]]],
+            [['-i1', '-i2'], ['int' => [1, 2]]],
+            [['-sa', '-sb'], ['str' => ['a', 'b']]],
+            [['-b', '--no-bool'], ['bool' => [true, false]]],
+            [['--no-bool', '--no-bool'], ['bool' => [false, false]]],
+        ];
+
+        $result = [];
+        foreach ($r as $item) {
+            $result[$item[0][0]] = $item;
+        }
+
+
+        return $result;
+    }
 }
