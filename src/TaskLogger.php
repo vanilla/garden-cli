@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2015 Vanilla Forums Inc.
+ * @copyright 2009-2019 Vanilla Forums Inc.
  * @license MIT
  */
 
@@ -121,7 +121,9 @@ class TaskLogger implements LoggerInterface {
     }
 
     /**
-     * @param string $minLevel
+     * Set the minimum error level.
+     *
+     * @param string $minLevel One of the PSR logger levels.
      * @return $this
      */
     public function setMinLevel(string $minLevel) {

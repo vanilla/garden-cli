@@ -1,4 +1,10 @@
 <?php
+/**
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2009-2019 Vanilla Forums Inc.
+ * @license MIT
+ */
+
 namespace Garden\Cli;
 
 /**
@@ -93,7 +99,7 @@ class Table {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     * @return @this
      */
     public function setFormatOutput($formatOutput) {
         $this->formatOutput = $formatOutput;
@@ -233,7 +239,7 @@ class Table {
 
                     if (isset($lines[$i])) {
                         if ($this->formatOutput) {
-                            if(isset($row[$j])) {
+                            if (isset($row[$j])) {
                                 $wrap = $row[$j][1];
                             } else {
                                 // if we're out of array, use the latest wraps

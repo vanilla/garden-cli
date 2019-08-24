@@ -1,13 +1,14 @@
 <?php
+/**
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2009-2019 Vanilla Forums Inc.
+ * @license MIT
+ */
 
 namespace Garden\Cli;
 
 /**
  * A general purpose command line parser.
- *
- * @author Todd Burry <todd@vanillaforums.com>
- * @license MIT
- * @copyright 2010-2014 Vanilla Forums Inc.
  */
 class Cli {
     /// Constants ///
@@ -769,7 +770,8 @@ class Cli {
      * This method is sort of like {@link Cli::validateType()} but requires a more strict check of a boolean value.
      *
      * @param mixed $value The value to test.
-     * @return bool
+     * @param bool|null $boolValue Set the boolean value of the value being checked.
+     * @return bool Returns **true** if the value is boolean or **false** otherwise.
      */
     protected function isStrictBoolean($value, &$boolValue = null) {
         if ($value === true || $value === false) {
@@ -931,7 +933,7 @@ class Cli {
      * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
      * machines do not support terminal colors so formatting should be suppressed on them too.
      *
-     * @param mixed The stream to interrogate for output format support.
+     * @param mixed $stream The stream to interrogate for output format support.
      * @return bool Returns **true** if the output can be formatter or **false** otherwise.
      */
     public static function guessFormatOutput($stream = STDOUT) {
@@ -963,7 +965,7 @@ class Cli {
     /**
      * Validate the type of a value and coerce it into the proper type.
      *
-     * @param mixed &$value The value to validate.
+     * @param mixed $value The value to validate.
      * @param string $type One of: bool, int, string.
      * @param string $name The name of the option if you want to print an error message.
      * @param array|null $def The option def if you want to print an error message.
@@ -1131,7 +1133,6 @@ class Cli {
             if ($this->hasCommand()) {
                 if ($args->getCommand() && isset($this->commandSchemas[$args->getCommand()])) {
                     echo ' '.$args->getCommand();
-
                 } else {
                     echo ' <command>';
                 }
