@@ -20,6 +20,10 @@ class Cli {
     const COMMAND_ARGS_OPTIONAL = 1;
     const COMMAND_ARGS_REQUIRED = 2;
 
+    const TYPE_INTEGER = 'integer';
+    const TYPE_STRING = 'string';
+    const TYPE_BOOLEAN = 'boolean';
+
     /// Properties ///
     /**
      * @var array All of the schemas, indexed by command pattern.
@@ -37,13 +41,9 @@ class Cli {
     protected $formatOutput;
 
     protected static $types = [
-//        '=' => 'base64',
-        'i' => 'integer',
-        's' => 'string',
-//        'f' => 'float',
-        'b' => 'boolean',
-//        'ts' => 'timestamp',
-//        'dt' => 'datetime'
+        'i' => self::TYPE_INTEGER,
+        's' => self::TYPE_STRING,
+        'b' => self::TYPE_BOOLEAN,
     ];
 
 
@@ -425,7 +425,7 @@ class Cli {
                     continue;
                 }
 
-                $type = Cli::val('type', $sRow, 'string');
+                $type = Cli::val('type', $sRow, self::TYPE_STRING);
                 $types[$sName] = $type;
                 if (isset($sRow['short'])) {
                     $types[$sRow['short']] = $type;
@@ -463,7 +463,7 @@ class Cli {
                             // so choose the next arg as its value if any,
                             $v = $argv[$i + 1];
                             // If this is a boolean we need to coerce the value
-                            if (Cli::val($key, $types) === 'boolean') {
+                            if (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
                                 if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
                                     // The next arg looks like a boolean to me.
                                     $i++;
@@ -477,11 +477,11 @@ class Cli {
                         // If there is no value but we have a no- before the command
                         } elseif (strpos($key, 'no-') === 0) {
                             $tmpKey = str_replace('no-', null, $key);
-                            if (Cli::val($tmpKey, $types) === 'boolean') {
+                            if (Cli::val($tmpKey, $types) === self::TYPE_BOOLEAN) {
                                 $key = $tmpKey;
                                 $v = false;
                             }
-                        } elseif (Cli::val($key, $types) === 'boolean') {
+                        } elseif (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
                             $v = true;
                         }
                     }
@@ -490,14 +490,14 @@ class Cli {
                     // -a
 
                     $key = $str[1];
-                    $type = Cli::val($key, $types, 'boolean');
+                    $type = Cli::val($key, $types, self::TYPE_BOOLEAN);
                     $v = null;
 
                     if (isset($argv[$i + 1])) {
                         // Try and be smart about the next arg.
                         $nextArg = $argv[$i + 1];
 
-                        if ($type === 'boolean') {
+                        if ($type === self::TYPE_BOOLEAN) {
                             if ($this->isStrictBoolean($nextArg)) {
                                 // The next arg looks like a boolean to me.
                                 $v = $nextArg;
@@ -516,7 +516,7 @@ class Cli {
                     }
 
                     if ($v === null) {
-                        $v = Cli::val($type, ['boolean' => true, 'integer' => 1, 'string' => '']);
+                        $v = Cli::val($type, [self::TYPE_BOOLEAN => true, self::TYPE_INTEGER => 1, self::TYPE_STRING => '']);
                     }
 
                     $parsed->setOpt($key, $v);
@@ -525,19 +525,19 @@ class Cli {
                     for ($j = 1; $j < strlen($str); $j++) {
                         $opt = $str[$j];
                         $remaining = substr($str, $j + 1);
-                        $type = Cli::val($opt, $types, 'boolean');
+                        $type = Cli::val($opt, $types, self::TYPE_BOOLEAN);
 
                         // Check for an explicit equals sign.
                         if (substr($remaining, 0, 1) === '=') {
                             $remaining = substr($remaining, 1);
-                            if ($type === 'boolean') {
+                            if ($type === self::TYPE_BOOLEAN) {
                                 // Bypass the boolean flag checking below.
                                 $parsed->setOpt($opt, $remaining);
                                 break;
                             }
                         }
 
-                        if ($type === 'boolean') {
+                        if ($type === self::TYPE_BOOLEAN) {
                             if (preg_match('`^([01])`', $remaining, $matches)) {
                                 // Treat the 0 or 1 as a true or false.
                                 $parsed->setOpt($opt, $matches[1]);
@@ -546,11 +546,11 @@ class Cli {
                                 // Treat the option as a flag.
                                 $parsed->setOpt($opt, true);
                             }
-                        } elseif ($type === 'string') {
+                        } elseif ($type === self::TYPE_STRING) {
                             // Treat the option as a set with no = sign.
                             $parsed->setOpt($opt, $remaining);
                             break;
-                        } elseif ($type === 'integer') {
+                        } elseif ($type === self::TYPE_INTEGER) {
                             if (preg_match('`^(\d+)`', $remaining, $matches)) {
                                 // Treat the option as a set with no = sign.
                                 $parsed->setOpt($opt, $matches[1]);
@@ -610,7 +610,7 @@ class Cli {
 
         foreach ($schema as $key => $definition) {
             // No Parameter (default)
-            $type = Cli::val('type', $definition, 'string');
+            $type = Cli::val('type', $definition, self::TYPE_STRING);
 
             if (array_key_exists($key, $opts)) {
                 // Check for --key.
@@ -634,7 +634,7 @@ class Cli {
                 // Check for --no-key.
                 $value = $opts['no-'.$key];
 
-                if ($type !== 'boolean') {
+                if ($type !== self::TYPE_BOOLEAN) {
                     echo $this->red("Cannot apply the --no- prefix on the non boolean --$key.".PHP_EOL);
                     $isValid = false;
                 } elseif ($this->validateType($value, $type, $key, $definition)) {
@@ -721,16 +721,16 @@ class Cli {
     public function opt($name, $description, $required = false, $type = 'string') {
         switch ($type) {
             case 'str':
-            case 'string':
-                $type = 'string';
+            case self::TYPE_STRING:
+                $type = self::TYPE_STRING;
                 break;
             case 'bool':
-            case 'boolean':
-                $type = 'boolean';
+            case self::TYPE_BOOLEAN:
+                $type = self::TYPE_BOOLEAN;
                 break;
             case 'int':
-            case 'integer':
-                $type = 'integer';
+            case self::TYPE_INTEGER:
+                $type = self::TYPE_INTEGER;
                 break;
             default:
                 throw new \Exception("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
@@ -989,7 +989,7 @@ class Cli {
      */
     protected function validateType(&$value, $type, $name = '', $def = null) {
         switch ($type) {
-            case 'boolean':
+            case self::TYPE_BOOLEAN:
                 if (is_bool($value)) {
                     $valid = true;
                 } elseif ($value === 0) {
@@ -1006,7 +1006,7 @@ class Cli {
                     $valid = false;
                 }
                 break;
-            case 'integer':
+            case self::TYPE_INTEGER:
                 if (is_numeric($value)) {
                     $value = (int)$value;
                     $valid = true;
@@ -1014,7 +1014,7 @@ class Cli {
                     $valid = false;
                 }
                 break;
-            case 'string':
+            case self::TYPE_STRING:
                 $value = (string)$value;
                 $valid = true;
                 break;
@@ -1084,7 +1084,7 @@ class Cli {
         // Add the help.
         $schema['help'] = [
             'description' => 'Display this help.',
-            'type' => 'boolean',
+            'type' => self::TYPE_BOOLEAN,
             'short' => '?'
         ];
 
@@ -1277,7 +1277,7 @@ class Cli {
             if (isset($other['type'])) {
                 $type = $other['type'];
             } else {
-                $type = 'string';
+                $type = self::TYPE_STRING;
             }
             $name = $parts[0];
         } else {
