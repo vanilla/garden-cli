@@ -1,19 +1,20 @@
 language: php
 
 php:
-    - 7.0
     - 7.1
     - 7.2
-    - hhvm
+    - 7.3
+    - nightly
 
 sudo: false
 
 matrix:
+    allow_failures:
+        - php: nightly
     fast_finish: true
 
 install:
     - composer install
-    - composer require phpunit/phpunit ~5
 
 script: ./vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover=coverage.clover
 

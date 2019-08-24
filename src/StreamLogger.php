@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2018 Vanilla Forums Inc.
+ * @copyright 2009-2019 Vanilla Forums Inc.
  * @license MIT
  */
 
@@ -12,6 +12,9 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
 
+/**
+ * A logger that logs to a stream.
+ */
 class StreamLogger implements LoggerInterface {
     use LoggerTrait;
 
@@ -101,7 +104,6 @@ class StreamLogger implements LoggerInterface {
         $this->setLevelFormat(function ($l) {
             return $l;
         });
-
     }
 
     /**
@@ -115,7 +117,7 @@ class StreamLogger implements LoggerInterface {
      */
     public function setTimeFormat($format) {
         if (is_string($format)) {
-            $this->timeFormatter = function ($t) use ($format) {
+            $this->timeFormatter = function ($t) use ($format): string {
                 return strftime($format, $t);
             };
         } else {
@@ -219,7 +221,16 @@ class StreamLogger implements LoggerInterface {
         return $this->bufferBegins;
     }
 
-    private function fullMessageStr($level, $message, $context, $fullLine = true): string {
+    /**
+     * Format a full message string.
+     *
+     * @param string $level The logging level.
+     * @param string $message The message to format.
+     * @param array $context Variable replacements for the message.
+     * @param bool $fullLine Whether or not this is a full line message.
+     * @return string Returns a formatted message.
+     */
+    private function fullMessageStr(string $level, string $message, array $context, bool $fullLine = true): string {
         $levelStr = call_user_func($this->getLevelFormat(), $level);
 
         $timeStr = call_user_func($this->getTimeFormat(), $context[TaskLogger::FIELD_TIME] ?? microtime(true));

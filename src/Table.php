@@ -1,4 +1,10 @@
 <?php
+/**
+ * @author Todd Burry <todd@vanillaforums.com>
+ * @copyright 2009-2019 Vanilla Forums Inc.
+ * @license MIT
+ */
+
 namespace Garden\Cli;
 
 /**
@@ -93,9 +99,10 @@ class Table {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return LogFormatter Returns `$this` for fluent calls.
+     *
+     * @return self
      */
-    public function setFormatOutput($formatOutput) {
+    public function setFormatOutput($formatOutput): self {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -181,8 +188,10 @@ class Table {
 
     /**
      * Reset the table so another one can be written with the same object.
+     *
+     * @return void
      */
-    public function reset() {
+    public function reset(): void {
         $this->columnWidths = [];
         $this->rows = [];
         $this->currentRow = null;
@@ -201,8 +210,10 @@ class Table {
 
     /**
      * Writes the final table.
+     *
+     * @return void
      */
-    public function write() {
+    public function write(): void {
         // Determine the width of the last column.
         $columnWidths = array_sum($this->columnWidths);
         $totalWidth = $this->indent + $columnWidths + $this->padding * (count($this->columnWidths) - 1);
@@ -233,7 +244,7 @@ class Table {
 
                     if (isset($lines[$i])) {
                         if ($this->formatOutput) {
-                            if(isset($row[$j])) {
+                            if (isset($row[$j])) {
                                 $wrap = $row[$j][1];
                             } else {
                                 // if we're out of array, use the latest wraps

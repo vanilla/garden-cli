@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2015 Vanilla Forums Inc.
+ * @copyright 2009-2019 Vanilla Forums Inc.
  * @license MIT
  */
 
@@ -323,6 +323,15 @@ class LogFormatter {
         return $this;
     }
 
+    /**
+     * Format a full message string.
+     *
+     * @param int $timestamp The time of the message.
+     * @param string $str The message to format.
+     * @param int|null $indent The indent level of the message.
+     * @param bool $eol Whether to output an EOL after the message.
+     * @return string Returns a formatted message.
+     */
     protected function fullMessageStr($timestamp, $str, $indent = null, $eol = true) {
         if ($indent === null) {
             $indent = $this->currentLevel() - 1;
@@ -384,6 +393,8 @@ class LogFormatter {
     }
 
     /**
+     * Set the max error level.
+     *
      * @param int $maxLevel
      * @return LogFormatter
      */
@@ -479,8 +490,10 @@ class LogFormatter {
      * needs to change.
      *
      * @param string $str The string to write.
+     *
+     * @return void
      */
-    public function write($str) {
+    public function write($str): void {
         if (feof($this->outputHandle)) {
             trigger_error('Called LogFormatter::write() but file handle was closed.', E_USER_WARNING);
             return;

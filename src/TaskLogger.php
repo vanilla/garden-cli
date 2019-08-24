@@ -1,7 +1,7 @@
 <?php
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @copyright 2009-2015 Vanilla Forums Inc.
+ * @copyright 2009-2019 Vanilla Forums Inc.
  * @license MIT
  */
 
@@ -36,7 +36,7 @@ class TaskLogger implements LoggerInterface {
         LogLevel::EMERGENCY,
     ];
     /**
-     * @var int The minimum level deep to output.
+     * @var string The minimum level deep to output.
      */
     private $minLevel = LogLevel::INFO;
     /**
@@ -112,7 +112,7 @@ class TaskLogger implements LoggerInterface {
     }
 
     /**
-     * Get the maxLevel.
+     * Get the min level.
      *
      * @return string Returns the maxLevel.
      */
@@ -121,7 +121,9 @@ class TaskLogger implements LoggerInterface {
     }
 
     /**
-     * @param string $minLevel
+     * Set the minimum error level.
+     *
+     * @param string $minLevel One of the PSR logger levels.
      * @return $this
      */
     public function setMinLevel(string $minLevel) {
@@ -155,8 +157,10 @@ class TaskLogger implements LoggerInterface {
 
     /**
      * Output the task stack.
+     *
+     * @return void
      */
-    private function outputTaskStack() {
+    private function outputTaskStack(): void {
         foreach ($this->taskStack as $indent => &$task) {
             list($taskLevel, $taskMessage, $taskContext, $taskOutput) = $task;
             if (!$taskOutput) {
@@ -173,8 +177,10 @@ class TaskLogger implements LoggerInterface {
      * @param string $level The log level.
      * @param string $message The log message.
      * @param array $context The log context.
+     *
+     * @return void
      */
-    private function logInternal(string $level, string $message, array $context = []) {
+    private function logInternal(string $level, string $message, array $context = []): void {
         $context = $context + [self::FIELD_INDENT => $this->currentIndent(), self::FIELD_TIME => microtime(true)];
         $this->logger->log($level, $message, $context);
     }
