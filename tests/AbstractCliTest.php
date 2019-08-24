@@ -8,7 +8,9 @@
 namespace Garden\Cli\Tests;
 
 
-abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+abstract class AbstractCliTest extends TestCase {
     private $errors;
 
     private $expectErrors;
@@ -64,6 +66,7 @@ abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
     public function assertErrorNumber($errno) {
         foreach ($this->errors as $error) {
             if ($error["errno"] === $errno) {
+                $this->assertTrue(true);
                 return;
             }
         }
@@ -80,7 +83,7 @@ abstract class AbstractCliTest extends \PHPUnit_Framework_TestCase {
             $errno = $nos[$errno];
         }
 
-        $this->fail("Error with level number '{$errno}' not found in ",
+        $this->fail("Error with level number '{$errno}' not found in ".
             var_export($this->errors, true));
     }
 
