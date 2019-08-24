@@ -20,6 +20,10 @@ class Cli {
     const COMMAND_ARGS_OPTIONAL = 1;
     const COMMAND_ARGS_REQUIRED = 2;
 
+    const TYPE_INTEGER = 'integer';
+    const TYPE_STRING = 'string';
+    const TYPE_BOOLEAN = 'boolean';
+
     /// Properties ///
     /**
      * @var array All of the schemas, indexed by command pattern.
@@ -37,13 +41,9 @@ class Cli {
     protected $formatOutput;
 
     protected static $types = [
-//        '=' => 'base64',
-        'i' => 'integer',
-        's' => 'string',
-//        'f' => 'float',
-        'b' => 'boolean',
-//        'ts' => 'timestamp',
-//        'dt' => 'datetime'
+        'i' => self::TYPE_INTEGER,
+        's' => self::TYPE_STRING,
+        'b' => self::TYPE_BOOLEAN,
     ];
 
 
@@ -425,7 +425,7 @@ class Cli {
                     continue;
                 }
 
-                $type = Cli::val('type', $sRow, 'string');
+                $type = Cli::val('type', $sRow, self::TYPE_STRING);
                 $types[$sName] = $type;
                 if (isset($sRow['short'])) {
                     $types[$sRow['short']] = $type;
@@ -451,7 +451,7 @@ class Cli {
                     $str = substr($str, 2);
                     $parts = explode('=', $str);
                     $key = $parts[0];
-                    $v = null;
+                    $v = '';
 
                     // Has a =, so pick the second piece
                     if (count($parts) == 2) {
@@ -463,7 +463,7 @@ class Cli {
                             // so choose the next arg as its value if any,
                             $v = $argv[$i + 1];
                             // If this is a boolean we need to coerce the value
-                            if (Cli::val($key, $types) === 'boolean') {
+                            if (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
                                 if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
                                     // The next arg looks like a boolean to me.
                                     $i++;
@@ -477,27 +477,27 @@ class Cli {
                         // If there is no value but we have a no- before the command
                         } elseif (strpos($key, 'no-') === 0) {
                             $tmpKey = str_replace('no-', null, $key);
-                            if (Cli::val($tmpKey, $types) === 'boolean') {
+                            if (Cli::val($tmpKey, $types) === self::TYPE_BOOLEAN) {
                                 $key = $tmpKey;
                                 $v = false;
                             }
-                        } elseif (Cli::val($key, $types) === 'boolean') {
+                        } elseif (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
                             $v = true;
                         }
                     }
-                    $parsed->setOpt($key, $v);
+                    $this->pushOpt($parsed, $key, $v);
                 } elseif (strlen($str) == 2 && $str[0] == '-') {
                     // -a
 
                     $key = $str[1];
-                    $type = Cli::val($key, $types, 'boolean');
+                    $type = Cli::val($key, $types, self::TYPE_BOOLEAN);
                     $v = null;
 
                     if (isset($argv[$i + 1])) {
                         // Try and be smart about the next arg.
                         $nextArg = $argv[$i + 1];
 
-                        if ($type === 'boolean') {
+                        if ($type === self::TYPE_BOOLEAN) {
                             if ($this->isStrictBoolean($nextArg)) {
                                 // The next arg looks like a boolean to me.
                                 $v = $nextArg;
@@ -516,44 +516,44 @@ class Cli {
                     }
 
                     if ($v === null) {
-                        $v = Cli::val($type, ['boolean' => true, 'integer' => 1, 'string' => '']);
+                        $v = Cli::val($type, [self::TYPE_BOOLEAN => true, self::TYPE_INTEGER => 1, self::TYPE_STRING => '']);
                     }
 
-                    $parsed->setOpt($key, $v);
+                    $this->pushOpt($parsed, $key, $v);
                 } elseif (strlen($str) > 1 && $str[0] == '-') {
                     // -abcdef
                     for ($j = 1; $j < strlen($str); $j++) {
                         $opt = $str[$j];
                         $remaining = substr($str, $j + 1);
-                        $type = Cli::val($opt, $types, 'boolean');
+                        $type = Cli::val($opt, $types, self::TYPE_BOOLEAN);
 
                         // Check for an explicit equals sign.
                         if (substr($remaining, 0, 1) === '=') {
                             $remaining = substr($remaining, 1);
-                            if ($type === 'boolean') {
+                            if ($type === self::TYPE_BOOLEAN) {
                                 // Bypass the boolean flag checking below.
-                                $parsed->setOpt($opt, $remaining);
+                                $this->pushOpt($parsed, $opt, $remaining);
                                 break;
                             }
                         }
 
-                        if ($type === 'boolean') {
+                        if ($type === self::TYPE_BOOLEAN) {
                             if (preg_match('`^([01])`', $remaining, $matches)) {
                                 // Treat the 0 or 1 as a true or false.
-                                $parsed->setOpt($opt, $matches[1]);
+                                $this->pushOpt($parsed, $opt, $matches[1]);
                                 $j += strlen($matches[1]);
                             } else {
                                 // Treat the option as a flag.
-                                $parsed->setOpt($opt, true);
+                                $this->pushOpt($parsed, $opt, true);
                             }
-                        } elseif ($type === 'string') {
+                        } elseif ($type === self::TYPE_STRING) {
                             // Treat the option as a set with no = sign.
-                            $parsed->setOpt($opt, $remaining);
+                            $this->pushOpt($parsed, $opt, $remaining);
                             break;
-                        } elseif ($type === 'integer') {
+                        } elseif ($type === self::TYPE_INTEGER) {
                             if (preg_match('`^(\d+)`', $remaining, $matches)) {
                                 // Treat the option as a set with no = sign.
-                                $parsed->setOpt($opt, $matches[1]);
+                                $this->pushOpt($parsed, $opt, $matches[1]);
                                 $j += strlen($matches[1]);
                             } else {
                                 // Treat the option as either multiple flags.
@@ -594,7 +594,6 @@ class Cli {
         $schema = $this->getSchema($command);
         ksort($schema);
 
-//        $meta = $schema[Cli::META];
         unset($schema[Cli::META]);
         $opts = $args->getOpts();
         $missing = [];
@@ -610,39 +609,16 @@ class Cli {
 
         foreach ($schema as $key => $definition) {
             // No Parameter (default)
-            $type = Cli::val('type', $definition, 'string');
+            $type = $definition['type'] ?? self::TYPE_STRING;
 
-            if (array_key_exists($key, $opts)) {
-                // Check for --key.
-                $value = $opts[$key];
-                if ($this->validateType($value, $type, $key, $definition)) {
-                    $valid->setOpt($key, $value);
-                } else {
-                    $isValid = false;
-                }
-                unset($opts[$key]);
-            } elseif (isset($definition['short']) && array_key_exists($definition['short'], $opts)) {
-                // Check for -s.
-                $value = $opts[$definition['short']];
-                if ($this->validateType($value, $type, $key, $definition)) {
-                    $valid->setOpt($key, $value);
-                } else {
-                    $isValid = false;
-                }
-                unset($opts[$definition['short']]);
-            } elseif (array_key_exists('no-'.$key, $opts)) {
-                // Check for --no-key.
-                $value = $opts['no-'.$key];
+            $value = $this->extractOpt($opts, $key, $definition);
 
-                if ($type !== 'boolean') {
-                    echo $this->red("Cannot apply the --no- prefix on the non boolean --$key.".PHP_EOL);
-                    $isValid = false;
-                } elseif ($this->validateType($value, $type, $key, $definition)) {
-                    $valid->setOpt($key, !$value);
+            if ($value !== null) {
+                if ($this->validateType($value, $type, $key, $definition)) {
+                    $this->mergeOpt($valid, $key, $value);
                 } else {
                     $isValid = false;
                 }
-                unset($opts['no-'.$key]);
             } elseif ($definition['required']) {
                 // The key was not supplied. Is it required?
                 $missing[$key] = true;
@@ -719,18 +695,25 @@ class Cli {
      * @throws \Exception Throws an exception when the type is invalid.
      */
     public function opt($name, $description, $required = false, $type = 'string') {
+        if (substr($type, -2) === '[]') {
+            $arr = true;
+            $type = substr($type, 0, -2);
+        } else {
+            $arr = false;
+        }
+
         switch ($type) {
             case 'str':
-            case 'string':
-                $type = 'string';
+            case self::TYPE_STRING:
+                $type = self::TYPE_STRING;
                 break;
             case 'bool':
-            case 'boolean':
-                $type = 'boolean';
+            case self::TYPE_BOOLEAN:
+                $type = self::TYPE_BOOLEAN;
                 break;
             case 'int':
-            case 'integer':
-                $type = 'integer';
+            case self::TYPE_INTEGER:
+                $type = self::TYPE_INTEGER;
                 break;
             default:
                 throw new \Exception("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
@@ -741,7 +724,7 @@ class Cli {
         $long = $parts[0];
         $short = static::val(1, $parts, '');
 
-        $this->currentSchema[$long] = ['description' => $description, 'required' => $required, 'type' => $type, 'short' => $short];
+        $this->currentSchema[$long] = ['description' => $description, 'required' => $required, 'type' => $type, 'short' => $short, 'array' => $arr];
         return $this;
     }
 
@@ -977,6 +960,23 @@ class Cli {
         }
     }
 
+    protected function validateType(&$value, $type, $name = '', $def = null): bool {
+        if (!empty($def['array'])) {
+            $value = (array)$value;
+            $r = true;
+            foreach ($value as $i => &$item) {
+                $r &= $this->validateScalarType($item, $type, "$name[$i]", $def);
+            }
+        } else {
+            if (is_array($value)) {
+                $value = array_pop($value);
+            }
+            $r = $this->validateScalarType($value, $type, $name, $def);
+        }
+
+        return $r;
+    }
+
     /**
      * Validate the type of a value and coerce it into the proper type.
      *
@@ -987,26 +987,22 @@ class Cli {
      * @return bool Returns `true` if the value is the correct type.
      * @throws \Exception Throws an exception when {@see $type} is not a known value.
      */
-    protected function validateType(&$value, $type, $name = '', $def = null) {
+    private function validateScalarType(&$value, $type, $name = '', $def = null) {
         switch ($type) {
-            case 'boolean':
+            case self::TYPE_BOOLEAN:
                 if (is_bool($value)) {
                     $valid = true;
-                } elseif ($value === 0) {
-                    // 0 doesn't work well with in_array() so check it separately.
+                } elseif (in_array($value, [null, '', 0, '0', 'false', 'no', 'disabled'], true)) {
                     $value = false;
                     $valid = true;
-                } elseif (in_array($value, [null, '', '0', 'false', 'no', 'disabled'])) {
-                    $value = false;
-                    $valid = true;
-                } elseif (in_array($value, [1, '1', 'true', 'yes', 'enabled'])) {
+                } elseif (in_array($value, [1, '1', 'true', 'yes', 'enabled'], true)) {
                     $value = true;
                     $valid = true;
                 } else {
                     $valid = false;
                 }
                 break;
-            case 'integer':
+            case self::TYPE_INTEGER:
                 if (is_numeric($value)) {
                     $value = (int)$value;
                     $valid = true;
@@ -1014,7 +1010,7 @@ class Cli {
                     $valid = false;
                 }
                 break;
-            case 'string':
+            case self::TYPE_STRING:
                 $value = (string)$value;
                 $valid = true;
                 break;
@@ -1084,7 +1080,7 @@ class Cli {
         // Add the help.
         $schema['help'] = [
             'description' => 'Display this help.',
-            'type' => 'boolean',
+            'type' => self::TYPE_BOOLEAN,
             'short' => '?'
         ];
 
@@ -1277,7 +1273,7 @@ class Cli {
             if (isset($other['type'])) {
                 $type = $other['type'];
             } else {
-                $type = 'string';
+                $type = self::TYPE_STRING;
             }
             $name = $parts[0];
         } else {
@@ -1325,5 +1321,71 @@ class Cli {
         }
 
         return $default;
+    }
+
+    /**
+     * Push an option value to an option.
+     *
+     * If the option already exists then an array will be set. Otherwise, the value is just set.
+     *
+     * @param Args $args The args to modify.
+     * @param string $key The option key.
+     * @param mixed $value The value of the option.
+     */
+    private function pushOpt(Args $args, string $key, $value): void {
+        if ($args->hasOpt($key)) {
+            $args->setOpt($key, array_merge((array)$args->getOpt($key, []), [$value]));
+        } else {
+            $args->setOpt($key, $value);
+        }
+    }
+
+    /**
+     * Merge a validated opt to an args array.
+     *
+     * @param Args $args The args to merge to.
+     * @param string $key The key of the opt.
+     * @param mixed $value The value to merge.
+     */
+    private function mergeOpt(Args $args, string $key, $value): void {
+        if (is_array($value)) {
+            $args->setOpt($key, array_merge((array)$args->getOpt($key, []), $value));
+        } else {
+            $args->setOpt($key, $value);
+        }
+    }
+
+    /**
+     * Extract validated option values from a raw parse opts array.
+     *
+     * @param array $opts The raw opts array.
+     * @param string $key The real options key.
+     * @param array $def The option definition.
+     * @return array|mixed Returns the extracted opts.
+     */
+    private function extractOpt(array &$opts, string $key, array $def) {
+        $r = [];
+        $unset = [];
+
+        foreach ($opts as $k => $v) {
+            if ($k === $key ||
+                $k === ($def['short'] ?? null)
+            ) {
+                $r = array_merge($r, (array)$v);
+                $unset[] = $k;
+            }
+        }
+
+        foreach ($unset as $k) {
+            unset($opts[$k]);
+        }
+
+        if (empty($def['array'])) {
+            $r = array_pop($r);
+        } elseif (empty($r)) {
+            $r = null;
+        }
+
+        return $r;
     }
 }
