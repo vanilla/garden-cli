@@ -61,7 +61,7 @@ This example returns an `Args` object or exits to show help or an error message.
 * If you want your option to have a short code then specify in with `name` argument separated by a colon.
 * If you specify a short code for an option this will act like an alias for the parameter name in `$argv` only. You always access an option by its full name after parsing.
 
-## Options Types
+## Option Types
 
 The `opt` method has a `$type` parameter that you can use to specify a type for the option. The valid types are `integer`, `string`, and `boolean` with string as the default.
 
