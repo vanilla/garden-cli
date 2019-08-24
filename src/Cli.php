@@ -110,8 +110,10 @@ class Cli {
      * @param array $schema The schema for the args.
      * @param Args $args The args object to add the argument to.
      * @param mixed $arg The value of the argument.
+     *
+     * @return void
      */
-    private function addArg(array $schema, Args $args, $arg) {
+    private function addArg(array $schema, Args $args, $arg): void {
         $argsCount = count($args->getArgs());
         $schemaArgs = isset($schema[self::META][self::ARGS]) ? array_keys($schema[self::META][self::ARGS]) : [];
         $name = isset($schemaArgs[$argsCount]) ? $schemaArgs[$argsCount] : $argsCount;
@@ -805,8 +807,10 @@ class Cli {
      * ```
      *
      * @param array $schema The schema array.
+     *
+     * @return void
      */
-    public function schema(array $schema) {
+    public function schema(array $schema): void {
         $parsed = static::parseSchema($schema);
 
         $this->currentSchema = array_replace($this->currentSchema, $parsed);
@@ -954,8 +958,10 @@ class Cli {
      * Sleep for a number of seconds, echoing out a dot on each second.
      *
      * @param int $seconds The number of seconds to sleep.
+     *
+     * @return void
      */
-    public static function sleep($seconds) {
+    public static function sleep($seconds): void {
         for ($i = 0; $i < $seconds; $i++) {
             sleep(1);
             echo '.';
@@ -1018,8 +1024,10 @@ class Cli {
 
     /**
      * Writes a lis of all of the commands.
+     *
+     * @return void
      */
-    protected function writeCommands() {
+    protected function writeCommands(): void {
         echo static::bold("COMMANDS").PHP_EOL;
 
         $table = new Table();
@@ -1038,8 +1046,10 @@ class Cli {
      * Writes the cli help.
      *
      * @param string $command The name of the command or blank if there is no command.
+     *
+     * @return void
      */
-    public function writeHelp($command = '') {
+    public function writeHelp($command = ''): void {
         $schema = $this->getSchema($command);
         $this->writeSchemaHelp($schema);
     }
@@ -1048,8 +1058,10 @@ class Cli {
      * Writes the help for a given schema.
      *
      * @param array $schema A command line scheme returned from {@see Cli::getSchema()}.
+     *
+     * @return void
      */
-    protected function writeSchemaHelp($schema) {
+    protected function writeSchemaHelp($schema): void {
         // Write the command description.
         $meta = Cli::val(Cli::META, $schema, []);
         $description = Cli::val('description', $meta);
@@ -1122,8 +1134,10 @@ class Cli {
      * Writes the basic usage information of the command.
      *
      * @param Args $args The parsed args returned from {@link Cli::parseRaw()}.
+     *
+     * @return void
      */
-    protected function writeUsage(Args $args) {
+    protected function writeUsage(Args $args): void {
         if ($filename = $args->getMeta('filename')) {
             $schema = $this->getSchema($args->getCommand());
             unset($schema[Cli::META]);

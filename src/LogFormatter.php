@@ -490,8 +490,10 @@ class LogFormatter {
      * needs to change.
      *
      * @param string $str The string to write.
+     *
+     * @return void
      */
-    public function write($str) {
+    public function write($str): void {
         if (feof($this->outputHandle)) {
             trigger_error('Called LogFormatter::write() but file handle was closed.', E_USER_WARNING);
             return;

@@ -99,9 +99,10 @@ class Table {
      * Set whether or not output should be formatted.
      *
      * @param boolean $formatOutput Whether or not to format output.
-     * @return @this
+     *
+     * @return self
      */
-    public function setFormatOutput($formatOutput) {
+    public function setFormatOutput($formatOutput): self {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -187,8 +188,10 @@ class Table {
 
     /**
      * Reset the table so another one can be written with the same object.
+     *
+     * @return void
      */
-    public function reset() {
+    public function reset(): void {
         $this->columnWidths = [];
         $this->rows = [];
         $this->currentRow = null;
@@ -207,8 +210,10 @@ class Table {
 
     /**
      * Writes the final table.
+     *
+     * @return void
      */
-    public function write() {
+    public function write(): void {
         // Determine the width of the last column.
         $columnWidths = array_sum($this->columnWidths);
         $totalWidth = $this->indent + $columnWidths + $this->padding * (count($this->columnWidths) - 1);
