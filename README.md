@@ -1,7 +1,6 @@
 # Garden CLI
 
 [![Build Status](https://img.shields.io/travis/vanilla/garden-cli.svg?style=flat)](https://travis-ci.org/vanilla/garden-cli)
-[![Coverage](https://img.shields.io/scrutinizer/coverage/g/vanilla/garden-cli.svg?style=flat)](https://scrutinizer-ci.com/g/vanilla/garden-cli/)
 [![Packagist Version](https://img.shields.io/packagist/v/vanilla/garden-cli.svg?style=flat)](https://packagist.org/packages/vanilla/garden-cli)
 ![MIT License](https://img.shields.io/packagist/l/vanilla/garden-cli.svg?style=flat)
 [![CLA](https://cla-assistant.io/readme/badge/vanilla/garden-cli)](https://cla-assistant.io/vanilla/garden-cli)
