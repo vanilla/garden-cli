@@ -3,7 +3,8 @@ language: php
 php:
     - 7.1
     - 7.2
-    - hhvm
+    - 7.3
+    - nightly
 
 sudo: false
 
