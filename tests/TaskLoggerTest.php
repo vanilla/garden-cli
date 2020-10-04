@@ -26,7 +26,7 @@ class TaskLoggerTest extends AbstractCliTest {
     /**
      * Create a new logger for each test.
      */
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $this->testLogger = new TestLogger();
         $this->log = new TaskLogger($this->testLogger);
@@ -167,31 +167,28 @@ class TaskLoggerTest extends AbstractCliTest {
      * Logging an end with no begin should work, with exceptions.
      */
     public function testEndNoBegin() {
-        $this->expectErrors(true);
-
-        $this->log->end('foo');
-
-        $this->assertErrorNumber(E_USER_NOTICE);
+        @$this->log->end('foo');
         $this->assertLogLevel(LogLevel::INFO);
         $this->assertLogHasContext([TaskLogger::FIELD_END => true]);
         $this->assertLogMessage('foo');
+
+        $this->expectNotice();
+        $this->log->end('foo');
     }
 
     /**
-     * @expectedException Psr\Log\InvalidArgumentException
      */
     public function testInvalidLevelBegin() {
+        $this->expectException(InvalidArgumentException::class);
         $this->log->begin('invalid', 'a');
     }
 
     /**
-     * @expectedException Psr\Log\InvalidArgumentException
+     *
      */
     public function testInvalidLevelEnd() {
-        $this->expectErrors(true);
-
+        $this->expectNotice();
         $this->log->end('a', [TaskLogger::FIELD_LEVEL => 'invalid']);
-        $this->assertErrorNumber(E_USER_NOTICE);
     }
 
     /**
@@ -248,7 +245,7 @@ class TaskLoggerTest extends AbstractCliTest {
             $this->fail("The log is empty");
         }
         list($_, $_, $context) = end($this->testLogger->log);
-        $this->assertArraySubset($expected, $context);
+        $this->assertArraySubsetRecursive($expected, $context);
     }
 
     /**
@@ -283,6 +280,6 @@ class TaskLoggerTest extends AbstractCliTest {
      * @param array $expected The expected log entries.
      */
     protected function assertLogShape(array $expected) {
-        $this->assertArraySubset($expected, $this->testLogger->log);
+        $this->assertArraySubsetRecursive($expected, $this->testLogger->log);
     }
 }

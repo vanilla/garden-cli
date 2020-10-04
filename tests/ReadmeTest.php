@@ -15,26 +15,24 @@ class ReadmeTest extends AbstractCliTest {
 
     /**
      * Test the basic example help.
-     *
-     * @expectedException \Exception
      */
     public function testBasicHelp() {
         $cli = $this->getBasicCli();
         $argv = ['dbdump.php', '--help'];
 
         // Parse and return cli args.
+        $this->expectException(\Exception::class);
         $cli->parse($argv, false);
     }
 
     /**
      * Test the basic example error output.
-     *
-     * @expectedException \Exception
      */
     public function testBasicError() {
         $cli = $this->getBasicCli();
         $argv = ['dbdump.php', '-P', 'foo'];
 
+        $this->expectException(\Exception::class);
         $cli->parse($argv, false);
     }
 
@@ -60,23 +58,21 @@ class ReadmeTest extends AbstractCliTest {
 
     /**
      * Test the command usage output.
-     *
-     * @expectedException \Exception
      */
     public function testCommandsUsage() {
         $cli = $this->getCommandCli();
 
+        $this->expectException(\Exception::class);
         $cli->parse(['nit.php', '--help'], false);
     }
 
     /**
      * Test the help output for a multiple command argument.
-     *
-     * @expectedException \Exception
      */
     public function testCommandsHelp() {
         $cli = $this->getCommandCli();
 
+        $this->expectException(\Exception::class);
         $cli->parse(['nit.php', 'push', '-?'], false);
     }
 

@@ -19,7 +19,7 @@ class StreamLoggerInterfaceTest extends LoggerInterfaceTest {
 
     protected $stream;
 
-    public function setUp() {
+    public function setUp(): void {
         $this->stream = fopen('php://memory', 'w+');
 
         $this->logger = new StreamLogger($this->stream);
@@ -30,7 +30,7 @@ class StreamLoggerInterfaceTest extends LoggerInterfaceTest {
         parent::setUp();
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         parent::tearDown();
         fclose($this->stream);
     }

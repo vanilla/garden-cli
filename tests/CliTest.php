@@ -104,13 +104,12 @@ class CliTest extends AbstractCliTest {
 
     /**
      * Test a missing option.
-     *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Missing required option: hello
      */
     public function testMissingOpt() {
         $cli = $this->getBasicCli();
 
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Missing required option: hello');
         $cli->parse(['script', '-e'], false);
     }
 
@@ -357,20 +356,15 @@ EOT;
      * Test that the backwards compatibility of the format property works.
      */
     public function testFormatCompat() {
-        $this->expectErrors(true);
-
         $cli = new Cli();
 
-        $format = $cli->format;
-        $this->assertErrorNumber(E_USER_DEPRECATED);
-        $this->assertSame($cli->getFormatOutput(), $format);
-
-        $this->clearErrors();
-
+        $format = @$cli->format;
         $format2 = !$format;
-        $cli->format = $format2;
-        $this->assertErrorNumber(E_USER_DEPRECATED);
+        @$cli->format = $format2;
         $this->assertSame($format2, $cli->getFormatOutput());
+
+        $this->expectDeprecation();
+        $format = $cli->format;
     }
 
     /**

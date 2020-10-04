@@ -213,11 +213,10 @@ EOT
 
     /**
      * The {@link LogFormatter} should not take a negative max level.
-     *
-     * @expectedException \InvalidArgumentException
      */
     public function testBadMaxLevel() {
         $log = new LogFormatter();
+        $this->expectException(\InvalidArgumentException::class);
         $log->setMaxLevel(-1);
     }
 
@@ -225,21 +224,22 @@ EOT
      * Test calling {@LogFormatter::end()} too many times.
      */
     public function testTooManyEnds() {
-        $this->expectErrors(true);
-
         $log = $this->createTestLogger();
 
         $log->begin('Begin')
-            ->end('done')
-            ->end('done 2');
+            ->end('done');
 
-        $this->assertErrorNumber(E_USER_NOTICE);
+        @$log->end('done 2');
+
         $this->expectOutputString(<<<EOT
 [d] Begin done
 [d] done 2
 
 EOT
         );
+
+        $this->expectNotice();
+        $log->end('done 2');
     }
 
     /**

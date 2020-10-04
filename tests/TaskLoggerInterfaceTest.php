@@ -15,7 +15,7 @@ class TaskLoggerInterfaceTest extends StreamLoggerInterfaceTest {
 
     protected $taskLogger;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
 
         $this->taskLogger = new TaskLogger($this->logger);
