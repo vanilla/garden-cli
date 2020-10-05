@@ -219,21 +219,6 @@ EOT;
     }
 
     /**
-     * Test a command line scheme created with {@link Cli::schema()}.
-     */
-    public function testSchema() {
-        $cli = new Cli();
-        $cli->schema([
-            'hello',
-            'b:enabled?' => 'Is it?',
-            'i:count:c?' => 'How many?'
-        ]);
-
-        $parsed = $cli->parse(['script', '--hello=foo', '--enabled', '--count=123']);
-        $this->assertEquals(['hello' => 'foo', 'enabled' => true, 'count' => 123], $parsed->getOpts());
-    }
-
-    /**
      * Get a sample {@link Cli} object with no commands for testing.
      *
      * @return Cli Returns the sample {@link Cli} instance.

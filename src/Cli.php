@@ -7,6 +7,9 @@
 
 namespace Garden\Cli;
 
+use Garden\Cli\Schema\CommandSchema;
+use Garden\Cli\Schema\OptSchema;
+
 /**
  * A general purpose command line parser.
  */
@@ -26,12 +29,12 @@ class Cli {
 
     /// Properties ///
     /**
-     * @var array All of the schemas, indexed by command pattern.
+     * @var CommandSchema[] All of the schemas, indexed by command pattern.
      */
     protected $commandSchemas;
 
     /**
-     * @var array A pointer to the current schema.
+     * @var CommandSchema A pointer to the current schema.
      */
     protected $currentSchema;
 
@@ -53,10 +56,10 @@ class Cli {
      * Creates a {@link Cli} instance representing a command line parser for a given schema.
      */
     public function __construct() {
-        $this->commandSchemas = ['*' => [Cli::META => []]];
+        $this->commandSchemas = ['*' => new CommandSchema()];
 
         // Select the current schema.
-        $this->currentSchema =& $this->commandSchemas['*'];
+        $this->currentSchema = $this->commandSchemas['*'];
 
         $this->formatOutput = static::guessFormatOutput();
     }
@@ -111,15 +114,15 @@ class Cli {
     /**
      * Add an argument to an {@link Args} object, checking for a correct name.
      *
-     * @param array $schema The schema for the args.
+     * @param CommandSchema $schema The schema for the args.
      * @param Args $args The args object to add the argument to.
      * @param mixed $arg The value of the argument.
      *
      * @return void
      */
-    private function addArg(array $schema, Args $args, $arg): void {
+    private function addArg(CommandSchema $schema, Args $args, $arg): void {
         $argsCount = count($args->getArgs());
-        $schemaArgs = isset($schema[self::META][self::ARGS]) ? array_keys($schema[self::META][self::ARGS]) : [];
+        $schemaArgs = array_keys($schema->getArgs());
         $name = isset($schemaArgs[$argsCount]) ? $schemaArgs[$argsCount] : $argsCount;
 
         $args->addArg($arg, $name);
@@ -252,25 +255,15 @@ class Cli {
     public function hasOptions($command = '') {
         if ($command) {
             $def = $this->getSchema($command);
-            return $this->hasOptionsDef($def);
+            return $def->hasOpts();
         } else {
             foreach ($this->commandSchemas as $pattern => $def) {
-                if ($this->hasOptionsDef($def)) {
+                if ($def->hasOpts()) {
                     return true;
                 }
             }
+            return false;
         }
-        return false;
-    }
-
-    /**
-     * Determines whether or not a command definition has options.
-     *
-     * @param array $commandDef The command definition as returned from {@link Cli::getSchema()}.
-     * @return bool Returns true if the command def has options or false otherwise.
-     */
-    protected function hasOptionsDef($commandDef) {
-        return count($commandDef) > 1 || (count($commandDef) > 0 && !isset($commandDef[Cli::META]));
     }
 
     /**
@@ -285,14 +278,10 @@ class Cli {
         if ($command) {
             // Check to see if the specific command has args.
             $def = $this->getSchema($command);
-            if (isset($def[Cli::META][Cli::ARGS])) {
-                $args = $def[Cli::META][Cli::ARGS];
-            }
+            $args = $def->getArgs();
         } else {
             foreach ($this->commandSchemas as $pattern => $def) {
-                if (isset($def[Cli::META][Cli::ARGS])) {
-                    $args = $def[Cli::META][Cli::ARGS];
-                }
+                $args = $def->getArgs();
             }
             if (!empty($args)) {
                 return self::COMMAND_ARGS_OPTIONAL;
@@ -420,15 +409,11 @@ class Cli {
             }
 
             $types = [];
-            foreach ($schema as $sName => $sRow) {
-                if ($sName === Cli::META) {
-                    continue;
-                }
-
-                $type = Cli::val('type', $sRow, self::TYPE_STRING);
+            foreach ($schema->getOpts() as $sName => $sRow) {
+                $type = $sRow->getType();
                 $types[$sName] = $type;
-                if (isset($sRow['short'])) {
-                    $types[$sRow['short']] = $type;
+                if ($sRow->getShortName()) {
+                    $types[$sRow->getShortName()] = $type;
                 }
             }
 
@@ -592,9 +577,6 @@ class Cli {
         $command = $args->getCommand();
         $valid = new Args($command);
         $schema = $this->getSchema($command);
-        ksort($schema);
-
-        unset($schema[Cli::META]);
         $opts = $args->getOpts();
         $missing = [];
 
@@ -607,9 +589,9 @@ class Cli {
         // Add the args.
         $valid->setArgs($args->getArgs());
 
-        foreach ($schema as $key => $definition) {
+        foreach ($schema->getOpts() as $key => $definition) {
             // No Parameter (default)
-            $type = $definition['type'] ?? self::TYPE_STRING;
+            $type = $definition->getType() ?? self::TYPE_STRING;
 
             $value = $this->extractOpt($opts, $key, $definition);
 
@@ -619,7 +601,7 @@ class Cli {
                 } else {
                     $isValid = false;
                 }
-            } elseif ($definition['required']) {
+            } elseif ($definition->isRequired()) {
                 // The key was not supplied. Is it required?
                 $missing[$key] = true;
                 $valid->setOpt($key, false);
@@ -654,14 +636,24 @@ class Cli {
      * @param string $command The name of the command. This can be left blank if there is no command.
      * @return array Returns the schema that matches the command.
      */
-    public function getSchema($command = '') {
-        $result = [];
-        foreach ($this->commandSchemas as $pattern => $opts) {
+    public function getSchema($command = ''): CommandSchema {
+        $matches = [];
+        foreach ($this->commandSchemas as $pattern => $schema) {
             if (fnmatch($pattern, $command)) {
-                $result = array_replace_recursive($result, $opts);
+                $matches[] = $schema;
             }
         }
-        return $result;
+        if (empty($matches)) {
+            return new CommandSchema();
+        } elseif (count($matches) === 1) {
+            return $matches[0];
+        } else {
+            $r = new CommandSchema();
+            foreach ($matches as $schema) {
+                $r->mergeSchema($schema);
+            }
+            return $r;
+        }
     }
 
     /**
@@ -673,13 +665,10 @@ class Cli {
      */
     public function meta($name, $value = null) {
         if ($value !== null) {
-            $this->currentSchema[Cli::META][$name] = $value;
+            $this->currentSchema->setMeta($name, $value);
             return $this;
         }
-        if (!isset($this->currentSchema[Cli::META][$name])) {
-            return null;
-        }
-        return $this->currentSchema[Cli::META][$name];
+        return $this->currentSchema->getMeta($name, null);
     }
 
     /**
@@ -692,39 +681,10 @@ class Cli {
      * @param string $type The type of parameter.
      * This must be one of string, bool, integer.
      * @return $this
-     * @throws \Exception Throws an exception when the type is invalid.
      */
-    public function opt($name, $description, $required = false, $type = 'string') {
-        if (substr($type, -2) === '[]') {
-            $arr = true;
-            $type = substr($type, 0, -2);
-        } else {
-            $arr = false;
-        }
-
-        switch ($type) {
-            case 'str':
-            case self::TYPE_STRING:
-                $type = self::TYPE_STRING;
-                break;
-            case 'bool':
-            case self::TYPE_BOOLEAN:
-                $type = self::TYPE_BOOLEAN;
-                break;
-            case 'int':
-            case self::TYPE_INTEGER:
-                $type = self::TYPE_INTEGER;
-                break;
-            default:
-                throw new \Exception("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
-        }
-
-        // Break the name up into its long and short form.
-        $parts = explode(':', $name, 2);
-        $long = $parts[0];
-        $short = static::val(1, $parts, '');
-
-        $this->currentSchema[$long] = ['description' => $description, 'required' => $required, 'type' => $type, 'short' => $short, 'array' => $arr];
+    public function opt($name, $description, $required = false, $type = 'string', array $meta = []) {
+        $opt = new OptSchema($name, $description, $required, $type, $meta);
+        $this->currentSchema->addOpt($opt);
         return $this;
     }
 
@@ -737,8 +697,11 @@ class Cli {
      * @return $this
      */
     public function arg($name, $description, $required = false) {
-        $this->currentSchema[Cli::META][Cli::ARGS][$name] =
-            ['description' => $description, 'required' => $required];
+        $this->currentSchema->addMeta(
+            Cli::ARGS,
+            $name,
+            ['description' => $description, 'required' => $required]
+        );
         return $this;
     }
 
@@ -750,13 +713,12 @@ class Cli {
      */
     public function command($pattern) {
         if (!isset($this->commandSchemas[$pattern])) {
-            $this->commandSchemas[$pattern] = [Cli::META => []];
+            $this->commandSchemas[$pattern] = new CommandSchema();
         }
-        $this->currentSchema =& $this->commandSchemas[$pattern];
+        $this->currentSchema = $this->commandSchemas[$pattern];
 
         return $this;
     }
-
 
     /**
      * Determine weather or not a value can be represented as a boolean.
@@ -960,8 +922,8 @@ class Cli {
         }
     }
 
-    protected function validateType(&$value, $type, $name = '', $def = null): bool {
-        if (!empty($def['array'])) {
+    protected function validateType(&$value, $type, $name = '', OptSchema $def = null): bool {
+        if ($def !== null && $def->isArray()) {
             $value = (array)$value;
             $r = true;
             foreach ($value as $i => &$item) {
@@ -983,11 +945,11 @@ class Cli {
      * @param mixed $value The value to validate.
      * @param string $type One of: bool, int, string.
      * @param string $name The name of the option if you want to print an error message.
-     * @param array|null $def The option def if you want to print an error message.
+     * @param OptSchema|null $def The option def if you want to print an error message.
      * @return bool Returns `true` if the value is the correct type.
      * @throws \Exception Throws an exception when {@see $type} is not a known value.
      */
-    private function validateScalarType(&$value, $type, $name = '', $def = null) {
+    private function validateScalarType(&$value, $type, $name = '', ?OptSchema $def = null): bool {
         switch ($type) {
             case self::TYPE_BOOLEAN:
                 if (is_bool($value)) {
@@ -1019,7 +981,7 @@ class Cli {
         }
 
         if (!$valid && $name) {
-            $short = static::val('short', (array)$def);
+            $short = $def !== null ? $def->getShortName() : '';
             $nameStr = "--$name".($short ? " (-$short)" : '');
             echo $this->red("The value of $nameStr is not a valid $type.".PHP_EOL);
         }
@@ -1041,7 +1003,7 @@ class Cli {
                 $table
                     ->row()
                     ->cell($pattern)
-                    ->cell(Cli::val('description', Cli::val(Cli::META, $schema), ''));
+                    ->cell($schema->getDescription());
             }
         }
         $table->write();
@@ -1062,57 +1024,50 @@ class Cli {
     /**
      * Writes the help for a given schema.
      *
-     * @param array $schema A command line scheme returned from {@see Cli::getSchema()}.
+     * @param CommandSchema $schema A command line scheme returned from {@see Cli::getSchema()}.
      *
      * @return void
      */
-    protected function writeSchemaHelp($schema): void {
+    protected function writeSchemaHelp(CommandSchema $schema): void {
         // Write the command description.
-        $meta = Cli::val(Cli::META, $schema, []);
-        $description = Cli::val('description', $meta);
+        $description = $schema->getDescription();
 
         if ($description) {
             echo implode("\n", Cli::breakLines($description, 80, false)).PHP_EOL.PHP_EOL;
         }
 
-        unset($schema[Cli::META]);
-
         // Add the help.
-        $schema['help'] = [
-            'description' => 'Display this help.',
-            'type' => self::TYPE_BOOLEAN,
-            'short' => '?'
-        ];
+        $schema->addOpt(new OptSchema('help:?', 'Display this help.', false, self::TYPE_BOOLEAN));
 
         echo Cli::bold('OPTIONS').PHP_EOL;
-
-        ksort($schema);
 
         $table = new Table();
         $table->setFormatOutput($this->formatOutput);
 
-        foreach ($schema as $key => $definition) {
+        $opts = $schema->getOpts();
+        ksort($opts);
+        foreach ($opts as $key => $definition) {
             $table->row();
 
             // Write the keys.
             $keys = "--{$key}";
-            if ($shortKey = Cli::val('short', $definition, false)) {
+            if ($shortKey = $definition->getShortName()) {
                 $keys .= ", -$shortKey";
             }
-            if (Cli::val('required', $definition)) {
+            if ($definition->isRequired()) {
                 $table->bold($keys);
             } else {
                 $table->cell($keys);
             }
 
             // Write the description.
-            $table->cell(Cli::val('description', $definition, ''));
+            $table->cell($definition->getDescription());
         }
 
         $table->write();
         echo PHP_EOL;
 
-        $args = Cli::val(Cli::ARGS, $meta, []);
+        $args = $schema->getArgs();
         if (!empty($args)) {
             echo Cli::bold('ARGUMENTS').PHP_EOL;
 
@@ -1144,9 +1099,6 @@ class Cli {
      */
     protected function writeUsage(Args $args): void {
         if ($filename = $args->getMeta('filename')) {
-            $schema = $this->getSchema($args->getCommand());
-            unset($schema[Cli::META]);
-
             echo static::bold("usage: ").$filename;
 
             if ($this->hasCommand()) {
@@ -1167,136 +1119,6 @@ class Cli {
 
             echo PHP_EOL.PHP_EOL;
         }
-    }
-
-    /**
-     * Parse a schema in short form into a full schema array.
-     *
-     * @param array $arr The array to parse into a schema.
-     *
-     * @return array[]
-     *
-     * @throws \InvalidArgumentException Throws an exception when an item in the schema is invalid.
-     *
-     * @psalm-return array<string, array>
-     */
-    public static function parseSchema(array $arr): array {
-        $result = [];
-
-        foreach ($arr as $key => $value) {
-            if (is_int($key)) {
-                if (is_string($value)) {
-                    // This is a short param value.
-                    $param = static::parseShortParam($value);
-                    $name = $param['name'];
-                    $result[$name] = $param;
-                } else {
-                    throw new \InvalidArgumentException("Schema at position $key is not a valid param.", 500);
-                }
-            } else {
-                // The parameter is defined in the key.
-                $param = static::parseShortParam($key, $value);
-                $name = $param['name'];
-
-                if (is_array($value)) {
-                    // The value describes a bit more about the schema.
-                    switch ($param['type']) {
-                        case 'array':
-                            if (isset($value['items'])) {
-                                // The value includes array schema information.
-                                $param = array_replace($param, $value);
-                            } else {
-                                // The value is a schema of items.
-                                $param['items'] = $value;
-                            }
-                            break;
-                        case 'object':
-                            // The value is a schema of the object.
-                            $param['properties'] = static::parseSchema($value);
-                            break;
-                        default:
-                            $param = array_replace($param, $value);
-                            break;
-                    }
-                } elseif (is_string($value)) {
-                    if ($param['type'] === 'array') {
-                        // Check to see if the value is the item type in the array.
-                        if (isset(self::$types[$value])) {
-                            $arrType = self::$types[$value];
-                        } elseif (($index = array_search($value, self::$types)) !== false) {
-                            $arrType = self::$types[$value];
-                        }
-
-                        if (isset($arrType)) {
-                            $param['items'] = ['type' => $arrType];
-                        } else {
-                            $param['description'] = $value;
-                        }
-                    } else {
-                        // The value is the schema description.
-                        $param['description'] = $value;
-                    }
-                }
-
-                $result[$name] = $param;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Parse a short parameter string into a full array parameter.
-     *
-     * @param string $str The short parameter string to parse.
-     * @param array $other An array of other information that might help resolve ambiguity.
-     *
-     * @return array Returns an array in the form [name, [param]].
-     *
-     * @throws \InvalidArgumentException Throws an exception if the short param is not in the correct format.
-     *
-     * @psalm-return array{name: string, type: mixed, required: bool, short?: mixed}
-     */
-    protected static function parseShortParam($str, $other = []): array {
-        // Is the parameter optional?
-        if (substr($str, -1) === '?') {
-            $required = false;
-            $str = substr($str, 0, -1);
-        } else {
-            $required = true;
-        }
-
-        // Check for a type.
-        $parts = explode(':', $str);
-
-        if (count($parts) === 1) {
-            if (isset($other['type'])) {
-                $type = $other['type'];
-            } else {
-                $type = self::TYPE_STRING;
-            }
-            $name = $parts[0];
-        } else {
-            $name = $parts[1];
-
-            if (isset(self::$types[$parts[0]])) {
-                $type = self::$types[$parts[0]];
-            } else {
-                throw new \InvalidArgumentException("Invalid type {$parts[1]} for field $name.", 500);
-            }
-
-            if (isset($parts[2])) {
-                $short = $parts[2];
-            }
-        }
-
-        $result = ['name' => $name, 'type' => $type, 'required' => $required];
-
-        if (isset($short)) {
-            $result['short'] = $short;
-        }
-
-        return $result;
     }
 
     /**
@@ -1360,16 +1182,16 @@ class Cli {
      *
      * @param array $opts The raw opts array.
      * @param string $key The real options key.
-     * @param array $def The option definition.
+     * @param OptSchema $def The option definition.
      * @return array|mixed Returns the extracted opts.
      */
-    private function extractOpt(array &$opts, string $key, array $def) {
+    private function extractOpt(array &$opts, string $key, OptSchema $def) {
         $r = [];
         $unset = [];
 
         foreach ($opts as $k => $v) {
-            if ($k === $key ||
-                $k === ($def['short'] ?? null)
+            if ($k === $def->getName() ||
+                $k === $def->getShortName()
             ) {
                 $r = array_merge($r, (array)$v);
                 $unset[] = $k;
@@ -1380,7 +1202,7 @@ class Cli {
             unset($opts[$k]);
         }
 
-        if (empty($def['array'])) {
+        if (!$def->isArray()) {
             $r = array_pop($r);
         } elseif (empty($r)) {
             $r = null;
