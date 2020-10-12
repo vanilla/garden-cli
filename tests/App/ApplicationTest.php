@@ -19,12 +19,39 @@ class ApplicationTest extends AbstractCliTest {
      */
     private $app;
 
+    /**
+     * @var TestCommands
+     */
+    private $commands;
+
     public function setUp(): void {
         parent::setUp();
         $this->app = new CliApplication();
+
+        $this->commands = new TestCommands();
+        $this->app->getContainer()->setInstance(TestCommands::class, $this->commands);
     }
 
-    public function testAddMethodSetters(): void {
+    /**
+     * Assert that a method was called.
+     *
+     * @param string $func
+     * @param array $args
+     * @return array
+     */
+    public function assertCall(string $func, array $args = []): array {
+        $call = $this->commands->findCall($func);
+        $this->assertNotNull($call, "Call not found: $func");
+
+        $this->assertArraySubsetRecursive($args, $call);
+
+        return $call;
+    }
+
+    /**
+     * Reflecting to a method should also route to method args.
+     */
+    public function testAddObjectSetters(): void {
         $this->app->addMethod(TestCommands::class, 'noParams');
 
         $schema = $this->app->getCli()->getSchema('no-params');
@@ -43,6 +70,9 @@ class ApplicationTest extends AbstractCliTest {
         ], $opt->jsonSerialize());
     }
 
+    /**
+     * Test basic method arg reflection.
+     */
     public function testAddMethodArgs(): void {
         $this->app->addMethod(TestCommands::class, 'decodeStuff');
 
@@ -71,5 +101,26 @@ class ApplicationTest extends AbstractCliTest {
                 CliApplication::META_DISPATCH_NAME => 'foo',
             ]
         ], $arg->jsonSerialize());
+    }
+
+    /**
+     * Test a basic dispatch.
+     */
+    public function testDispatch(): void {
+        $this->app->addMethod(TestCommands::class, 'decodeStuff');
+
+        $r = $this->app->main([__FUNCTION__, 'decode-stuff', '--count=123']);
+        $this->assertCall('decodeStuff', ['count' => 123]);
+    }
+
+    /**
+     * You should be able to call setters on a call.
+     */
+    public function testDispatchWithSetters(): void {
+        $this->app->addMethod(TestCommands::class, 'noParams');
+
+        $r = $this->app->main([__FUNCTION__, 'no-params', '--an-orange=4']);
+        $this->assertCall('setAnOrange', ['o' => 4]);
+        $this->assertCall('noParams');
     }
 }

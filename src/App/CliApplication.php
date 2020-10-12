@@ -15,6 +15,7 @@ use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use phpDocumentor\Reflection\DocBlockFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  *
@@ -24,6 +25,7 @@ class CliApplication {
 
     public const META_DISPATCH_TYPE = 'dispatchType';
     public const META_DISPATCH_NAME = 'dispatchName';
+    public const META_DISPATCH_DEFAULT = 'dispatchDefault';
 
     public const TYPE_CALL = 'call';
     public const TYPE_PARAMETER = 'parameter';
@@ -45,10 +47,15 @@ class CliApplication {
     private $factory;
 
     protected function createContainer(): Container {
-        return new Container();
+        $dic = new Container();
+
+        $dic->rule(LoggerInterface::class)
+            ->setClass(NullLogger::class);
+
+        return $dic;
     }
 
-    protected function getContainer(): Container {
+    public function getContainer(): Container {
         if ($this->container === null) {
             $this->container = $this->createContainer();
         }
@@ -77,7 +84,7 @@ class CliApplication {
         $args = $this->getCli()->parse($argv);
 
         try {
-            $oldArgs = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
+            $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
             // Set the args in the container so they can be injected into classes.
             $this->getContainer()->setInstance(Args::class, $args);
 
@@ -91,7 +98,7 @@ class CliApplication {
             $log->error($ex->getMessage());
             return $ex->getCode();
         } finally {
-            $this->getContainer()->setInstance(Args::class, $oldArgs);
+            $this->getContainer()->setInstance(Args::class, $argsBak);
         }
     }
 
@@ -125,41 +132,60 @@ class CliApplication {
     }
 
     protected function route(Args $args): Args {
-        if (null === $args->getMeta(self::META_ACTION)) {
+        $schema = $this->getCli()->getSchema($args->getCommand());
+
+        if (null === $schema->getMeta(self::META_ACTION)) {
             throw new \InvalidArgumentException("The args don't specify an action to route to.");
         }
         $result = clone $args;
         return $result;
     }
 
-    protected function dispatch(Args $args): int {
-        if (null === $args->getMeta(self::META_ACTION)) {
+    protected function dispatch(Args $args) {
+        $schema = $this->getCli()->getSchema($args->getCommand());
+
+        if (null === $schema->getMeta(self::META_ACTION)) {
             throw new \InvalidArgumentException("The args don't specify an action to dispatch to.");
         }
 
-        $schema = $this->getCli()->getSchema($args->getCommand());
-        $action = $args->getMeta(self::META_ACTION);
+        $action = $schema->getMeta(self::META_ACTION);
 
-        if (is_string($action) && preg_match('`^([a-z0-9_]+)::([a-z0-9_])$`i', $action, $m)) {
+        if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
             $className = $m[1];
             $methodName = $m[2];
 
             $obj = $this->getContainer()->get($className);
 
-            /**
-             * @var  string $optName
-             * @var  \ReflectionMethod $method
-             */
-            foreach ($this->reflectSetters(new \ReflectionClass($obj)) as $optName => $method) {
-                if ($args->hasOpt($optName)) {
-                    $method->invoke($obj, [$args->getOpt($optName)]);
+            // Go through the opts, gather the parameters and call setters on the object.
+            $optParams = [];
+            foreach ($schema->getOpts() as $opt) {
+                switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
+                    case self::TYPE_CALL:
+                        if ($args->hasOpt($opt->getName())) {
+                            call_user_func(
+                                [$obj, $opt->getMeta(self::META_DISPATCH_NAME)],
+                                $args->getOpt($opt->getName())
+                            );
+                        }
+                        break;
+                    case self::TYPE_PARAMETER:
+                        $optParams[strtolower($opt->getMeta(self::META_DISPATCH_NAME))] =
+                            $args->hasOpt($opt->getName()) ?
+                                $args->getOpt($opt->getName()) :
+                                $opt->getMeta(self::META_DISPATCH_DEFAULT);
+                        break;
                 }
             }
 
+            $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+        } else {
+            throw new \InvalidArgumentException("Invalid action: ".$action, 400);
         }
+
+        return $result;
     }
 
-    /**
+    /**:
      * @param \ReflectionClass $class
      */
     protected final function addSetters(\ReflectionClass $class): void {
@@ -243,6 +269,7 @@ class CliApplication {
                 [
                     self::META_DISPATCH_TYPE => self::TYPE_PARAMETER,
                     self::META_DISPATCH_NAME => $param->getName(),
+                    self::META_DISPATCH_DEFAULT => $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null,
                 ]
             );
         }
