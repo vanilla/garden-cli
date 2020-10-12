@@ -13,7 +13,7 @@ use Garden\Cli\Tests\AbstractCliTest;
 use Garden\Cli\Tests\Fixtures\Application;
 use Garden\Cli\Tests\Fixtures\TestCommands;
 
-class ApplicationTest extends AbstractCliTest {
+class CliApplicationTest extends AbstractCliTest {
     /**
      * @var CliApplication
      */
@@ -29,6 +29,7 @@ class ApplicationTest extends AbstractCliTest {
         $this->app = new CliApplication();
 
         $this->commands = new TestCommands();
+        TestCommands::$calls = [];
         $this->app->getContainer()->setInstance(TestCommands::class, $this->commands);
     }
 
@@ -65,15 +66,39 @@ class ApplicationTest extends AbstractCliTest {
             'type' => 'integer',
             'meta' => [
                 CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_CALL,
-                CliApplication::META_DISPATCH_NAME => 'setAnOrange',
+                CliApplication::META_DISPATCH_VALUE => 'setAnOrange',
             ]
         ], $opt->jsonSerialize());
+
+        $opt = $schema->getOpt('bar');
+        $this->assertArraySubsetRecursive([
+            'description' => '',
+            'required' => false,
+            'type' => 'string',
+            'meta' => [
+                CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_CALL,
+                CliApplication::META_DISPATCH_VALUE => 'setBar',
+            ]
+        ], $opt->jsonSerialize());
+
+        $this->assertFalse($schema->hasOpt('db'), 'Setters with types that cannot be set via CLI should not be reflected.');
+    }
+
+    /**
+     * Static methods should only reflect static setters.
+     */
+    public function testAddStaticMethodSetters(): void {
+        $this->app->addMethod(TestCommands::class, 'format');
+
+        $schema = $this->app->getCli()->getSchema('format');
+        $this->assertTrue($schema->hasOpt('bar'));
+        $this->assertFalse($schema->hasOpt('an-orange'), 'Static methods should not reflect non-static setters.');
     }
 
     /**
      * Test basic method arg reflection.
      */
-    public function testAddMethodArgs(): void {
+    public function testAddMethodParams(): void {
         $this->app->addMethod(TestCommands::class, 'decodeStuff');
 
         $schema = $this->app->getCli()->getSchema('decode-stuff');
@@ -87,7 +112,7 @@ class ApplicationTest extends AbstractCliTest {
             'type' => 'integer',
             'meta' => [
                 CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_PARAMETER,
-                CliApplication::META_DISPATCH_NAME => 'count',
+                CliApplication::META_DISPATCH_VALUE => 'count',
             ]
         ], $arg->jsonSerialize());
 
@@ -98,7 +123,7 @@ class ApplicationTest extends AbstractCliTest {
             'type' => 'string',
             'meta' => [
                 CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_PARAMETER,
-                CliApplication::META_DISPATCH_NAME => 'foo',
+                CliApplication::META_DISPATCH_VALUE => 'foo',
             ]
         ], $arg->jsonSerialize());
     }
@@ -110,7 +135,7 @@ class ApplicationTest extends AbstractCliTest {
         $this->app->addMethod(TestCommands::class, 'decodeStuff');
 
         $r = $this->app->main([__FUNCTION__, 'decode-stuff', '--count=123']);
-        $this->assertCall('decodeStuff', ['count' => 123]);
+        $this->assertCall('decodeStuff', ['count' => 123, 'foo' => 'bar']);
     }
 
     /**
@@ -122,5 +147,17 @@ class ApplicationTest extends AbstractCliTest {
         $r = $this->app->main([__FUNCTION__, 'no-params', '--an-orange=4']);
         $this->assertCall('setAnOrange', ['o' => 4]);
         $this->assertCall('noParams');
+        $this->assertCount(2, TestCommands::$calls);
+    }
+
+    /**
+     * The dispatcher should work on static methods without getting an instance from the container.
+     */
+    public function testDispatchStatic(): void {
+        $this->app->getContainer()->setInstance(TestCommands::class, 'error');
+        $this->app->addMethod(TestCommands::class, 'format');
+
+        $r = $this->app->main([__FUNCTION__, 'format', '--body=foo']);
+        $this->assertCall('format', ['body' => 'foo']);
     }
 }

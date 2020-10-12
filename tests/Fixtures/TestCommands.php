@@ -12,16 +12,16 @@ namespace Garden\Cli\Tests\Fixtures;
  */
 class TestCommands {
     /**
-     * @var calls
+     * @var array
      */
-    public $calls;
+    public static $calls;
 
-    protected function call(string $func, array $args  = []) {
-        $this->calls[] = ['func' => $func] + $args;
+    protected static function call(string $func, array $args  = []) {
+        self::$calls[] = ['func' => $func] + $args;
     }
 
-    public function findCall(string $func): ?array {
-        foreach ($this->calls as $call) {
+    public static function findCall(string $func): ?array {
+        foreach (self::$calls as $call) {
             if ($call['func'] === $func) {
                 return $call;
             }
@@ -36,6 +36,10 @@ class TestCommands {
      */
     public function setAnOrange(int $o) {
         $this->call(__FUNCTION__, compact('o'));
+    }
+
+    public static function setBar(string $bar) {
+        self::call(__FUNCTION__, compact('bar'));
     }
 
     /**
@@ -58,5 +62,9 @@ class TestCommands {
 
     public function setDb(Db $db) {
         $this->call(__FUNCTION__, compact('db'));
+    }
+
+    public static function format(string $body) {
+        self::call(__FUNCTION__, compact('body'));
     }
 }
