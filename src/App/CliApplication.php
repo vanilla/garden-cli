@@ -28,6 +28,8 @@ class CliApplication {
     public const TYPE_CALL = 'call';
     public const TYPE_PARAMETER = 'parameter';
     const ALLOWED_TYPES = ['int', 'string', 'bool', 'array'];
+    const OPT_COMMAND = 'command';
+    const OPT_SETTERS = 'setters';
 
     /**
      * @var ContainerInterface
@@ -64,6 +66,7 @@ class CliApplication {
     public final function getContainer(): Container {
         if ($this->container === null) {
             $this->container = $this->createContainer();
+            $this->configureContainer();
         }
         return $this->container;
     }
@@ -76,6 +79,7 @@ class CliApplication {
     public final function getCli(): Cli {
         if ($this->cli === null) {
             $this->cli = $this->createCli();
+            $this->configureCli();
         }
         return $this->cli;
     }
@@ -132,8 +136,8 @@ class CliApplication {
      */
     public function addMethod(string $className, string $methodName, array $options = []): self {
         $options += [
-            'command' => Identifier::fromCamel($methodName)->toKebab(),
-            'setters' => true,
+            self::OPT_COMMAND => Identifier::fromCamel($methodName)->toKebab(),
+            self::OPT_SETTERS => true,
         ];
 
         $class = new \ReflectionClass($className);
@@ -147,12 +151,12 @@ class CliApplication {
         }
         $this
             ->getCli()
-            ->command($options['command'])
+            ->command($options[self::OPT_COMMAND])
             ->description($description)
-            ->meta(self::META_ACTION, "$className::$methodName")
+            ->meta(self::META_ACTION, $method->getDeclaringClass()->getName().'::'.$method->getName())
         ;
 
-        if ($options['setters']) {
+        if ($options[self::OPT_SETTERS]) {
             $setterFilter = [$this, $method->isStatic() ? 'staticSetterFilter': 'setterFilter'];
 
             $this->addSetters($class, $setterFilter);
@@ -393,5 +397,17 @@ class CliApplication {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Configure the CLI for usage.
+     */
+    protected function configureCli(): void {
+    }
+
+    /**
+     * Configure the Container for usage.
+     */
+    private function configureContainer(): void {
     }
 }

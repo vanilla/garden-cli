@@ -5,9 +5,16 @@
 ![MIT License](https://img.shields.io/packagist/l/vanilla/garden-cli.svg?style=flat)
 [![CLA](https://cla-assistant.io/readme/badge/vanilla/garden-cli)](https://cla-assistant.io/vanilla/garden-cli)
 
+- [Introduction](#introduction)
+- [Defining The CLI](#defining-the-cli)
+- [The CliApplication Class](#the-cliapplication-class)
+- [Logging](#logging)
+
+## Introduction
+
 Garden CLI is a PHP command line interface library meant to provide a full set of functionality with a clean and simple api.
 
-## Why use Garden CLI?
+### Why use Garden CLI?
 
 PHP's `getopt()` provides little functionality and is prone to failure where one typo in your command line options can wreck and entire command call. Garden CLI solves this problem and provides additional functionality.
 
@@ -16,7 +23,7 @@ PHP's `getopt()` provides little functionality and is prone to failure where one
  * Have command options parsed and validated with error information automatically printed out.
  * A simple, elegant syntax so that even your most basic command line scripts will take little effort to implement robust parsing.
 
-## Installation
+### Installation
 
 *Garden CLI requires PHP 7.0 or higher*
 
@@ -28,7 +35,11 @@ Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accep
 }
 ```
 
-## Basic Example
+## Defining The CLI
+
+The `Cli` class provides a fluent interface for defining commands, opts, and args.
+
+### Basic Example
 
 Here is a basic example of a command line script that uses Garden CLI to parse its options. Let's say you are writing a script called `dbdump.php` to dump some data from your database.
 
@@ -61,7 +72,7 @@ This example returns an `Args` object or exits to show help or an error message.
 * If you want your option to have a short code then specify in with `name` argument separated by a colon.
 * If you specify a short code for an option this will act like an alias for the parameter name in `$argv` only. You always access an option by its full name after parsing.
 
-## Option Types
+### Option Types
 
 The `opt` method has a `$type` parameter that you can use to specify a type for the option. The valid types are `integer`, `string`, and `boolean` with string as the default.
 
@@ -72,7 +83,7 @@ command --header="line1" --header="line2"
 
 ```
 
-## Displaying Help
+### Displaying Help
 
 If you were to call the basic example with a `--help` option then you'd see the following help printed:
 
@@ -92,7 +103,7 @@ Dump some information from your database.
 
 All of the options are printed in a compact table and required options are printed in bold. The table will automatically expand to accommodate longer option names and wrap if you provide extra long descriptions.
 
-## Displaying Errors
+### Displaying Errors
 
 Let's say you call the basic example with just `-P foo`. What you'd see is the following error message:
 
@@ -102,7 +113,7 @@ Missing required option: database
 Missing required option: user
 </pre>
 
-## Using the Parsed Options
+### Using the Parsed Options
 
 Once you've successfully parsed the `$argv` using `Cli->parse($argv)` you can use the various methods on the returned `Args` object.
 
@@ -115,7 +126,7 @@ $database = $args['database']; // use the args like an array too
 $port = $args->getOpt('port', 123); // get port with default 123
 ```
 
-## Multiple Commands Example
+### Multiple Commands Example
 
 Let's say you are writing a git-like command line utility called `nit.php` that pushes and pulls information from a remote repository.
 
@@ -147,7 +158,7 @@ Like the basic example, `parse()` will return a `Args` object on a successful pa
 * If the type of `opt()` is `integer` then you can count the number of times an option is supplied. In this example, this allowes you to specify multiple levels of verbosity by adding multiple `-v`s.
 * The `arg()` method lets you define arguments that go after the options on the command line. More on this below.
 
-## Listing Commands
+### Listing Commands
 
 Calling a script that has commands with no options or just the `--help` option will display a list of commands. Here is the output from the multiple commands example above.
 
@@ -159,7 +170,7 @@ Calling a script that has commands with no options or just the `--help` option w
   pull   Pull data from a remote server.
 </pre>
 
-## Args and Opts
+### Args and Opts
 
 The `Args` class differentiates between args and opts. There are methods to access both opts and args on that class.
 
@@ -167,12 +178,72 @@ The `Args` class differentiates between args and opts. There are methods to acce
 * Args are passed after the options as just strings separated by spaces.
 * When calling a script from the command line you can use `--` to separate opts from args if there is ambiguity.
 
-## Formatting Output with the TaskLogger
+## The CliApplication Class
+
+The basic `Cli` class works well for defining and documenting opts and args. However, you still need to wire up the parsed command line args to your own code. If you want to reduce this boilerplate, you can use the `CliApplication` class.
+
+### Defining a Subclass of CliApplication
+
+To use the `CliApplication` you usually subclass it and override the `configureContainer()` and `configureCli()` methods to define the commands in your app.
+
+```php
+class App extends CliApplication {
+    protected function configureCli(): void {
+        parent::configureCli();
+
+        // Add methods with addMethod().
+        $this->addMethod('SomeClassName', 'someMethod');
+        $this->addMethod('SomeClassName', 'someOtherMethod', [CliApplication::OPT_SETTERS => false]);
+        $this->addMethod('SomeOtherClassName', 'someMethod', [CliApplication::OPT_COMMAND => 'command-name']);
+    }
+
+    protected function configureContainer(): void {
+        parent::configureContainer();
+
+        // Configure the container here.
+    }
+}
+```
+
+This example wires up three methods.
+
+#### Using the `addMethod()` Method
+
+You can wire up class methods to the command line by calling `addMethod()`. This does the following:
+
+1. It will create a command derived from the method name. Override the command name with the `OPT_COMMAND` option.
+2. It will create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
+3. It will create opts for method parameters. If the method has class type-hinted types they will not be wired up to opts, but instead will be satisfied with the container.
+4. It will use method doc blocks to add descriptions for the command and opts. Make sure you use PHPDoc syntax.
+
+You can call `addMethod()` with either a static or instance method. If you pass a static method then it will only wire up static setters. An instance method will wire up both static and instance methods.
+
+### Running Your Application
+
+To use your application you just need to call the `main()` method.
+
+```php
+$app = new App();
+$app->main($argv);
+```
+
+The main method does the following:
+
+1. Parses the `$argv` parameter to determine the command.
+2. If the command maps to an instance method then an instance is fetched from the container.
+3. Setters are applied from the opts.
+4. The method is invoked through the container, satisfying any arguments that were not specified as opts.
+
+## Logging
+
+Many CLI applications require some form of logging. Garden CLI has you covered.
+
+### Formatting Output with the TaskLogger
 
 The `TaskLogger` is a [PSR-3](https://www.php-fig.org/psr/psr-3/) log decorator helps you output task-based information to the console in a nice, compact style. It's good for
 things like install scripts, scripts that take a long time, or scripts you put into a cron job.
 
-### Logging Tasks
+#### Logging Tasks
 
 When using the `TaskLogger` you want to think in terms of messages and tasks. A message is a single log item to output
 to the user. A task has a begin and an end and can be nested as much as you want. Messages are output using the various PSR-3 methods while tasks are output with `begin()` and `end()`. Here are all of the methods you can use to log tasks.
@@ -185,40 +256,40 @@ to the user. A task has a begin and an end and can be nested as much as you want
 | `endError`    | Log the end of a task that resulted in an error. |
 | `endHttpStatus`   | Log the end of a task with an HTTP status. The log level is calculated from the number of the status. |
 
-### Task Nesting and Durations
+#### Task Nesting and Durations
 
 You can nest tasks as much as you wish by calling a `begin*` method before calling an `end*` method. Each time you nest a task it will output its messages indented another level. Tasks also calculate their duration and output it at after the call to `end`.
 
-### Suppressing Messages
+#### Suppressing Messages
 
 By default, the `TaskLogger` will only output messages that are at a level of `LogLevel::INFO` or higher. You can change this with the `setMinLevel` method. If you begin a task at a level that us suppressed, but a child message is at or above the min level then the begin task message will be output retroactively. This allows you to see what task kicked off the logged message.
 
-### Example
+#### Example
 
 ```php
 $log = new TaskLogger();
 
 $log->info('This is a message.')
-    ->error('This is an error.') // outputs in red
+$log->error('This is an error.') // outputs in red
 
-    ->beginInfo('Begin a task')
-    // code task code goes here...
-    ->end('done.')
+$log->beginInfo('Begin a task')
+// code task code goes here...
+$log->end('done.')
 
-    ->beginDebug('Make an API call')
-    ->endHttpStatus(200) // treated as error or success depending on code
+$log->beginDebug('Make an API call')
+$log->endHttpStatus(200) // treated as error or success depending on code
 
-    ->begin(LogLevel::NOTICE, 'Multi-step task')
-    ->info('Step 1')
-    ->info('Step 2')
-    ->beginDebug('Step 3')
-    ->debug('Step 3.1') // steps will be hidden because they are level 3
-    ->debug('Step 3.2')
-    ->end('done.')
-    ->end('done.');
+$log->begin(LogLevel::NOTICE, 'Multi-step task')
+$log->info('Step 1')
+$log->info('Step 2')
+$log->beginDebug('Step 3')
+$log->debug('Step 3.1') // steps will be hidden because they are level 3
+$log->debug('Step 3.2')
+$log->end('done.')
+$log->end('done.');
 ```
 
-## The StreamLogger
+### The StreamLogger
 
 If you create and use a `TaskLogger` object it will output nicely to the console out of the box. Under the hood it is using a `StreamLogger` object to handle the formatting of the tasks to an output stream, in this case stdout. You can replace or modify the `StreamLogger` if you want to control logging in a more granular level. Here are some options.
 
@@ -230,7 +301,7 @@ If you create and use a `TaskLogger` object it will output nicely to the console
 | `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `strftime` string or a callback. |
 | `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant. |
 
-### Example
+#### Example
 
 The following example creates a `StreamLogger` object and tweaks some of its settings before passing it into the `TaskLogger` constructor.
 
@@ -248,7 +319,7 @@ $fmt->setTimeFormat(function ($ts) {
 $log = new TaskLogger($fmt);
 ```
 
-## Implementing Your Own Logger
+### Implementing Your Own Logger
 
 You can give the `TaskLogger` any PSR-3 compliant logger and it will send its output to it. In order to use some of the special task functionality, you'll have to inspect the `$contenxt` argument of your `log` method. Here the fields that you may receive.
 

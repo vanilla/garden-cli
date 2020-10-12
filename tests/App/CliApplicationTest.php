@@ -8,9 +8,9 @@
 namespace Garden\Cli\Tests\App;
 
 use Garden\Cli\App\CliApplication;
-use Garden\Cli\Cli;
 use Garden\Cli\Tests\AbstractCliTest;
 use Garden\Cli\Tests\Fixtures\Application;
+use Garden\Cli\Tests\Fixtures\TestApplication;
 use Garden\Cli\Tests\Fixtures\TestCommands;
 
 class CliApplicationTest extends AbstractCliTest {
@@ -26,7 +26,7 @@ class CliApplicationTest extends AbstractCliTest {
 
     public function setUp(): void {
         parent::setUp();
-        $this->app = new CliApplication();
+        $this->app = new TestApplication();
 
         $this->commands = new TestCommands();
         TestCommands::$calls = [];
@@ -53,8 +53,6 @@ class CliApplicationTest extends AbstractCliTest {
      * Reflecting to a method should also route to method args.
      */
     public function testAddObjectSetters(): void {
-        $this->app->addMethod(TestCommands::class, 'noParams');
-
         $schema = $this->app->getCli()->getSchema('no-params');
         $this->assertSame('This method has no parameters.', $schema->getDescription());
         $this->assertSame(TestCommands::class.'::noParams', $schema->getMeta(CliApplication::META_ACTION));
@@ -88,8 +86,6 @@ class CliApplicationTest extends AbstractCliTest {
      * Static methods should only reflect static setters.
      */
     public function testAddStaticMethodSetters(): void {
-        $this->app->addMethod(TestCommands::class, 'format');
-
         $schema = $this->app->getCli()->getSchema('format');
         $this->assertTrue($schema->hasOpt('bar'));
         $this->assertFalse($schema->hasOpt('an-orange'), 'Static methods should not reflect non-static setters.');
@@ -99,8 +95,6 @@ class CliApplicationTest extends AbstractCliTest {
      * Test basic method arg reflection.
      */
     public function testAddMethodParams(): void {
-        $this->app->addMethod(TestCommands::class, 'decodeStuff');
-
         $schema = $this->app->getCli()->getSchema('decode-stuff');
         $this->assertSame('Decode some stuff.', $schema->getDescription());
         $this->assertSame(TestCommands::class.'::decodeStuff', $schema->getMeta(CliApplication::META_ACTION));
@@ -132,8 +126,6 @@ class CliApplicationTest extends AbstractCliTest {
      * Test a basic dispatch.
      */
     public function testDispatch(): void {
-        $this->app->addMethod(TestCommands::class, 'decodeStuff');
-
         $r = $this->app->main([__FUNCTION__, 'decode-stuff', '--count=123']);
         $this->assertCall('decodeStuff', ['count' => 123, 'foo' => 'bar']);
     }
@@ -142,8 +134,6 @@ class CliApplicationTest extends AbstractCliTest {
      * You should be able to call setters on a call.
      */
     public function testDispatchWithSetters(): void {
-        $this->app->addMethod(TestCommands::class, 'noParams');
-
         $r = $this->app->main([__FUNCTION__, 'no-params', '--an-orange=4']);
         $this->assertCall('setAnOrange', ['o' => 4]);
         $this->assertCall('noParams');
@@ -155,7 +145,6 @@ class CliApplicationTest extends AbstractCliTest {
      */
     public function testDispatchStatic(): void {
         $this->app->getContainer()->setInstance(TestCommands::class, 'error');
-        $this->app->addMethod(TestCommands::class, 'format');
 
         $r = $this->app->main([__FUNCTION__, 'format', '--body=foo']);
         $this->assertCall('format', ['body' => 'foo']);
