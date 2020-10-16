@@ -22,11 +22,6 @@ class CliApplicationTest extends AbstractCliTest {
     private $app;
 
     /**
-     * @var TestCommands
-     */
-    private $commands;
-
-    /**
      * {@inheritDoc}
      */
     public function setUp(): void {

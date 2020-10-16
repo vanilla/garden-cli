@@ -9,6 +9,9 @@ namespace Garden\Cli\Schema;
 
 use Garden\Cli\Cli;
 
+/**
+ * A data class for the schema of a single command line opt.
+ */
 class OptSchema implements \JsonSerializable {
     use MetaTrait;
 
@@ -42,6 +45,15 @@ class OptSchema implements \JsonSerializable {
      */
     private $required;
 
+    /**
+     * OptSchema constructor.
+     *
+     * @param string $name The name of the opt in the form: `"$longName"` or `"$longName:$shortName"`.
+     * @param string $description The description of the opt for users.
+     * @param bool $required Whether or not the opt is required.
+     * @param string $type The data type of the opt.
+     * @param array $meta Additional meta information for the opt.
+     */
     public function __construct(string $name, string $description, bool $required = false, string $type = '', array $meta = []) {
         // Break the name up into its long and short form.
         [$long, $short] = explode(':', $name, 2) + ['', ''];
@@ -63,6 +75,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set the long name of the opt.
+     *
      * @param string $name
      * @return $this
      */
@@ -72,6 +86,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Get the description of the opt.
+     *
      * @return string
      */
     public function getDescription(): string {
@@ -79,6 +95,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set the description of the opt.
+     *
      * @param string $description
      * @return $this
      */
@@ -88,6 +106,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Get the short name of the opt.
+     *
      * @return string
      */
     public function getShortName(): string {
@@ -95,6 +115,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set the short name of the opt.
+     *
      * @param string $short
      * @return $this
      */
@@ -104,6 +126,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Get the type of the opt.
+     *
      * @return string
      */
     public function getType(): string {
@@ -111,6 +135,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set the type of the opt.
+     *
      * @param string $type
      * @return $this
      */
@@ -143,6 +169,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Whether or not this is an array opt.
+     *
      * @return bool
      */
     public function isArray(): bool {
@@ -150,6 +178,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set whether or not this is an array opt.
+     *
      * @param bool $isArray
      * @return $this
      */
@@ -159,6 +189,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Whether or not the opt is required.
+     *
      * @return bool
      */
     public function isRequired(): bool {
@@ -166,6 +198,8 @@ class OptSchema implements \JsonSerializable {
     }
 
     /**
+     * Set whether or not the opt is required.
+     *
      * @param bool $required
      * @return $this
      */
@@ -174,6 +208,11 @@ class OptSchema implements \JsonSerializable {
         return $this;
     }
 
+    /**
+     * Merge another opt schema into this one.
+     *
+     * @param OptSchema $opt
+     */
     public function merge(OptSchema $opt): void {
         $this->name = $opt->name;
         $this->short = $opt->short;
@@ -184,6 +223,9 @@ class OptSchema implements \JsonSerializable {
         $this->mergeMetaArray($opt->getMetaArray());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function jsonSerialize() {
         $vars = get_object_vars($this);
         return $vars;

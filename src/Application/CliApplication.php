@@ -20,6 +20,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReflectionClass;
+use ReflectionFunctionAbstract;
 use ReflectionMethod;
 use ReflectionParameter;
 
@@ -373,9 +374,9 @@ class CliApplication {
      * Create a `ReflectionFunctionAbstract` from any callable.
      *
      * @param callable $callable The callable to reflect.
-     * @return \ReflectionFunctionAbstract Returns the reflection primitive.
+     * @return ReflectionFunctionAbstract Returns the reflection primitive.
      */
-    private static function reflectCallable(callable $callable): \ReflectionFunctionAbstract {
+    private static function reflectCallable(callable $callable): ReflectionFunctionAbstract {
         if (is_array($callable)) {
             /** @psalm-suppress PossiblyInvalidArgument  */
             return new ReflectionMethod(...$callable);
@@ -400,7 +401,10 @@ class CliApplication {
         ];
 
         if (is_array($callable)) {
-            throw new InvalidArgumentException("CliApplication::addCallable() does not support methods. Use CliApplication::addMethod() instead.", 400);
+            throw new InvalidArgumentException(
+                "CliApplication::addCallable() does not support methods. Use CliApplication::addMethod() instead.",
+                400
+            );
         }
 
         $method = self::reflectCallable($callable);
@@ -487,8 +491,10 @@ class CliApplication {
     }
 
     /**
+     * Get the allowed opt type from a parameter.
+     *
      * @param ReflectionParameter $param
-     * @return string|null
+     * @return string|null Returns the name of the allowed type or **null** if the parameter cannot be wired to an opt.
      */
     private function allowedType(ReflectionParameter $param): ?string {
         if ($param->getClass()) {
@@ -509,10 +515,10 @@ class CliApplication {
     /**
      * Add a method's parameters to the current command.
      *
-     * @param \ReflectionFunctionAbstract $method
-     *
+     * @param ReflectionFunctionAbstract $method
+     * @param array $options
      */
-    private function addParams(\ReflectionFunctionAbstract $method, array $options = []) {
+    private function addParams(ReflectionFunctionAbstract $method, array $options = []) {
         $options += [
             self::OPT_PREFIX => '',
         ];
@@ -530,7 +536,14 @@ class CliApplication {
         }
     }
 
-    private function reflectParams(\ReflectionFunctionAbstract $method, array $options = []): array {
+    /**
+     * Reflect the parameters on a method and return the options.
+     *
+     * @param ReflectionFunctionAbstract $method
+     * @param array $options
+     * @return array Returns an array of arrays in the form: `[OptSchema, ReflectionParam]`.
+     */
+    private function reflectParams(ReflectionFunctionAbstract $method, array $options = []): array {
         $options += [
             self::OPT_PREFIX => '',
         ];
@@ -608,11 +621,11 @@ class CliApplication {
     /**
      * Reflect a command's description.
      *
-     * @param \ReflectionFunctionAbstract $method The method
+     * @param ReflectionFunctionAbstract $method The method
      * @param string|null $setting An explicitly set description that will be used if not null.
      * @return string
      */
-    private function reflectDescription(\ReflectionFunctionAbstract $method, string $setting = null): string {
+    private function reflectDescription(ReflectionFunctionAbstract $method, string $setting = null): string {
         if ($setting === null) {
             try {
                 $methodDoc = $this->docBlocks()->create($method);

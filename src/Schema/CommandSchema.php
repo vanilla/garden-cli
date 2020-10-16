@@ -9,6 +9,9 @@ namespace Garden\Cli\Schema;
 
 use Garden\Cli\Cli;
 
+/**
+ * A data class for the information describing a command line command or subcommand.
+ */
 class CommandSchema {
     use MetaTrait;
 
@@ -17,6 +20,11 @@ class CommandSchema {
      */
     private $opts;
 
+    /**
+     * CommandSchema constructor.
+     *
+     * @param OptSchema[] $schema
+     */
     public function __construct(array $schema = []) {
         $this->meta = $schema[Cli::META] ?? [];
         unset($schema[Cli::META]);
@@ -24,40 +32,76 @@ class CommandSchema {
         $this->opts = $schema;
     }
 
+    /**
+     * Get the command's description.
+     *
+     * @return string
+     */
     public function getDescription(): string {
         return $this->meta['description'] ?? '';
     }
 
+    /**
+     * Get the command's args.
+     *
+     * @return array|mixed
+     */
     public function getArgs() {
         return $this->meta[Cli::ARGS] ?? [];
     }
 
+    /**
+     * Whether or not the command has args.
+     *
+     * @return bool
+     */
     public function hasArgs() {
         return !empty($this->meta[Cli::ARGS]);
     }
 
     /**
+     * Get the opts for the command.
+     *
      * @return OptSchema[]
      */
     public function getOpts(): array {
         return $this->opts;
     }
 
+    /**
+     * Get an opt by longname.
+     *
+     * @param string $name
+     * @return OptSchema|null
+     */
     public function getOpt(string $name): ?OptSchema {
         return $this->opts[$name] ?? null;
     }
 
+    /**
+     * Whether or not the command has an opt.
+     *
+     * @param string $name The long name of the opt.
+     * @return bool
+     */
     public function hasOpt(string $name): bool {
         return isset($this->opts[$name]);
     }
 
     /**
+     * Whether or not the command has any opts.
+     *
      * @return bool
      */
     public function hasOpts(): bool {
         return !empty($this->opts);
     }
 
+    /**
+     * Merge another command schema into this one.
+     *
+     * @param CommandSchema $schema
+     */
     public function mergeSchema(CommandSchema $schema) {
         $this->mergeMetaArray($schema->getMetaArray());
 

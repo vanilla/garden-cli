@@ -679,8 +679,8 @@ class Cli {
      * You can use either just one name or a string in the form 'long:short' to specify the long and short name.
      * @param string $description A human-readable description for the column.
      * @param bool $required Whether or not the opt is required.
-     * @param string $type The type of parameter.
-     * This must be one of string, bool, integer.
+     * @param string $type The type of parameter. This must be one of string, bool, integer.
+     * @param array $meta Additional information to attach to the opt.
      * @return $this
      */
     public function opt($name, $description, $required = false, $type = 'string', array $meta = []) {
@@ -909,6 +909,15 @@ class Cli {
         }
     }
 
+    /**
+     * Validate an opt to make sure it matches the type defined in its schema.
+     *
+     * @param mixed $value The value to validate. Will also convert the value to the proper type.
+     * @param string $type The type to validate against.
+     * @param string $name The name of the opt for an error message.
+     * @param OptSchema|null $def The schema for the opt to aid error messages.
+     * @return bool
+     */
     protected function validateType(&$value, $type, $name = '', OptSchema $def = null): bool {
         if ($def !== null && $def->isArray()) {
             $value = (array)$value;
