@@ -379,7 +379,7 @@ class CliApplication {
         if (is_array($callable)) {
             /** @psalm-suppress PossiblyInvalidArgument  */
             return new ReflectionMethod(...$callable);
-        } elseif (is_object($callable)) {
+        } elseif (is_object($callable) && !$callable instanceof \Closure) {
             return new ReflectionMethod($callable, '__invoke');
         } else {
             return new \ReflectionFunction($callable);
