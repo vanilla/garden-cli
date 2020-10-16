@@ -7,7 +7,6 @@
 
 namespace Garden\Cli\Schema;
 
-
 /**
  * For classes that want to store meta data.
  *

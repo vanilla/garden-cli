@@ -7,7 +7,6 @@
 
 namespace Garden\Cli\Schema;
 
-
 use Garden\Cli\Cli;
 
 class OptSchema implements \JsonSerializable {

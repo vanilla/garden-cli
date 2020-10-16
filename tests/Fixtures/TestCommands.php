@@ -16,7 +16,12 @@ class TestCommands {
      */
     public static $calls;
 
-    protected static function call(string $func, array $args  = []) {
+    /**
+     * @var Db
+     */
+    public $db;
+
+    public static function call(string $func, array $args  = []) {
         self::$calls[] = ['func' => $func] + $args;
     }
 
@@ -36,6 +41,7 @@ class TestCommands {
      */
     public function setAnOrange(int $o) {
         $this->call(__FUNCTION__, compact('o'));
+        return $this;
     }
 
     public static function setBar(string $bar) {
@@ -45,8 +51,9 @@ class TestCommands {
     /**
      * This method has no parameters.
      */
-    public function noParams(): void {
+    public function noParams() {
         $this->call(__FUNCTION__);
+        return $this;
     }
 
     /**
@@ -58,10 +65,13 @@ class TestCommands {
      */
     public function decodeStuff(int $count, string $foo = 'bar', Db $db = null) {
         $this->call(__FUNCTION__, compact('count', 'foo', 'db'));
+        return $this;
     }
 
     public function setDb(Db $db) {
+        $this->db = $db;
         $this->call(__FUNCTION__, compact('db'));
+        return $this;
     }
 
     public static function format(string $body) {

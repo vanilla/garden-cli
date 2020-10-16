@@ -137,6 +137,7 @@ class Cli {
      * @return static Returns a new Cli object.
      */
     public static function create(...$args) {
+        /** @psalm-suppress TooManyArguments **/
         return new static(...$args);
     }
 
@@ -288,7 +289,7 @@ class Cli {
             }
         }
 
-        if (!$args || empty($args)) {
+        if (empty($args)) {
             return self::COMMAND_ARGS_NONE;
         }
 
@@ -461,7 +462,7 @@ class Cli {
                             }
                         // If there is no value but we have a no- before the command
                         } elseif (strpos($key, 'no-') === 0) {
-                            $tmpKey = str_replace('no-', null, $key);
+                            $tmpKey = str_replace('no-', '', $key);
                             if (Cli::val($tmpKey, $types) === self::TYPE_BOOLEAN) {
                                 $key = $tmpKey;
                                 $v = false;
@@ -591,7 +592,7 @@ class Cli {
 
         foreach ($schema->getOpts() as $key => $definition) {
             // No Parameter (default)
-            $type = $definition->getType() ?? self::TYPE_STRING;
+            $type = $definition->getType();
 
             $value = $this->extractOpt($opts, $key, $definition);
 
@@ -634,7 +635,7 @@ class Cli {
      * Gets the full cli schema.
      *
      * @param string $command The name of the command. This can be left blank if there is no command.
-     * @return array Returns the schema that matches the command.
+     * @return CommandSchema Returns the schema that matches the command.
      */
     public function getSchema($command = ''): CommandSchema {
         $matches = [];
@@ -684,6 +685,17 @@ class Cli {
      */
     public function opt($name, $description, $required = false, $type = 'string', array $meta = []) {
         $opt = new OptSchema($name, $description, $required, $type, $meta);
+        $this->currentSchema->addOpt($opt);
+        return $this;
+    }
+
+    /**
+     * Add an opt to the current schema.
+     *
+     * @param OptSchema $opt
+     * @return $this
+     */
+    public function addOpt(OptSchema $opt): self {
         $this->currentSchema->addOpt($opt);
         return $this;
     }
@@ -743,31 +755,6 @@ class Cli {
             $boolValue = null;
             return false;
         }
-    }
-
-    /**
-     * Set the schema for a command.
-     *
-     * The schema array uses a short syntax so that commands can be specified as quickly as possible.
-     * This schema is the exact same as those provided to {@link Schema::create()}.
-     * The basic format of the array is the following:
-     *
-     * ```
-     * [
-     *     type:name[:shortCode][?],
-     *     type:name[:shortCode][?],
-     *     ...
-     * ]
-     * ```
-     *
-     * @param array $schema The schema array.
-     *
-     * @return void
-     */
-    public function schema(array $schema): void {
-        $parsed = static::parseSchema($schema);
-
-        $this->currentSchema = array_replace($this->currentSchema, $parsed);
     }
 
     /**
@@ -927,7 +914,7 @@ class Cli {
             $value = (array)$value;
             $r = true;
             foreach ($value as $i => &$item) {
-                $r &= $this->validateScalarType($item, $type, "$name[$i]", $def);
+                $r = $r && $this->validateScalarType($item, $type, "$name[$i]", $def);
             }
         } else {
             if (is_array($value)) {

@@ -5,7 +5,7 @@
  * @license MIT
  */
 
-namespace Garden\Cli\App;
+namespace Garden\Cli\Application;
 
 class Identifier {
     private $parts = [];

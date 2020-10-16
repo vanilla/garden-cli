@@ -195,6 +195,9 @@ class App extends CliApplication {
         $this->addMethod('SomeClassName', 'someMethod');
         $this->addMethod('SomeClassName', 'someOtherMethod', [CliApplication::OPT_SETTERS => false]);
         $this->addMethod('SomeOtherClassName', 'someMethod', [CliApplication::OPT_COMMAND => 'command-name']);
+
+        // Add ad-hoc closures with addCallable().
+        $this->addCallable('foo', function (int $count) { });
     }
 
     protected function configureContainer(): void {
@@ -209,7 +212,7 @@ This example wires up three methods.
 
 #### Using the `addMethod()` Method
 
-You can wire up class methods to the command line by calling `addMethod()`. This does the following:
+You can wire up class methods to the command line by using `addMethod()`. This does the following:
 
 1. It will create a command derived from the method name. Override the command name with the `OPT_COMMAND` option.
 2. It will create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
@@ -217,6 +220,12 @@ You can wire up class methods to the command line by calling `addMethod()`. This
 4. It will use method doc blocks to add descriptions for the command and opts. Make sure you use PHPDoc syntax.
 
 You can call `addMethod()` with either a static or instance method. If you pass a static method then it will only wire up static setters. An instance method will wire up both static and instance methods.
+
+#### Using the `addCallable()` Method
+
+You can wire up an ad-hoc closure to the command line by using `addCallable()`. This works much like `addMethod()`, but will only reflect the callable's parameters.
+
+Even though it's not a common practice to add a doc block to an inline closure, you can do so and it will be used to document the command. If you don't do so, but at least want a description then use the `OPT_DESCRIPTION` option to provide one.
 
 ### Running Your Application
 

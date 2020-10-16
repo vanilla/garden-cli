@@ -7,7 +7,7 @@
 
 namespace Garden\Cli\Tests\App;
 
-use Garden\Cli\App\Identifier;
+use Garden\Cli\Application\Identifier;
 use PHPUnit\Framework\TestCase;
 
 class IdentifierTest extends TestCase {

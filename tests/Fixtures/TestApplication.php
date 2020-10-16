@@ -8,9 +8,20 @@
 namespace Garden\Cli\Tests\Fixtures;
 
 
-use Garden\Cli\App\CliApplication;
+use Garden\Cli\Application\CliApplication;
+use Garden\Container\Container;
+use Garden\Container\Reference;
 
 class TestApplication extends CliApplication {
+    protected function configureContainer(): void {
+        parent::configureContainer();
+
+        $this->getContainer()
+            ->rule(TestCommands::class)
+            ->setShared(true)
+            ->addCall('setDb', [new Reference(Db::class)]);
+    }
+
     protected function configureCli(): void {
         parent::configureCli();
 

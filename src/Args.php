@@ -174,6 +174,16 @@ class Args implements \JsonSerializable, \ArrayAccess {
     }
 
     /**
+     * Alias of `getOpt()`.
+     *
+     * @param string $name The name of the opt to get.
+     * @return mixed
+     */
+    public function get(string $name) {
+        return $this->getOpt($name, null);
+    }
+
+    /**
      * Determine whether or not an option has been set.
      *
      * @param string $option The name of the option.

@@ -77,7 +77,7 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var resource Whether or not the default stream was opened.
      */
-    private $defaultStream = null;
+    private $defaultStream;
 
     /**
      * LogFormatter constructor.
