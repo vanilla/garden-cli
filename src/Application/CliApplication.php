@@ -26,7 +26,7 @@ use ReflectionParameter;
 /**
  * An opinionated CLI application class to reduce boilerplate.
  */
-class CliApplication {
+class CliApplication extends Cli {
     public const META_ACTION = 'action';
 
     public const META_DISPATCH_TYPE = 'dispatchType';
@@ -46,38 +46,15 @@ class CliApplication {
     private $container;
 
     /**
-     * @var Cli
-     */
-    private $cli;
-
-    /**
      * @var DocBlockFactory
      */
     private $factory;
 
     /**
-     * Get the CLI object used to parse CLI args.
-     *
-     * @return Cli
+     * CliApplication constructor.
      */
-    final public function getCli(): Cli {
-        if ($this->cli === null) {
-            $this->cli = $this->createCli();
-            $this->configureCli();
-        }
-        return $this->cli;
-    }
-
-    /**
-     * Create and configure the the `Cli` object used for parsing CLI args.
-     *
-     * This is a good method to override if you want to configure your `Cli` in a subclass.
-     *
-     * @return Cli
-     */
-    protected function createCli(): Cli {
-        $cli = $this->getContainer()->get(Cli::class);
-        return $cli;
+    public function __construct() {
+        $this->configureCli();
     }
 
     /**
@@ -125,7 +102,7 @@ class CliApplication {
      * @return int Returns the integer result of the command which should be propagated back to the command line.
      */
     public function main(array $argv): int {
-        $args = $this->getCli()->parse($argv);
+        $args = $this->parse($argv);
 
         try {
             $action = $this->route($args);
@@ -146,7 +123,7 @@ class CliApplication {
      * @return Args Returns a copy of `$args` ready for dispatching.
      */
     protected function route(Args $args): Args {
-        $schema = $this->getCli()->getSchema($args->getCommand());
+        $schema = $this->getSchema($args->getCommand());
 
         if (null === $schema->getMeta(self::META_ACTION)) {
             throw new InvalidArgumentException("The args don't specify an action to route to.");
@@ -167,7 +144,7 @@ class CliApplication {
             // Set the args in the container so they can be injected into classes.
             $this->getContainer()->setInstance(Args::class, $args);
 
-            $schema = $this->getCli()->getSchema($args->getCommand());
+            $schema = $this->getSchema($args->getCommand());
 
             if (null === $schema->getMeta(self::META_ACTION)) {
                 throw new InvalidArgumentException("The args don't specify an action to dispatch to.");
@@ -243,7 +220,6 @@ class CliApplication {
         $description = $this->reflectDescription($method, $options['description']);
 
         $this
-            ->getCli()
             ->command($options[self::OPT_COMMAND])
             ->description($description)
             ->meta(self::META_ACTION, $method->getDeclaringClass()->getName() . '::' . $method->getName());
@@ -406,7 +382,6 @@ class CliApplication {
         $description = $this->reflectDescription($method, $options[self::OPT_DESCRIPTION]);
 
         $this
-            ->getCli()
             ->command($command)
             ->description($description)
             ->meta(self::META_ACTION, $callable);
@@ -450,7 +425,7 @@ class CliApplication {
             } else {
                 $description = '';
             }
-            $this->getCli()->opt(
+            $this->opt(
                 $optName,
                 $description,
                 false,
@@ -533,7 +508,7 @@ class CliApplication {
                 self::META_DISPATCH_TYPE => self::TYPE_PARAMETER,
                 self::META_DISPATCH_VALUE => $param->getName(),
             ]);
-            $this->getCli()->addOpt($opt);
+            $this->addOpt($opt);
         }
     }
 

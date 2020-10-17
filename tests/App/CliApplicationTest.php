@@ -47,7 +47,7 @@ class CliApplicationTest extends AbstractCliTest {
      * Reflecting to a method should also route to method args.
      */
     public function testAddObjectSetters(): void {
-        $schema = $this->app->getCli()->getSchema('no-params');
+        $schema = $this->app->getSchema('no-params');
         $this->assertSame('This method has no parameters.', $schema->getDescription());
         $this->assertSame(TestCommands::class . '::noParams', $schema->getMeta(CliApplication::META_ACTION));
 
@@ -80,7 +80,7 @@ class CliApplicationTest extends AbstractCliTest {
      * Static methods should only reflect static setters.
      */
     public function testAddStaticMethodSetters(): void {
-        $schema = $this->app->getCli()->getSchema('format');
+        $schema = $this->app->getSchema('format');
         $this->assertTrue($schema->hasOpt('bar'));
         $this->assertFalse($schema->hasOpt('an-orange'), 'Static methods should not reflect non-static setters.');
     }
@@ -89,7 +89,7 @@ class CliApplicationTest extends AbstractCliTest {
      * Test basic method arg reflection.
      */
     public function testAddMethodParams(): void {
-        $schema = $this->app->getCli()->getSchema('decode-stuff');
+        $schema = $this->app->getSchema('decode-stuff');
         $this->assertSame('Decode some stuff.', $schema->getDescription());
         $this->assertSame(TestCommands::class . '::decodeStuff', $schema->getMeta(CliApplication::META_ACTION));
 
@@ -161,7 +161,7 @@ class CliApplicationTest extends AbstractCliTest {
 
     public function testAddCallable(): void {
         // Test the reflection.
-        $schema = $this->app->getCli()->getSchema('fn');
+        $schema = $this->app->getSchema('fn');
         $this->assertSame('Closure doc block.', $schema->getDescription());
         $this->assertArraySubsetRecursive([
             'name' => 'foo',
