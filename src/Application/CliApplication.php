@@ -218,7 +218,7 @@ class CliApplication extends Cli {
      */
     public function addMethod(string $className, string $methodName, array $options = []): self {
         $options += [
-            self::OPT_COMMAND => Identifier::fromCamel($methodName)->toKebab(),
+            self::OPT_COMMAND => $this->commandNameFromMethod($className, $methodName),
             self::OPT_SETTERS => false,
             self::OPT_DESCRIPTION => null,
         ];
@@ -621,5 +621,18 @@ class CliApplication extends Cli {
             $description = $setting;
         }
         return $description;
+    }
+
+    /**
+     * Calculate a command name from a class method.
+     *
+     * Override this method to customize the behavior of default
+     *
+     * @param string $className The name of the class that owns the method.
+     * @param string $methodName The name of the method.
+     * @return string Returns a command name that can be assigned to the CLI.
+     */
+    protected function commandNameFromMethod(string $className, string $methodName): string {
+        return Identifier::fromCamel($methodName)->toKebab();
     }
 }
