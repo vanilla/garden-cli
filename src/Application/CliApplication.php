@@ -496,10 +496,12 @@ class CliApplication {
      * @return string|null Returns the name of the allowed type or **null** if the parameter cannot be wired to an opt.
      */
     private function allowedType(ReflectionParameter $param): ?string {
-        if ($param->getClass()) {
-            return null;
-        } elseif (null === $param->getType()) {
+        $type = $param->getType();
+
+        if ($type === null) {
             return '';
+        } elseif (!$type->isBuiltin()) {
+            return null;
         } else {
             $type = $param->getType();
             $t = $type instanceof \ReflectionNamedType ? $type->getName() : (string)$type;
