@@ -239,7 +239,7 @@ class CliApplication {
     public function addMethod(string $className, string $methodName, array $options = []): self {
         $options += [
             self::OPT_COMMAND => Identifier::fromCamel($methodName)->toKebab(),
-            self::OPT_SETTERS => true,
+            self::OPT_SETTERS => false,
             self::OPT_DESCRIPTION => null,
         ];
 
