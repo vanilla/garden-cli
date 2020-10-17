@@ -26,7 +26,10 @@ class CommandSchema {
      * @param OptSchema[] $schema
      */
     public function __construct(array $schema = []) {
-        $this->meta = $schema[Cli::META] ?? [];
+        if (!is_array($meta = $schema[Cli::META] ?? [])) {
+            throw new \InvalidArgumentException("The meta must be an array.", 400);
+        }
+        $this->meta = $meta;
         unset($schema[Cli::META]);
         ksort($schema);
         $this->opts = $schema;

@@ -378,12 +378,12 @@ class CliApplication {
      */
     private static function reflectCallable(callable $callable): ReflectionFunctionAbstract {
         if (is_array($callable)) {
-            /** @psalm-suppress PossiblyInvalidArgument  */
+            /** @psalm-suppress PossiblyInvalidArgument */
             return new ReflectionMethod(...$callable);
-        } elseif (is_object($callable) && !$callable instanceof \Closure) {
-            return new ReflectionMethod($callable, '__invoke');
-        } else {
+        } elseif (is_string($callable) || $callable instanceof \Closure) {
             return new \ReflectionFunction($callable);
+        } else {
+             return new ReflectionMethod($callable, '__invoke');
         }
     }
 
@@ -443,7 +443,11 @@ class CliApplication {
          */
         foreach ($this->reflectSetters($class, $filter) as $optName => $method) {
             $param = $method->getParameters()[0];
-            $type = $param->hasType() ? $param->getType()->getName() : '';
+            if (null === $t = $param->getType()) {
+                $type = '';
+            } else {
+                $type = $t instanceof \ReflectionNamedType ? $t->getName() : (string)$t;
+            }
 
             if (!empty($method->getDocComment())) {
                 $doc = $this->docBlocks()->create($method);

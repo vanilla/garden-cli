@@ -923,7 +923,7 @@ class Cli {
             $value = (array)$value;
             $r = true;
             foreach ($value as $i => &$item) {
-                $r = $r && $this->validateScalarType($item, $type, "$name[$i]", $def);
+                $r = $r && $this->validateScalarType($item, $type, "{$name}[$i]", $def);
             }
         } else {
             if (is_array($value)) {
