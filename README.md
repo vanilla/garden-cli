@@ -182,6 +182,8 @@ The `Args` class differentiates between args and opts. There are methods to acce
 
 The basic `Cli` class works well for defining and documenting opts and args. However, you still need to wire up the parsed command line args to your own code. If you want to reduce this boilerplate, you can use the `CliApplication` class.
 
+The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
+
 *Note: In order to use the `CliApplication` functionality you will need to require some extra dependencies. See the suggested packages in composer.json for more information.*
 
 ### Defining a Subclass of CliApplication
