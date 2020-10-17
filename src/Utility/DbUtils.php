@@ -7,6 +7,8 @@
 
 namespace Garden\Cli\Utility;
 
+use PDO;
+
 /**
  * Utility methods for command line database options.
  */
@@ -28,11 +30,11 @@ final class DbUtils {
      * @param string $host The host of the database.
      * @param string $username The username to connect to the database.
      * @param string $password The password to connect to the database.
-     * @return \PDO
+     * @return PDO
      */
-    public static function createMySQL(string $name, string $host = 'localhost', string $username = 'root', string $password = ''): \PDO {
-        $dsn = "myql:dbname=$name;host=$host;charset=utf8mb4";
-        $pdo = new \PDO($dsn, $username, $password);
+    public static function createMySQL(string $name, string $host = 'localhost', string $username = 'root', string $password = ''): PDO {
+        $dsn = "mysql:dbname=$name;host=$host;charset=utf8mb4";
+        $pdo = new PDO($dsn, $username, $password);
         return $pdo;
     }
 }

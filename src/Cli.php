@@ -221,7 +221,7 @@ class Cli {
     /**
      * Sets the description for the current command.
      *
-     * @param string $str The description for the current schema or null to get the current description.
+     * @param string|null $str The description for the current schema or null to get the current description.
      * @return $this
      */
     public function description($str = null) {
@@ -319,7 +319,7 @@ class Cli {
      * Note that the `$argv` array must have at least one element and it must represent the path to the command that
      * invoked the command. This is used to write usage information.
      *
-     * @param array $argv The command line arguments a form compatible with the global `$argv` variable.
+     * @param array|null $argv Command line arguments compatible with the global `$argv` variable.
      * @param bool $exit Whether to exit the application when there is an error or when writing help.
      *
      * @return Args Returns an {@see Args} instance when a command should be executed or `null` when one should not be executed.
@@ -373,7 +373,7 @@ class Cli {
      * If the first item in the array is in the form of a command (no preceding - or --),
      * 'command' is filled with its value.
      *
-     * @param array $argv An array of arguments passed in a form compatible with the global `$argv` variable.
+     * @param array|null $argv An array of arguments passed in a form compatible with the global `$argv` variable.
      * @return Args Returns the raw parsed arguments.
      * @throws \Exception Throws an exception when {@see $argv} isn't an array.
      */

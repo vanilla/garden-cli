@@ -16,7 +16,6 @@ use Garden\Container\Reference;
 use InvalidArgumentException;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use phpDocumentor\Reflection\DocBlockFactory;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReflectionClass;
@@ -57,31 +56,6 @@ class CliApplication {
     private $factory;
 
     /**
-     * Run the program.
-     *
-     * @param array $argv Command line arguments.
-     * @return int Returns the integer result of the command which should be propagated back to the command line.
-     */
-    public function main(array $argv): int {
-        $args = $this->getCli()->parse($argv);
-
-        try {
-            $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
-            // Set the args in the container so they can be injected into classes.
-            $this->getContainer()->setInstance(Args::class, $args);
-
-            $action = $this->route($args);
-            $r = $this->dispatch($action);
-        } catch (Exception $ex) {
-            /* @var LoggerInterface $log */
-            $log = $this->container->get(LoggerInterface::class);
-            $log->error($ex->getMessage());
-            $r = $ex->getCode();
-        }
-        return is_numeric($r) ? (int)$r : 0;
-    }
-
-    /**
      * Get the CLI object used to parse CLI args.
      *
      * @return Cli
@@ -104,6 +78,12 @@ class CliApplication {
     protected function createCli(): Cli {
         $cli = $this->getContainer()->get(Cli::class);
         return $cli;
+    }
+
+    /**
+     * Configure the CLI for usage.
+     */
+    protected function configureCli(): void {
     }
 
     /**
@@ -139,9 +119,24 @@ class CliApplication {
     }
 
     /**
-     * Configure the CLI for usage.
+     * Run the program.
+     *
+     * @param array $argv Command line arguments.
+     * @return int Returns the integer result of the command which should be propagated back to the command line.
      */
-    protected function configureCli(): void {
+    public function main(array $argv): int {
+        $args = $this->getCli()->parse($argv);
+
+        try {
+            $action = $this->route($args);
+            $r = $this->dispatch($action);
+        } catch (Exception $ex) {
+            /* @var LoggerInterface $log */
+            $log = $this->container->get(LoggerInterface::class);
+            $log->error($ex->getMessage());
+            $r = $ex->getCode();
+        }
+        return is_numeric($r) ? (int)$r : 0;
     }
 
     /**
@@ -361,7 +356,7 @@ class CliApplication {
         $method = new ReflectionMethod($className, $methodName);
         /**
          * @var OptSchema $opt
-         * @var \ReflectionParameter $param
+         * @var ReflectionParameter $param
          */
         foreach ($this->reflectParams($method, $options) as [$opt, $param]) {
             $args[$param->getName()] = new Reference([Args::class, $opt->getName()]);
@@ -434,7 +429,7 @@ class CliApplication {
      * Reflect and add object setters.
      *
      * @param ReflectionClass $class The class to add the setters for.
-     * @param callable $filter A filter that will determine if a method is a setter.
+     * @param callable|null $filter A filter that will determine if a method is a setter.
      */
     final protected function addSetters(ReflectionClass $class, callable $filter = null): void {
         /**

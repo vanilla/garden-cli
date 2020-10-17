@@ -7,10 +7,14 @@
 
 namespace Garden\Cli;
 
+use ArrayAccess;
+use InvalidArgumentException;
+use JsonSerializable;
+
 /**
  * This class represents the parsed and validated argument list.
  */
-class Args implements \JsonSerializable, \ArrayAccess {
+class Args implements JsonSerializable, ArrayAccess {
     protected $command;
     protected $opts;
     protected $args;
@@ -279,7 +283,7 @@ class Args implements \JsonSerializable, \ArrayAccess {
         } elseif (is_int($arg)) {
             return $arg < count($this->args);
         } else {
-            throw new \InvalidArgumentException("Args::hasArg() expects an integer or string.", 400);
+            throw new InvalidArgumentException("Args::hasArg() expects an integer or string.", 400);
         }
     }
 }

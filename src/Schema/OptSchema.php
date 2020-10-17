@@ -8,11 +8,13 @@
 namespace Garden\Cli\Schema;
 
 use Garden\Cli\Cli;
+use InvalidArgumentException;
+use JsonSerializable;
 
 /**
  * A data class for the schema of a single command line opt.
  */
-class OptSchema implements \JsonSerializable {
+class OptSchema implements JsonSerializable {
     use MetaTrait;
 
     /**
@@ -162,7 +164,7 @@ class OptSchema implements \JsonSerializable {
                 $this->type = Cli::TYPE_INTEGER;
                 break;
             default:
-                throw new \InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
+                throw new InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
         }
 
         return $this;

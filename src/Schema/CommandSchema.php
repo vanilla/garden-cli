@@ -72,7 +72,7 @@ class CommandSchema {
     }
 
     /**
-     * Get an opt by longname.
+     * Get an opt by long name.
      *
      * @param string $name
      * @return OptSchema|null
