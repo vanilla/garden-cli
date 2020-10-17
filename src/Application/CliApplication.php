@@ -187,7 +187,9 @@ class CliApplication extends Cli {
                 switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
                     case self::TYPE_CALL:
                         if ($args->hasOpt($opt->getName())) {
-                            $obj->{$opt->getMeta(self::META_DISPATCH_VALUE)}($args->getOpt($opt->getName()));
+                            $setter = $opt->getMeta(self::META_DISPATCH_VALUE);
+                            /** @psalm-suppress PossiblyInvalidMethodCall */
+                            $obj->{$setter}($args->getOpt($opt->getName()));
                         }
                         break;
                     case self::TYPE_PARAMETER:
