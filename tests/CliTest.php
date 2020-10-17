@@ -14,8 +14,6 @@ use Garden\Cli\Cli;
 class CliTest extends AbstractCliTest {
     /**
      * Test a cli run with named arguments.
-     *
-     * @throws Exception
      */
     public function testArgNames() {
         $cli = new Cli();
@@ -396,5 +394,19 @@ EOT;
 
 
         return $result;
+    }
+
+    /**
+     * Make sure that required args are checked.
+     */
+    public function testRequiredArgs(): void {
+        $cli = new Cli();
+        $cli->description('A cli with named args.')
+            ->arg('from', 'The path from.')
+            ->arg('to', 'The path to.', true);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required arg: to');
+        $args = $cli->parse(['script', '/var/foo.txt'], false);
     }
 }

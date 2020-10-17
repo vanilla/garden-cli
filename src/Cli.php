@@ -359,7 +359,7 @@ class Cli {
             $this->formatOutput = $formatOutputBak;
             $output = ob_get_clean();
             if ($result === null) {
-                throw new \Exception(trim($output));
+                throw new \InvalidArgumentException(trim($output));
             }
         } elseif ($result === null) {
             exit();
@@ -613,6 +613,13 @@ class Cli {
             $isValid = false;
             foreach ($missing as $key => $v) {
                 echo $this->red("Missing required option: $key".PHP_EOL);
+            }
+        }
+
+        foreach ($schema->getArgs() as $name => $arg) {
+            if ($arg['required'] ?? false && !$valid->hasArg($name)) {
+                $isValid = false;
+                echo $this->red("Missing required arg: $name".PHP_EOL);
             }
         }
 

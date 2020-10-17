@@ -25,8 +25,8 @@ class TestApplication extends CliApplication {
     protected function configureCli(): void {
         parent::configureCli();
 
-        $this->addMethod(TestCommands::class, 'noParams');
+        $this->addMethod(TestCommands::class, 'noParams', [self::OPT_SETTERS => true]);
         $this->addMethod(TestCommands::class, 'DecodeStuff');
-        $this->addMethod(TestCommands::class, 'format');
+        $this->addMethod(TestCommands::class, 'format', [self::OPT_SETTERS => true]);
     }
 }
