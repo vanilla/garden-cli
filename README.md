@@ -187,7 +187,7 @@ The basic `Cli` class works well for defining and documenting opts and args. How
 To use the `CliApplication` you usually subclass it and override the `configureContainer()` and `configureCli()` methods to define the commands in your app.
 
 ```php
-class App extends CliApplication {
+class App extends Garden\Cli\Application\CliApplication {
     protected function configureCli(): void {
         parent::configureCli();
 
@@ -198,6 +198,9 @@ class App extends CliApplication {
 
         // Add ad-hoc closures with addCallable().
         $this->addCallable('foo', function (int $count) { });
+
+        // Wire up dependencies with addConstructor() or addFactory().
+        $this->addFactory(\PDO::class, [\Garden\Cli\Utility\DbUtils::class, 'createMySQL']);
     }
 
     protected function configureContainer(): void {
@@ -226,6 +229,20 @@ You can call `addMethod()` with either a static or instance method. If you pass 
 You can wire up an ad-hoc closure to the command line by using `addCallable()`. This works much like `addMethod()`, but will only reflect the callable's parameters.
 
 Even though it's not a common practice to add a doc block to an inline closure, you can do so and it will be used to document the command. If you don't do so, but at least want a description then use the `OPT_DESCRIPTION` option to provide one.
+
+#### Using the `addConstructor()` and `addFactory()` Methods
+
+You can add dependencies by wiring up their constructor parameters or a factory method to the opts. The most common use case is specifying connection parameters to a database or an access token to an API client.
+
+Use `addConstructor()` if the class has constructor parameters that make sense coming from the command line.
+
+Use `addFactory()` if you want to clean up the names of the parameters or do some additional properties somehow.
+
+If the constructor or factory has class type hints then not to worry. Those will be auto-wired through the container. You can then configure them through the container directory or even wire them up to opts by making additional calls to `addConstructor()` or `addFactory()`.
+
+#### Using the `addCall()` Method
+
+You can wire up a call to a class method using the `addCall()` method. Use this for setter injection. The call will be applied when the class is instantiated.
 
 ### Running Your Application
 
