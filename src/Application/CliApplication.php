@@ -10,6 +10,7 @@ namespace Garden\Cli\Application;
 use Exception;
 use Garden\Cli\Args;
 use Garden\Cli\Cli;
+use Garden\Cli\Schema\CommandSchema;
 use Garden\Cli\Schema\OptSchema;
 use Garden\Container\Container;
 use Garden\Container\Reference;
@@ -125,9 +126,6 @@ class CliApplication extends Cli {
     protected function route(Args $args): Args {
         $schema = $this->getSchema($args->getCommand());
 
-        if (null === $schema->getMeta(self::META_ACTION)) {
-            throw new InvalidArgumentException("The args don't specify an action to route to.");
-        }
         $result = clone $args;
         return $result;
     }
@@ -137,8 +135,9 @@ class CliApplication extends Cli {
      *
      * @param Args $args The args to dispatch.
      * @return mixed Returns the result of the dispatched method.
+     * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
      */
-    public function dispatch(Args $args) {
+    final public function dispatch(Args $args) {
         try {
             $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
             // Set the args in the container so they can be injected into classes.
@@ -146,54 +145,63 @@ class CliApplication extends Cli {
 
             $schema = $this->getSchema($args->getCommand());
 
-            if (null === $schema->getMeta(self::META_ACTION)) {
-                throw new InvalidArgumentException("The args don't specify an action to dispatch to.");
-            }
-
-            $action = $schema->getMeta(self::META_ACTION);
-
-            if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
-                /** @psalm-var class-string $className */
-                $className = $m[1];
-                $methodName = $m[2];
-
-                $method = new ReflectionMethod($className, $methodName);
-
-                if ($method->isStatic()) {
-                    $obj = $className;
-                } else {
-                    $obj = $this->getContainer()->get($className);
-                }
-
-                // Go through the opts, gather the parameters and call setters on the object.
-                $optParams = [];
-                foreach ($schema->getOpts() as $opt) {
-                    switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
-                        case self::TYPE_CALL:
-                            if ($args->hasOpt($opt->getName())) {
-                                call_user_func(
-                                    [$obj, $opt->getMeta(self::META_DISPATCH_VALUE)],
-                                    $args->getOpt($opt->getName())
-                                );
-                            }
-                            break;
-                        case self::TYPE_PARAMETER:
-                            if ($args->hasOpt($opt->getName())) {
-                                $optParams[strtolower($opt->getMeta(self::META_DISPATCH_VALUE))] =
-                                    $args->getOpt($opt->getName());
-                            }
-                            break;
-                    }
-                }
-
-                $result = $this->getContainer()->call([$obj, $methodName], $optParams);
-            } else {
-                throw new InvalidArgumentException("Invalid action: " . $action, 400);
-            }
-
+            $result = $this->dispatchInternal($args, $schema, true);
             return $result;
         } finally {
             $this->getContainer()->setInstance(Args::class, $argsBak);
+        }
+    }
+
+    /**
+     * Dispatch the command to commands routed via commands added through this class.
+     *
+     * This method will automatically dispatch to commands added via the following methods:
+     *
+     * - addMethod()
+     * - addCallable()
+     *
+     * If you want to do some custom dispatching then override this method and
+     *
+     * @param Args $args
+     * @param CommandSchema $schema
+     * @param bool $throw
+     */
+    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true) {
+        $action = $schema->getMeta(self::META_ACTION);
+        if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
+            /** @psalm-var class-string $className */
+            $className = $m[1];
+            $methodName = $m[2];
+
+            $method = new ReflectionMethod($className, $methodName);
+
+            if ($method->isStatic()) {
+                $obj = $className;
+            } else {
+                $obj = $this->getContainer()->get($className);
+            }
+
+            // Go through the opts, gather the parameters and call setters on the object.
+            $optParams = [];
+            foreach ($schema->getOpts() as $opt) {
+                switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
+                    case self::TYPE_CALL:
+                        if ($args->hasOpt($opt->getName())) {
+                            $obj->{$opt->getMeta(self::META_DISPATCH_VALUE)}($args->getOpt($opt->getName()));
+                        }
+                        break;
+                    case self::TYPE_PARAMETER:
+                        if ($args->hasOpt($opt->getName())) {
+                            $optParams[strtolower($opt->getMeta(self::META_DISPATCH_VALUE))] =
+                                $args->getOpt($opt->getName());
+                        }
+                        break;
+                }
+            }
+
+            $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+        } elseif ($throw) {
+            throw new InvalidArgumentException("Invalid action: " . $action, 400);
         }
     }
 

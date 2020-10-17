@@ -182,8 +182,6 @@ The `Args` class differentiates between args and opts. There are methods to acce
 
 The basic `Cli` class works well for defining and documenting opts and args. However, you still need to wire up the parsed command line args to your own code. If you want to reduce this boilerplate, you can use the `CliApplication` class.
 
-The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
-
 *Note: In order to use the `CliApplication` functionality you will need to require some extra dependencies. See the suggested packages in composer.json for more information.*
 
 ### Defining a Subclass of CliApplication
@@ -291,6 +289,18 @@ The main method does the following:
 2. If the command maps to an instance method then an instance is fetched from the container.
 3. Setters are applied from the opts.
 4. The method is invoked through the container, satisfying any arguments that were not specified as opts.
+
+### Migrating from a Garden CLI application to a CliApplication
+
+If you want to migrate an older Garden CLI application to a CliApplication then you want to do the following:
+
+1. Replace your instantiation of the `Cli` class with an instantiation of `CliApplication`. The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
+
+2. Override the `CliApplication::dispatchInternal()` method and move your switch statement or whatever there. Make sure to call `parent::dispatchInternal()` after your code.
+
+3. Replace your call to `$cli->parse($argv)` with a call to `$cli->main($argv)`. This will parse the arguments and dispatch to your `dispatchInternal()` method.
+
+4. Now you can start replacing some of your boilerplate with calls to the time saving methods listed in this section. You can leave your old boilerplate the as is and just use the `CliApplication` helpers for new code or whatever.
 
 ## Logging
 
