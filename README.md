@@ -163,7 +163,7 @@ Like the basic example, `parse()` will return a `Args` object on a successful pa
 Calling a script that has commands with no options or just the `--help` option will display a list of commands. Here is the output from the multiple commands example above.
 
 <pre>
-<b>usage: </b>nit.php <command> [&lt;options&gt;] [&lt;args&gt;]
+<b>usage: </b>nit.php &lt;command&gt; [&lt;options&gt;] [&lt;args&gt;]
 
 <b>COMMANDS</b>
   push   Push data to a remote server.
@@ -181,6 +181,8 @@ The `Args` class differentiates between args and opts. There are methods to acce
 ## The CliApplication Class
 
 The basic `Cli` class works well for defining and documenting opts and args. However, you still need to wire up the parsed command line args to your own code. If you want to reduce this boilerplate, you can use the `CliApplication` class.
+
+*Note: In order to use the `CliApplication` functionality you will need to require some extra dependencies. See the suggested packages in composer.json for more information.*
 
 ### Defining a Subclass of CliApplication
 
@@ -240,9 +242,37 @@ Use `addFactory()` if you want to clean up the names of the parameters or do som
 
 If the constructor or factory has class type hints then not to worry. Those will be auto-wired through the container. You can then configure them through the container directory or even wire them up to opts by making additional calls to `addConstructor()` or `addFactory()`.
 
+```php
+class App extends Garden\Cli\Application\CliApplication {
+    protected function configureCli(): void {
+        parent::configureCli();
+
+        // This will make the database connection get created by the DbUtils::createMySQL() method with command line opts for the same.
+        $this->addFactory(\PDO::class, [\Garden\Cli\Utility\DbUtils::class, 'createMySQL']);
+        $this->getContainer()->setShared(true);
+
+        // This will wire up the constructor parameters for the the StreamLogger to the command line and set is as the logger for the app.
+        $this->addConstructor(\Garden\Cli\StreamLogger::class);
+        $this->getContainer()->setShared(true);
+        $this->getContainer()->rule(\Psr\Log\LoggerInterface::class)->setAliasOf(\Garden\Cli\StreamLogger::class);
+    }
+}
+```
+
 #### Using the `addCall()` Method
 
 You can wire up a call to a class method using the `addCall()` method. Use this for setter injection. The call will be applied when the class is instantiated.
+
+```php
+class App extends Garden\Cli\Application\CliApplication {
+    protected function configureCli(): void {
+        parent::configureCli();
+
+        // Wire up your github client's API key to the command line.
+        $this->addCall(GithubClient::class, 'setAPIKey', [\Garden\Cli\Application\CliApplication::OPT_PREFIX => 'git-']);
+    }
+}
+```
 
 ### Running Your Application
 
@@ -295,23 +325,23 @@ By default, the `TaskLogger` will only output messages that are at a level of `L
 ```php
 $log = new TaskLogger();
 
-$log->info('This is a message.')
-$log->error('This is an error.') // outputs in red
+$log->info('This is a message.');
+$log->error('This is an error.'); // outputs in red
 
-$log->beginInfo('Begin a task')
+$log->beginInfo('Begin a task');
 // code task code goes here...
-$log->end('done.')
+$log->end('done.');
 
-$log->beginDebug('Make an API call')
-$log->endHttpStatus(200) // treated as error or success depending on code
+$log->beginDebug('Make an API call');
+$log->endHttpStatus(200); // treated as error or success depending on code
 
-$log->begin(LogLevel::NOTICE, 'Multi-step task')
-$log->info('Step 1')
-$log->info('Step 2')
-$log->beginDebug('Step 3')
-$log->debug('Step 3.1') // steps will be hidden because they are level 3
-$log->debug('Step 3.2')
-$log->end('done.')
+$log->begin(LogLevel::NOTICE, 'Multi-step task');
+$log->info('Step 1');
+$log->info('Step 2');
+$log->beginDebug('Step 3');
+$log->debug('Step 3.1'); // steps will be hidden because they are level 3
+$log->debug('Step 3.2');
+$log->end('done.');
 $log->end('done.');
 ```
 

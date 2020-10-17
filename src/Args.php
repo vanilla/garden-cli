@@ -266,4 +266,20 @@ class Args implements \JsonSerializable, \ArrayAccess {
     public function offsetUnset($offset) {
         unset($this->opts[$offset]);
     }
+
+    /**
+     * Whether or not an arg exists.
+     *
+     * @param string|int $arg The name of the arg or the zero based position of it.
+     * @return bool
+     */
+    public function hasArg($arg): bool {
+        if (is_string($arg)) {
+            return isset($this->args[$arg]);
+        } elseif (is_int($arg)) {
+            return $arg < count($this->args);
+        } else {
+            throw new \InvalidArgumentException("Args::hasArg() expects an integer or string.", 400);
+        }
+    }
 }

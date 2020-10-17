@@ -617,7 +617,7 @@ class Cli {
         }
 
         foreach ($schema->getArgs() as $name => $arg) {
-            if ($arg['required'] ?? false && !$valid->hasArg($name)) {
+            if (!empty($arg['required']) && !$valid->hasArg($name)) {
                 $isValid = false;
                 echo $this->red("Missing required arg: $name".PHP_EOL);
             }
