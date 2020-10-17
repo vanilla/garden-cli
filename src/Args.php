@@ -7,10 +7,14 @@
 
 namespace Garden\Cli;
 
+use ArrayAccess;
+use InvalidArgumentException;
+use JsonSerializable;
+
 /**
  * This class represents the parsed and validated argument list.
  */
-class Args implements \JsonSerializable, \ArrayAccess {
+class Args implements JsonSerializable, ArrayAccess {
     protected $command;
     protected $opts;
     protected $args;
@@ -174,6 +178,16 @@ class Args implements \JsonSerializable, \ArrayAccess {
     }
 
     /**
+     * Alias of `getOpt()`.
+     *
+     * @param string $name The name of the opt to get.
+     * @return mixed
+     */
+    public function get(string $name) {
+        return $this->getOpt($name, null);
+    }
+
+    /**
      * Determine whether or not an option has been set.
      *
      * @param string $option The name of the option.
@@ -255,5 +269,21 @@ class Args implements \JsonSerializable, \ArrayAccess {
      */
     public function offsetUnset($offset) {
         unset($this->opts[$offset]);
+    }
+
+    /**
+     * Whether or not an arg exists.
+     *
+     * @param string|int $arg The name of the arg or the zero based position of it.
+     * @return bool
+     */
+    public function hasArg($arg): bool {
+        if (is_string($arg)) {
+            return isset($this->args[$arg]);
+        } elseif (is_int($arg)) {
+            return $arg < count($this->args);
+        } else {
+            throw new InvalidArgumentException("Args::hasArg() expects an integer or string.", 400);
+        }
     }
 }

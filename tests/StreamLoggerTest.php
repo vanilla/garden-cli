@@ -19,7 +19,7 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Create a new logger for each test.
      */
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $this->log = new StreamLogger('php://output');
         $this->log
@@ -29,28 +29,25 @@ class StreamLoggerTest extends AbstractCliTest {
 
     /**
      * The log should throw an exception with an invalid path.
-     *
-     * @expectedException \InvalidArgumentException
      */
     public function testInvalidStreamPath() {
+        $this->expectException(\InvalidArgumentException::class);
         $log = new StreamLogger('');
     }
 
     /**
      * The log should throw an exception with an invalid resource.
-     *
-     * @expectedException \InvalidArgumentException
      */
     public function testInvalidStreamResource() {
+        $this->expectException(\InvalidArgumentException::class);
         $log = new StreamLogger(false);
     }
 
     /**
      * The EOL must include `\n`.
-     *
-     * @expectedException \InvalidArgumentException
      */
     public function testInvalidEOL() {
+        $this->expectException(\InvalidArgumentException::class);
         $this->log->setEol(",");
     }
 
@@ -224,8 +221,6 @@ class StreamLoggerTest extends AbstractCliTest {
      * Trying to write to a closed file should emit a warning.
      */
     public function testFileClosed() {
-        $this->expectErrors(true);
-
         $path = __DIR__.'/testCustomFile.log';
         $fp = fopen($path, 'w+');
 
@@ -233,8 +228,8 @@ class StreamLoggerTest extends AbstractCliTest {
         fclose($fp);
         unlink($path);
 
+        $this->expectWarning();
         $log->info('a');
-        $this->assertErrorNumber(E_USER_WARNING);
     }
 
     /**

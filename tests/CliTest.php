@@ -14,8 +14,6 @@ use Garden\Cli\Cli;
 class CliTest extends AbstractCliTest {
     /**
      * Test a cli run with named arguments.
-     *
-     * @throws Exception
      */
     public function testArgNames() {
         $cli = new Cli();
@@ -104,13 +102,12 @@ class CliTest extends AbstractCliTest {
 
     /**
      * Test a missing option.
-     *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Missing required option: hello
      */
     public function testMissingOpt() {
         $cli = $this->getBasicCli();
 
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Missing required option: hello');
         $cli->parse(['script', '-e'], false);
     }
 
@@ -217,21 +214,6 @@ EOT;
 
         $this->expectOutputString($expectedHelp);
         $this->getBasicCli()->setFormatOutput(true)->writeHelp();
-    }
-
-    /**
-     * Test a command line scheme created with {@link Cli::schema()}.
-     */
-    public function testSchema() {
-        $cli = new Cli();
-        $cli->schema([
-            'hello',
-            'b:enabled?' => 'Is it?',
-            'i:count:c?' => 'How many?'
-        ]);
-
-        $parsed = $cli->parse(['script', '--hello=foo', '--enabled', '--count=123']);
-        $this->assertEquals(['hello' => 'foo', 'enabled' => true, 'count' => 123], $parsed->getOpts());
     }
 
     /**
@@ -357,20 +339,15 @@ EOT;
      * Test that the backwards compatibility of the format property works.
      */
     public function testFormatCompat() {
-        $this->expectErrors(true);
-
         $cli = new Cli();
 
-        $format = $cli->format;
-        $this->assertErrorNumber(E_USER_DEPRECATED);
-        $this->assertSame($cli->getFormatOutput(), $format);
-
-        $this->clearErrors();
-
+        $format = @$cli->format;
         $format2 = !$format;
-        $cli->format = $format2;
-        $this->assertErrorNumber(E_USER_DEPRECATED);
+        @$cli->format = $format2;
         $this->assertSame($format2, $cli->getFormatOutput());
+
+        $this->expectDeprecation();
+        $format = $cli->format;
     }
 
     /**
@@ -417,5 +394,19 @@ EOT;
 
 
         return $result;
+    }
+
+    /**
+     * Make sure that required args are checked.
+     */
+    public function testRequiredArgs(): void {
+        $cli = new Cli();
+        $cli->description('A cli with named args.')
+            ->arg('from', 'The path from.')
+            ->arg('to', 'The path to.', true);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required arg: to');
+        $args = $cli->parse(['script', '/var/foo.txt'], false);
     }
 }
