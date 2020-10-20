@@ -39,12 +39,22 @@ class TestCommands {
      *
      * @param int $o
      */
-    public function setAnOrange(int $o) {
+    public function setAnOrange(?int $o) {
         $this->call(__FUNCTION__, compact('o'));
         return $this;
     }
 
-    public static function setBar(string $bar) {
+    /**
+     * Set foo required.
+     *
+     * @param int $o
+     */
+    public function setFooRequired(int $o) {
+        $this->call(__FUNCTION__, compact('o'));
+        return $this;
+    }
+
+    public static function setBar(?string $bar) {
         self::call(__FUNCTION__, compact('bar'));
     }
 

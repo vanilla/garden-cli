@@ -428,7 +428,7 @@ class CliApplication extends Cli {
             $this->opt(
                 $optName,
                 $description,
-                false,
+                !($param->isOptional() || $param->isDefaultValueAvailable() || $param->allowsNull()),
                 $type,
                 [
                     self::META_DISPATCH_TYPE => self::TYPE_CALL,

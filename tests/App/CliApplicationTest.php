@@ -51,6 +51,17 @@ class CliApplicationTest extends AbstractCliTest {
         $this->assertSame('This method has no parameters.', $schema->getDescription());
         $this->assertSame(TestCommands::class . '::noParams', $schema->getMeta(CliApplication::META_ACTION));
 
+        $opt = $schema->getOpt('foo-required');
+        $this->assertArraySubsetRecursive([
+            'description' => 'Set foo required.',
+            'required' => true,
+            'type' => 'integer',
+            'meta' => [
+                CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_CALL,
+                CliApplication::META_DISPATCH_VALUE => 'setFooRequired',
+            ]
+        ], $opt->jsonSerialize());
+
         $opt = $schema->getOpt('an-orange');
         $this->assertArraySubsetRecursive([
             'description' => 'Set an orange.',
@@ -144,7 +155,7 @@ class CliApplicationTest extends AbstractCliTest {
      * You should be able to call setters on a call.
      */
     public function testDispatchWithSetters(): void {
-        $r = $this->app->main([__FUNCTION__, 'no-params', '--an-orange=4']);
+        $r = $this->app->main([__FUNCTION__, 'no-params', '--an-orange=4', '--foo-required=1']);
         $this->assertCall('setAnOrange', ['o' => 4]);
         $this->assertCall('noParams');
     }
