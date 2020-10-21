@@ -196,7 +196,7 @@ class App extends Garden\Cli\Application\CliApplication {
         parent::configureCli();
 
         // Add methods with addMethod().
-        $this->addMethod('SomeClassName', 'someMethod');
+        $this->addMethod('SomeClassName', 'someCommand');
         $this->addMethod('SomeClassName', 'someOtherMethod', [CliApplication::OPT_SETTERS => false]);
         $this->addMethod('SomeOtherClassName', 'someMethod', [CliApplication::OPT_COMMAND => 'command-name']);
 
@@ -224,9 +224,31 @@ You can wire up class methods to the command line by using `addMethod()`. This d
 1. It will create a command derived from the method name. Override the command name with the `OPT_COMMAND` option.
 2. It will create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
 3. It will create opts for method parameters. If the method has class type-hinted types they will not be wired up to opts, but instead will be satisfied with the container.
-4. It will use method doc blocks to add descriptions for the command and opts. Make sure you use PHPDoc syntax.
+4. It will create args for method parameters typed as `CliApplicationArg`. These must come after all opts.
+5. It will use method doc blocks to add descriptions for the command, opts, and args. Make sure you use PHPDoc syntax.
 
 You can call `addMethod()` with either a static or instance method. If you pass a static method then it will only wire up static setters. An instance method will wire up both static and instance methods.
+
+__Example__
+```php
+class SomeClassName {
+
+    /**
+     * A command that does a thing.
+     *
+     * @usage
+     * my-cli my-command --count=1 somePath/thing/other
+     *
+     * @param int $count Count of items.
+     * @param CliApplicationArg $path Some string path.
+     * @param Db $db The database to be dependency injected.
+     */
+    public function myCommand(int $count, CliApplicationArg $path, Db $db) {
+        // Do something with the args.
+        $stringPath = $path->getArg();
+    }
+}
+```
 
 #### Using the `addCallable()` Method
 

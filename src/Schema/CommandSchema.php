@@ -131,4 +131,15 @@ class CommandSchema {
         $this->opts[$opt->getName()] = $opt;
         return $this;
     }
+
+    /**
+     * Add an option to the schema.
+     *
+     * @param OptSchema $opt
+     * @return $this
+     */
+    public function addArg(OptSchema $opt) {
+        $this->meta[Cli::ARGS][$opt->getName()] = $opt;
+        return $this;
+    }
 }

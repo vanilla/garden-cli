@@ -7,6 +7,8 @@
 
 namespace Garden\Cli\Tests\Fixtures;
 
+use Garden\Cli\Application\CliApplicationArg;
+
 /**
  * Class TestCommands.
  */
@@ -67,6 +69,19 @@ class TestCommands {
         $this->call(__FUNCTION__, compact('count', 'foo', 'db'));
         return $this;
     }
+
+    /**
+     * Take some arguments.
+     *
+     * @param int $count The number of things.
+     * @param CliApplicationArg $arg1 The first arg.
+     * @param CliApplicationArg|null $arg2 The second arg. (optional)
+     */
+    public function doThingWithArgs(int $count, CliApplicationArg $arg1, CliApplicationArg $arg2 = null) {
+        $this->call(__FUNCTION__, compact('count', 'arg1', 'arg2'));
+        return $this;
+    }
+
 
     public function setDb(Db $db) {
         $this->db = $db;
