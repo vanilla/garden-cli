@@ -186,7 +186,18 @@ class CliApplication extends Cli {
                     }
                 }
 
-                $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+                $allArguments = $optParams;
+                // Add arguments at the end.
+
+                foreach ($args->getArgs() as $i => $arg) {
+                    $schemaArg = $schema->getArgs()[$i] ?? null;
+                    if ($schemaArg === null) {
+                        continue;
+                    }
+                    $allArguments[] = new CliApplicationArg($arg);
+                }
+
+                $result = $this->getContainer()->call([$obj, $methodName], $allArguments);
             } else {
                 throw new InvalidArgumentException("Invalid action: " . $action, 400);
             }
@@ -472,8 +483,10 @@ class CliApplication extends Cli {
      */
     private function allowedType(ReflectionParameter $param): ?string {
         $type = $param->getType();
-
-        if ($type === null) {
+        $class = $param->getClass();
+        if ($class && $class->getName() === CliApplicationArg::class) {
+            return CliApplicationArg::class;
+        } elseif ($type === null) {
             return '';
         } elseif (!$type->isBuiltin()) {
             return null;
@@ -492,23 +505,22 @@ class CliApplication extends Cli {
      * Add a method's parameters to the current command.
      *
      * @param ReflectionFunctionAbstract $method
-     * @param array $options
      */
-    private function addParams(ReflectionFunctionAbstract $method, array $options = []) {
-        $options += [
-            self::OPT_PREFIX => '',
-        ];
-
+    private function addParams(ReflectionFunctionAbstract $method) {
         /**
          * @var OptSchema $opt
          * @var ReflectionParameter $param
          */
         foreach ($this->reflectParams($method) as [$opt, $param]) {
-            $opt->setMetaArray([
-                self::META_DISPATCH_TYPE => self::TYPE_PARAMETER,
-                self::META_DISPATCH_VALUE => $param->getName(),
-            ]);
-            $this->addOpt($opt);
+            if ($opt->isArg()) {
+                $this->arg($opt->getName(), $opt->getDescription(), $opt->isRequired());
+            } else {
+                $opt->setMetaArray([
+                    self::META_DISPATCH_TYPE => self::TYPE_PARAMETER,
+                    self::META_DISPATCH_VALUE => $param->getName(),
+                ]);
+                $this->addOpt($opt);
+            }
         }
     }
 

@@ -28,5 +28,6 @@ class TestApplication extends CliApplication {
         $this->addMethod(TestCommands::class, 'noParams', [self::OPT_SETTERS => true]);
         $this->addMethod(TestCommands::class, 'DecodeStuff');
         $this->addMethod(TestCommands::class, 'format', [self::OPT_SETTERS => true]);
+        $this->addMethod(TestCommands::class, 'doThingWithArgs');
     }
 }

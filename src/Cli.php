@@ -708,6 +708,17 @@ class Cli {
     }
 
     /**
+     * Add an arg to the current schema.
+     *
+     * @param OptSchema $opt
+     * @return $this
+     */
+    public function addArg(OptSchema $opt): self {
+        $this->currentSchema->addOpt($opt);
+        return $this;
+    }
+
+    /**
      * Define an arg on the current command.
      *
      * @param string $name The name of the arg.

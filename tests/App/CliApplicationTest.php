@@ -76,6 +76,36 @@ class CliApplicationTest extends AbstractCliTest {
         $this->assertFalse($schema->hasOpt('db'), 'Setters with types that cannot be set via CLI should not be reflected.');
     }
 
+    public function testCommandWithArgs() {
+        $schema = $this->app->getSchema('do-thing-with-args');
+        $this->assertSame('Take some arguments.', $schema->getDescription());
+        $this->assertSame(TestCommands::class . '::doThingWithArgs', $schema->getMeta(CliApplication::META_ACTION));
+
+        $opt = $schema->getOpt('count');
+        $this->assertArraySubsetRecursive([
+            'description' => 'The number of things.',
+            'required' => true,
+            'type' => 'integer',
+            'meta' => [
+                CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_PARAMETER,
+                CliApplication::META_DISPATCH_VALUE => 'count',
+            ]
+        ], $opt->jsonSerialize());
+
+        $args = $schema->getArgs();
+        $arg1 = $args['arg-1'];
+        $arg2 = $args['arg-2'];
+        $this->assertArraySubsetRecursive([
+            'description' => 'The first arg.',
+            'required' => true
+        ], $arg1);
+        $this->assertArraySubsetRecursive([
+            'description' => 'The second arg. (optional)',
+            'required' => false
+        ], $arg2);
+
+    }
+
     /**
      * Static methods should only reflect static setters.
      */
@@ -122,6 +152,10 @@ class CliApplicationTest extends AbstractCliTest {
     public function testDispatch(): void {
         $r = $this->app->main([__FUNCTION__, 'decode-stuff', '--count=123']);
         $this->assertCall('decodeStuff', ['count' => 123, 'foo' => 'bar']);
+
+        // Test with arguments.
+        $r = $this->app->main([__FUNCTION__, 'do-thing-with-args', '--count=123', 'firstArg']);
+        $this->assertCall('doThingsWithArgs', ['count' => 123, 'foo' => 'bar']);
     }
 
     /**

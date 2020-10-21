@@ -7,6 +7,7 @@
 
 namespace Garden\Cli\Schema;
 
+use Garden\Cli\Application\CliApplicationArg;
 use Garden\Cli\Cli;
 use InvalidArgumentException;
 use JsonSerializable;
@@ -48,6 +49,11 @@ class OptSchema implements JsonSerializable {
     private $required;
 
     /**
+     * @var bool
+     */
+    private $isArg = false;
+
+    /**
      * OptSchema constructor.
      *
      * @param string $name The name of the opt in the form: `"$longName"` or `"$longName:$shortName"`.
@@ -67,6 +73,13 @@ class OptSchema implements JsonSerializable {
         $this->setType($type);
 
         $this->setMetaArray($meta);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isArg(): bool {
+        return $this->isArg;
     }
 
     /**
@@ -154,6 +167,10 @@ class OptSchema implements JsonSerializable {
             case 'str':
             case Cli::TYPE_STRING:
                 $this->type = Cli::TYPE_STRING;
+                break;
+            case CliApplicationArg::class:
+                $this->type = Cli::TYPE_STRING;
+                $this->isArg = true;
                 break;
             case 'bool':
             case Cli::TYPE_BOOLEAN:
