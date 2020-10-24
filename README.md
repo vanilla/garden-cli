@@ -198,6 +198,9 @@ class App extends Garden\Cli\Application\CliApplication {
         $this->addMethod('SomeClassName', 'someOtherMethod', [CliApplication::OPT_SETTERS => false]);
         $this->addMethod('SomeOtherClassName', 'someMethod', [CliApplication::OPT_COMMAND => 'command-name']);
 
+        // Add command classes with addCommandClass().
+        $this->addCommandClass('ExampleCommand', 'run');
+
         // Add ad-hoc closures with addCallable().
         $this->addCallable('foo', function (int $count) { });
 
@@ -220,11 +223,19 @@ This example wires up three methods.
 You can wire up class methods to the command line by using `addMethod()`. This does the following:
 
 1. It will create a command derived from the method name. Override the command name with the `OPT_COMMAND` option.
-2. It will create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
+2. It will optionally create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
 3. It will create opts for method parameters. If the method has class type-hinted types they will not be wired up to opts, but instead will be satisfied with the container.
 4. It will use method doc blocks to add descriptions for the command and opts. Make sure you use PHPDoc syntax.
 
 You can call `addMethod()` with either a static or instance method. If you pass a static method then it will only wire up static setters. An instance method will wire up both static and instance methods.
+
+#### Using the `addCommandClass()` Method
+
+The `addCommanClass()` method is very similar to `adMethod()` except for the following:
+
+1. The command name will be inferred from the class name. You can use the `OPT_COMMAND_REGEX` to strip out a prefix or suffix. By default the regex will strip a suffix for classes that end in "Job" or "Command".
+2. It will infer the command description from the class description.
+3. Opts are created from setters by default.
 
 #### Using the `addCallable()` Method
 

@@ -116,6 +116,16 @@ class CliApplicationTest extends AbstractCliTest {
         ], $arg->jsonSerialize());
     }
 
+    public function testAddCommandClass(): void {
+        $schema = $this->app->getSchema('test-commands');
+        $this->assertSame('Class TestCommands.', $schema->getDescription());
+        $this->assertSame(TestCommands::class . '::noParams', $schema->getMeta(CliApplication::META_ACTION));
+
+        $this->assertTrue($schema->hasOpt('an-orange'));
+
+        $this->assertTrue($schema->hasOpt('bar'));
+    }
+
     /**
      * Test a basic dispatch.
      */

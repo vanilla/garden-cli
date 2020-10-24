@@ -40,6 +40,7 @@ class CliApplication extends Cli {
     const OPT_SETTERS = 'setters';
     const OPT_DESCRIPTION = 'description';
     const OPT_PREFIX = 'prefix';
+    const OPT_COMMAND_REGEX = 'commandRegex';
 
     /**
      * @var Container
@@ -242,6 +243,43 @@ class CliApplication extends Cli {
         }
 
         return $this;
+    }
+
+    /**
+     * Add a command class.
+     *
+     * Command classes are usually set up where you have a base class and then one subclass for each command. Each
+     * command class is mapped to the CLI with the description defaulting to the class description and the command name
+     * coming from the class name.
+     *
+     * @param string $className The name of the command class.
+     * @param string $methodName The name of the run method.
+     * @param array $options Options to control the behavior of the mapping.
+     * @return $this
+     */
+    public function addCommandClass(string $className, string $methodName, array $options = []): self {
+        $options += [
+            self::OPT_COMMAND => null,
+            self::OPT_SETTERS => true,
+            self::OPT_DESCRIPTION => null,
+            self::OPT_COMMAND_REGEX => '`^(.+)(Command|Job)$`'
+        ];
+
+        $class = new ReflectionClass($className);
+        $options[self::OPT_DESCRIPTION] = $this->reflectDescription($class, $options['description']);
+
+        if (!$options[self::OPT_COMMAND]) {
+            if (preg_match($options[self::OPT_COMMAND_REGEX], $className, $m)) {
+                $command = $m[1];
+            } else {
+                $command = $className;
+            }
+
+            $options[self::OPT_COMMAND] = Identifier::fromClassBasename($command)->toKebab();
+        }
+
+        $r = $this->addMethod($className, $methodName, $options);
+        return $r;
     }
 
     /**
@@ -607,11 +645,11 @@ class CliApplication extends Cli {
     /**
      * Reflect a command's description.
      *
-     * @param ReflectionFunctionAbstract $method The method
+     * @param ReflectionFunctionAbstract|ReflectionClass|object $method The method
      * @param string|null $setting An explicitly set description that will be used if not null.
      * @return string
      */
-    private function reflectDescription(ReflectionFunctionAbstract $method, string $setting = null): string {
+    private function reflectDescription(object $method, string $setting = null): string {
         if ($setting === null) {
             try {
                 $methodDoc = $this->docBlocks()->create($method);
