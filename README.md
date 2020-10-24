@@ -305,13 +305,13 @@ The main method does the following:
 
 If you want to migrate an older Garden CLI application to a CliApplication then you want to do the following:
 
-1. Replace your instantiation of the `Cli` class with an instantiation of `CliApplication`. The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
+1. Replace your use of the `Cli` class with `CliApplication`. The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
 
-2. Override the `CliApplication::dispatchInternal()` method and move your switch statement or whatever there. Make sure to call `parent::dispatchInternal()` after your code.
+2. Override the `CliApplication::dispatchInternal()` method and move your switch statement or whatever there. Make sure to call `parent::dispatchInternal()` after your code, usually as the default of your switch.
 
 3. Replace your call to `$cli->parse($argv)` with a call to `$cli->main($argv)`. This will parse the arguments and dispatch to your `dispatchInternal()` method.
 
-4. Now you can start replacing some of your boilerplate with calls to the time saving methods listed in this section. You can leave your old boilerplate the as is and just use the `CliApplication` helpers for new code or whatever.
+4. Now you can start replacing some of your boilerplate with calls to the `CliApplication` specific methods. You can leave your old boilerplate as is and just use the `CliApplication` helpers for new code if you'd like.
 
 ## Logging
 
