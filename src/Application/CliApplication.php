@@ -253,6 +253,7 @@ class CliApplication extends Cli {
      * coming from the class name.
      *
      * @param string $className The name of the command class.
+     * @psalm-param class-string $className
      * @param string $methodName The name of the run method.
      * @param array $options Options to control the behavior of the mapping.
      * @return $this
