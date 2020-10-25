@@ -139,8 +139,8 @@ class CliApplication extends Cli {
      * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
      */
     final public function dispatch(Args $args) {
+        $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
         try {
-            $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
             // Set the args in the container so they can be injected into classes.
             $this->getContainer()->setInstance(Args::class, $args);
 
