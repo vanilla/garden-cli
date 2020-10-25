@@ -13,10 +13,10 @@ use Garden\Container\Container;
 use Garden\Container\Reference;
 
 class TestApplication extends CliApplication {
-    protected function configureContainer(): void {
-        parent::configureContainer();
+    protected function configureContainer(Container $container): void {
+        parent::configureContainer($container);
 
-        $this->getContainer()
+        $container
             ->rule(TestCommands::class)
             ->setShared(true)
             ->addCall('setDb', [new Reference(Db::class)]);
