@@ -48,6 +48,10 @@ class TestCommands {
         self::call(__FUNCTION__, compact('bar'));
     }
 
+    public function setNoType($a) {
+        self::call(__FUNCTION__, compact('a'));
+    }
+
     /**
      * This method has no parameters.
      */

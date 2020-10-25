@@ -73,6 +73,17 @@ class CliApplicationTest extends AbstractCliTest {
             ]
         ], $opt->jsonSerialize());
 
+        $opt = $schema->getOpt('no-type');
+        $this->assertArraySubsetRecursive([
+            'description' => '',
+            'required' => false,
+            'type' => 'string',
+            'meta' => [
+                CliApplication::META_DISPATCH_TYPE => CliApplication::TYPE_CALL,
+                CliApplication::META_DISPATCH_VALUE => 'setNoType',
+            ]
+        ], $opt->jsonSerialize());
+
         $this->assertFalse($schema->hasOpt('db'), 'Setters with types that cannot be set via CLI should not be reflected.');
     }
 

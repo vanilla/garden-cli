@@ -463,7 +463,7 @@ class CliApplication extends Cli {
         foreach ($this->reflectSetters($class, $filter) as $optName => $method) {
             $param = $method->getParameters()[0];
             if (null === $t = $param->getType()) {
-                $type = '';
+                $type = 'string';
             } else {
                 $type = $t instanceof \ReflectionNamedType ? $t->getName() : (string)$t;
             }
