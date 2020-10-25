@@ -121,13 +121,34 @@ class Identifier {
      * @param string $name A camelCase, PascalCase, snake_case, or kebab-case string.
      * @return Identifier
      */
-    public static function fromMixed(string $name) {
+    public static function fromMixed(string $name): Identifier {
         if (strpos($name, '_')) {
-            return self::fromSnake($name);
+            return static::fromSnake($name);
         } elseif (strpos($name, '-')) {
-            return self::fromKebab($name);
+            return static::fromKebab($name);
         } else {
-            return self::fromCamel($name);
+            return static::fromCamel($name);
         }
+    }
+
+    /**
+     * Create an identifier from a class, using it's basename.
+     *
+     * @param string|object $class A class name or instance.
+     * @return Identifier
+     */
+    public static function fromClassBasename($class): Identifier {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        if (($i = strrpos($class, '\\')) !== false) {
+            $basename = substr($class, $i + 1);
+        } elseif (($i = strrpos($class, '_')) !== false) {
+            $basename = substr($class, $i + 1);
+        } else {
+            $basename = $class;
+        }
+        return static::fromMixed($basename);
     }
 }

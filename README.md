@@ -182,8 +182,6 @@ The `Args` class differentiates between args and opts. There are methods to acce
 
 The basic `Cli` class works well for defining and documenting opts and args. However, you still need to wire up the parsed command line args to your own code. If you want to reduce this boilerplate, you can use the `CliApplication` class.
 
-The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
-
 *Note: In order to use the `CliApplication` functionality you will need to require some extra dependencies. See the suggested packages in composer.json for more information.*
 
 ### Defining a Subclass of CliApplication
@@ -199,6 +197,9 @@ class App extends Garden\Cli\Application\CliApplication {
         $this->addMethod('SomeClassName', 'someMethod');
         $this->addMethod('SomeClassName', 'someOtherMethod', [CliApplication::OPT_SETTERS => false]);
         $this->addMethod('SomeOtherClassName', 'someMethod', [CliApplication::OPT_COMMAND => 'command-name']);
+
+        // Add command classes with addCommandClass().
+        $this->addCommandClass('ExampleCommand', 'run');
 
         // Add ad-hoc closures with addCallable().
         $this->addCallable('foo', function (int $count) { });
@@ -222,11 +223,19 @@ This example wires up three methods.
 You can wire up class methods to the command line by using `addMethod()`. This does the following:
 
 1. It will create a command derived from the method name. Override the command name with the `OPT_COMMAND` option.
-2. It will create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
+2. It will optionally create opts for object setters. Object setters are methods that start with the word `set` and take one argument. You can opt out of setter wiring with the `OPT_SETTERS` options.
 3. It will create opts for method parameters. If the method has class type-hinted types they will not be wired up to opts, but instead will be satisfied with the container.
 4. It will use method doc blocks to add descriptions for the command and opts. Make sure you use PHPDoc syntax.
 
 You can call `addMethod()` with either a static or instance method. If you pass a static method then it will only wire up static setters. An instance method will wire up both static and instance methods.
+
+#### Using the `addCommandClass()` Method
+
+The `addCommanClass()` method is very similar to `adMethod()` except for the following:
+
+1. The command name will be inferred from the class name. You can use the `OPT_COMMAND_REGEX` to strip out a prefix or suffix. By default the regex will strip a suffix for classes that end in "Job" or "Command".
+2. It will infer the command description from the class description.
+3. Opts are created from setters by default.
 
 #### Using the `addCallable()` Method
 
@@ -291,6 +300,18 @@ The main method does the following:
 2. If the command maps to an instance method then an instance is fetched from the container.
 3. Setters are applied from the opts.
 4. The method is invoked through the container, satisfying any arguments that were not specified as opts.
+
+### Migrating from a Garden CLI application to a CliApplication
+
+If you want to migrate an older Garden CLI application to a CliApplication then you want to do the following:
+
+1. Replace your use of the `Cli` class with `CliApplication`. The `CliApplication` is a subclass of the main `Cli` class. So if you have an application that uses the `Cli` class then you can just replace your instance to the `CliApplication` and use your old code.
+
+2. Override the `CliApplication::dispatchInternal()` method and move your switch statement or whatever there. Make sure to call `parent::dispatchInternal()` after your code, usually as the default of your switch.
+
+3. Replace your call to `$cli->parse($argv)` with a call to `$cli->main($argv)`. This will parse the arguments and dispatch to your `dispatchInternal()` method.
+
+4. Now you can start replacing some of your boilerplate with calls to the `CliApplication` specific methods. You can leave your old boilerplate as is and just use the `CliApplication` helpers for new code if you'd like.
 
 ## Logging
 

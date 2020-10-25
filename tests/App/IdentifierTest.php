@@ -48,4 +48,25 @@ class IdentifierTest extends TestCase {
 
         return array_column($r, null, 0);
     }
+
+    /**
+     * @param string|object $class
+     * @param string $expected
+     * @dataProvider provideBaseNames
+     */
+    public function testFromBasename($class, string $expected): void {
+        $actual = Identifier::fromClassBasename($class);
+        $this->assertSame($expected, $actual->toKebab());
+    }
+
+    /**
+     * @return array
+     */
+    public function provideBaseNames(): array {
+        return [
+            'object' => [$this, 'identifier-test'],
+            'class name' => [self::class, 'identifier-test'],
+            'old school' => ['Some_Old_ClassName', 'class-name'],
+        ];
+    }
 }

@@ -10,6 +10,7 @@ namespace Garden\Cli\Application;
 use Exception;
 use Garden\Cli\Args;
 use Garden\Cli\Cli;
+use Garden\Cli\Schema\CommandSchema;
 use Garden\Cli\Schema\OptSchema;
 use Garden\Container\Container;
 use Garden\Container\Reference;
@@ -39,6 +40,7 @@ class CliApplication extends Cli {
     const OPT_SETTERS = 'setters';
     const OPT_DESCRIPTION = 'description';
     const OPT_PREFIX = 'prefix';
+    const OPT_COMMAND_REGEX = 'commandRegex';
 
     /**
      * @var Container
@@ -125,9 +127,6 @@ class CliApplication extends Cli {
     protected function route(Args $args): Args {
         $schema = $this->getSchema($args->getCommand());
 
-        if (null === $schema->getMeta(self::META_ACTION)) {
-            throw new InvalidArgumentException("The args don't specify an action to route to.");
-        }
         $result = clone $args;
         return $result;
     }
@@ -137,63 +136,75 @@ class CliApplication extends Cli {
      *
      * @param Args $args The args to dispatch.
      * @return mixed Returns the result of the dispatched method.
+     * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
      */
-    public function dispatch(Args $args) {
+    final public function dispatch(Args $args) {
+        $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
         try {
-            $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
             // Set the args in the container so they can be injected into classes.
             $this->getContainer()->setInstance(Args::class, $args);
 
             $schema = $this->getSchema($args->getCommand());
 
-            if (null === $schema->getMeta(self::META_ACTION)) {
-                throw new InvalidArgumentException("The args don't specify an action to dispatch to.");
-            }
-
-            $action = $schema->getMeta(self::META_ACTION);
-
-            if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
-                /** @psalm-var class-string $className */
-                $className = $m[1];
-                $methodName = $m[2];
-
-                $method = new ReflectionMethod($className, $methodName);
-
-                if ($method->isStatic()) {
-                    $obj = $className;
-                } else {
-                    $obj = $this->getContainer()->get($className);
-                }
-
-                // Go through the opts, gather the parameters and call setters on the object.
-                $optParams = [];
-                foreach ($schema->getOpts() as $opt) {
-                    switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
-                        case self::TYPE_CALL:
-                            if ($args->hasOpt($opt->getName())) {
-                                call_user_func(
-                                    [$obj, $opt->getMeta(self::META_DISPATCH_VALUE)],
-                                    $args->getOpt($opt->getName())
-                                );
-                            }
-                            break;
-                        case self::TYPE_PARAMETER:
-                            if ($args->hasOpt($opt->getName())) {
-                                $optParams[strtolower($opt->getMeta(self::META_DISPATCH_VALUE))] =
-                                    $args->getOpt($opt->getName());
-                            }
-                            break;
-                    }
-                }
-
-                $result = $this->getContainer()->call([$obj, $methodName], $optParams);
-            } else {
-                throw new InvalidArgumentException("Invalid action: " . $action, 400);
-            }
-
+            $result = $this->dispatchInternal($args, $schema, true);
             return $result;
         } finally {
             $this->getContainer()->setInstance(Args::class, $argsBak);
+        }
+    }
+
+    /**
+     * Dispatch the command to commands routed via commands added through this class.
+     *
+     * This method will automatically dispatch to commands added via the following methods:
+     *
+     * - addMethod()
+     * - addCallable()
+     *
+     * If you want to do some custom dispatching then override this method and
+     *
+     * @param Args $args
+     * @param CommandSchema $schema
+     * @param bool $throw
+     */
+    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true) {
+        $action = $schema->getMeta(self::META_ACTION);
+        if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
+            /** @psalm-var class-string $className */
+            $className = $m[1];
+            $methodName = $m[2];
+
+            $method = new ReflectionMethod($className, $methodName);
+
+            if ($method->isStatic()) {
+                $obj = $className;
+            } else {
+                $obj = $this->getContainer()->get($className);
+            }
+
+            // Go through the opts, gather the parameters and call setters on the object.
+            $optParams = [];
+            foreach ($schema->getOpts() as $opt) {
+                switch ($opt->getMeta(self::META_DISPATCH_TYPE)) {
+                    case self::TYPE_CALL:
+                        if ($args->hasOpt($opt->getName())) {
+                            $setter = $opt->getMeta(self::META_DISPATCH_VALUE);
+                            /** @psalm-suppress PossiblyInvalidMethodCall */
+                            $obj->{$setter}($args->getOpt($opt->getName()));
+                        }
+                        break;
+                    case self::TYPE_PARAMETER:
+                        if ($args->hasOpt($opt->getName())) {
+                            $optParams[strtolower($opt->getMeta(self::META_DISPATCH_VALUE))] =
+                                $args->getOpt($opt->getName());
+                        }
+                        break;
+                }
+            }
+
+            $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+        } elseif ($throw) {
+            throw new InvalidArgumentException("Invalid action: " . $action, 400);
         }
     }
 
@@ -210,7 +221,7 @@ class CliApplication extends Cli {
      */
     public function addMethod(string $className, string $methodName, array $options = []): self {
         $options += [
-            self::OPT_COMMAND => Identifier::fromCamel($methodName)->toKebab(),
+            self::OPT_COMMAND => $this->commandNameFromMethod($className, $methodName),
             self::OPT_SETTERS => false,
             self::OPT_DESCRIPTION => null,
         ];
@@ -232,6 +243,44 @@ class CliApplication extends Cli {
         }
 
         return $this;
+    }
+
+    /**
+     * Add a command class.
+     *
+     * Command classes are usually set up where you have a base class and then one subclass for each command. Each
+     * command class is mapped to the CLI with the description defaulting to the class description and the command name
+     * coming from the class name.
+     *
+     * @param string $className The name of the command class.
+     * @psalm-param class-string $className
+     * @param string $methodName The name of the run method.
+     * @param array $options Options to control the behavior of the mapping.
+     * @return $this
+     */
+    public function addCommandClass(string $className, string $methodName, array $options = []): self {
+        $options += [
+            self::OPT_COMMAND => null,
+            self::OPT_SETTERS => true,
+            self::OPT_DESCRIPTION => null,
+            self::OPT_COMMAND_REGEX => '`^(.+)(Command|Job)$`'
+        ];
+
+        $class = new ReflectionClass($className);
+        $options[self::OPT_DESCRIPTION] = $this->reflectDescription($class, $options['description']);
+
+        if (!$options[self::OPT_COMMAND]) {
+            if (preg_match($options[self::OPT_COMMAND_REGEX], $className, $m)) {
+                $command = $m[1];
+            } else {
+                $command = $className;
+            }
+
+            $options[self::OPT_COMMAND] = Identifier::fromClassBasename($command)->toKebab();
+        }
+
+        $r = $this->addMethod($className, $methodName, $options);
+        return $r;
     }
 
     /**
@@ -597,11 +646,11 @@ class CliApplication extends Cli {
     /**
      * Reflect a command's description.
      *
-     * @param ReflectionFunctionAbstract $method The method
+     * @param ReflectionFunctionAbstract|ReflectionClass|object $method The method
      * @param string|null $setting An explicitly set description that will be used if not null.
      * @return string
      */
-    private function reflectDescription(ReflectionFunctionAbstract $method, string $setting = null): string {
+    private function reflectDescription(object $method, string $setting = null): string {
         if ($setting === null) {
             try {
                 $methodDoc = $this->docBlocks()->create($method);
@@ -613,5 +662,18 @@ class CliApplication extends Cli {
             $description = $setting;
         }
         return $description;
+    }
+
+    /**
+     * Calculate a command name from a class method.
+     *
+     * Override this method to customize the behavior of default
+     *
+     * @param string $className The name of the class that owns the method.
+     * @param string $methodName The name of the method.
+     * @return string Returns a command name that can be assigned to the CLI.
+     */
+    protected function commandNameFromMethod(string $className, string $methodName): string {
+        return Identifier::fromCamel($methodName)->toKebab();
     }
 }
