@@ -72,8 +72,9 @@ class CliApplication extends Cli {
      */
     final public function getContainer(): Container {
         if ($this->container === null) {
-            $this->container = $this->createContainer();
-            $this->configureContainer();
+            $container = $this->createContainer();
+            $this->configureContainer($container);
+            $this->container = $container;
             $this->container->setInstance(Container::class, $this->container);
         }
         return $this->container;
@@ -93,8 +94,10 @@ class CliApplication extends Cli {
 
     /**
      * Configure the Container for usage.
+     *
+     * @param Container $container
      */
-    protected function configureContainer(): void {
+    protected function configureContainer(Container $container): void {
     }
 
     /**
@@ -233,7 +236,7 @@ class CliApplication extends Cli {
         $this
             ->command($options[self::OPT_COMMAND])
             ->description($description)
-            ->meta(self::META_ACTION, $method->getDeclaringClass()->getName() . '::' . $method->getName());
+            ->meta(self::META_ACTION, $class->getName() . '::' . $method->getName());
         $this->addParams($method);
 
         if ($options[self::OPT_SETTERS]) {
@@ -258,7 +261,7 @@ class CliApplication extends Cli {
      * @param array $options Options to control the behavior of the mapping.
      * @return $this
      */
-    public function addCommandClass(string $className, string $methodName, array $options = []): self {
+    public function addCommandClass(string $className, string $methodName = 'run', array $options = []): self {
         $options += [
             self::OPT_COMMAND => null,
             self::OPT_SETTERS => true,

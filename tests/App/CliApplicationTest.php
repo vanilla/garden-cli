@@ -12,6 +12,7 @@ use Garden\Cli\Args;
 use Garden\Cli\Tests\AbstractCliTest;
 use Garden\Cli\Tests\Fixtures\Application;
 use Garden\Cli\Tests\Fixtures\Db;
+use Garden\Cli\Tests\Fixtures\RealCommand;
 use Garden\Cli\Tests\Fixtures\TestApplication;
 use Garden\Cli\Tests\Fixtures\TestCommands;
 
@@ -135,6 +136,13 @@ class CliApplicationTest extends AbstractCliTest {
         $this->assertTrue($schema->hasOpt('an-orange'));
 
         $this->assertTrue($schema->hasOpt('bar'));
+    }
+
+    public function testAddCommandSubclass(): void {
+        $this->app->addCommandClass(RealCommand::class, 'noParams');
+        $schema = $this->app->getSchema('real');
+
+        $this->assertSame(RealCommand::class.'::noParams', $schema->getMeta(CliApplication::META_ACTION));
     }
 
     /**
