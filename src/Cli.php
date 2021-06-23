@@ -246,6 +246,15 @@ class Cli {
             return false;
         }
     }
+    
+    /**
+     * Returns all available commands.
+     *
+     * @return string[] Returns the available commands as an array.
+     */
+    public function getCommands() {
+        return array_filter(array_keys($this->commandSchemas), array("self", "isCommand"));
+    }
 
     /**
      * Determines whether a command has options.
