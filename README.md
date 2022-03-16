@@ -208,8 +208,8 @@ class App extends Garden\Cli\Application\CliApplication {
         $this->addFactory(\PDO::class, [\Garden\Cli\Utility\DbUtils::class, 'createMySQL']);
     }
 
-    protected function configureContainer(): void {
-        parent::configureContainer();
+    protected function configureContainer(Container $container): void {
+        parent::configureContainer($container);
 
         // Configure the container here.
     }
