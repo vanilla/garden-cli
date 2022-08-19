@@ -31,9 +31,19 @@ Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accep
 
 ```json
 "require": {
-    "vanilla/garden-cli": "~2.0"
+    "vanilla/garden-cli": "~3.0"
 }
 ```
+
+### Upgrading from 2.x
+
+* This version supports PHP 8.1 and later only.
+* The previously deprecated LogFormatter class and unit tests is now removed.
+* In the past you could set a custom time format using `setTimeFormat('%F %T')`.
+  Internally Garden CLI used [`PHP strftime()`](https://www.php.net/manual/en/function.strftime.php)
+  which is now deprecated. This has been replaced by the [`PHP date()`](https://www.php.net/manual/en/function.date.php)
+  function which accepts these [formats](https://www.php.net/manual/en/datetime.format.php).
+  For example, to have the same output as `setTimeFormat('%F %T')`, simply use `setTimeFormat('Y-m-d H:i:s')`.
 
 ## Defining The CLI
 
@@ -409,3 +419,4 @@ You can give the `TaskLogger` any PSR-3 compliant logger and it will send its ou
 | `TaskLogger::FIELD_BEGIN`    | `bool`  | True if the message denotes the beginning of a task. |
 | `TaskLogger::FIELD_END`      | `bool`  | True if the message denotes the end of a task.       |
 | `TaskLogger::FIELD_DURATION` | `float` | The duration of a task in seconds and milliseconds.  |
+
