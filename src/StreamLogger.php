@@ -109,16 +109,16 @@ class StreamLogger implements LoggerInterface {
     /**
      * Set the time formatter.
      *
-     * This method takes either a format string for **strftime()** or a callable that must format a timestamp.
+     * This method takes either a format string for **date()** or a callable that must format a timestamp.
      *
      * @param string|callable $format The new format.
      * @return $this
-     * @see strftime()
+     * @see date()
      */
-    public function setTimeFormat($format) {
+    public function setTimeFormat($format): self {
         if (is_string($format)) {
             $this->timeFormatter = function ($t) use ($format): string {
-                return strftime($format, $t);
+                return date($format, intval($t));
             };
         } else {
             $this->timeFormatter = $format;
@@ -199,7 +199,7 @@ class StreamLogger implements LoggerInterface {
      * @return string Returns the formatted message.
      */
     private function replaceContext(string $format, array $context): string {
-        $msg = preg_replace_callback('`({[^\s{}]+})`', function ($m) use ($context) {
+        return preg_replace_callback('`({[^\s{}]+})`', function ($m) use ($context) {
             $field = trim($m[1], '{}');
             if (array_key_exists($field, $context)) {
                 return $context[$field];
@@ -207,7 +207,6 @@ class StreamLogger implements LoggerInterface {
                 return $m[1];
             }
         }, $format);
-        return $msg;
     }
 
     /**
@@ -285,7 +284,7 @@ class StreamLogger implements LoggerInterface {
      * @param callable $levelFormat The new level format.
      * @return $this
      */
-    public function setLevelFormat(callable $levelFormat) {
+    public function setLevelFormat(callable $levelFormat): self {
         $this->levelFormat = $levelFormat;
         return $this;
     }
@@ -322,7 +321,7 @@ class StreamLogger implements LoggerInterface {
      * @param string $lineFormat The new line format.
      * @return $this
      */
-    public function setLineFormat(string $lineFormat) {
+    public function setLineFormat(string $lineFormat): self {
         $this->lineFormat = $lineFormat;
         return $this;
     }
@@ -342,7 +341,7 @@ class StreamLogger implements LoggerInterface {
      * @param string $eol The end of line string to use.
      * @return $this
      */
-    public function setEol(string $eol) {
+    public function setEol(string $eol): self {
         if (strpos($eol, "\n") === false) {
             throw new \InvalidArgumentException('The EOL must include the "\n" character."', 500);
         }
@@ -403,8 +402,7 @@ class StreamLogger implements LoggerInterface {
             $sx = 'd';
         }
 
-        $result = rtrim($n, '0.').$sx;
-        return $result;
+        return rtrim($n, '0.').$sx;
     }
 
     /**
@@ -422,7 +420,7 @@ class StreamLogger implements LoggerInterface {
      * @param bool $showDurations
      * @return $this
      */
-    public function setShowDurations(bool $showDurations) {
+    public function setShowDurations(bool $showDurations): self {
         $this->showDurations = $showDurations;
         return $this;
     }
@@ -433,7 +431,7 @@ class StreamLogger implements LoggerInterface {
      * @param bool $bufferBegins The new value.
      * @return $this
      */
-    public function setBufferBegins(bool $bufferBegins) {
+    public function setBufferBegins(bool $bufferBegins): self {
         $this->bufferBegins = $bufferBegins;
         return $this;
     }
@@ -444,7 +442,7 @@ class StreamLogger implements LoggerInterface {
      * @param bool $colorizeOutput The new value.
      * @return $this
      */
-    public function setColorizeOutput(bool $colorizeOutput) {
+    public function setColorizeOutput(bool $colorizeOutput): self {
         $this->colorizeOutput = $colorizeOutput;
         return $this;
     }

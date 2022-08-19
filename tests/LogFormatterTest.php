@@ -24,7 +24,7 @@ class LogFormatterTest extends AbstractCliTest {
      */
     protected function createTestLogger($maxLevel = 2) {
         $log = new LogFormatter();
-        $log->setDateFormat('[d]')
+        $log->setDateFormat('[k]')
             ->setFormatOutput(false)
             ->setEol("\n")
             ->setMaxLevel($maxLevel)
@@ -39,7 +39,7 @@ class LogFormatterTest extends AbstractCliTest {
         $log = $this->createTestLogger();
 
         $log->message('Hello world!');
-        $this->expectOutputString("[d] Hello world!\n");
+        $this->expectOutputString("[k] Hello world!\n");
     }
 
     /**
@@ -65,10 +65,10 @@ class LogFormatterTest extends AbstractCliTest {
             ->end('End.');
 
         $this->expectOutputString(<<<EOT
-[d] Begin.
-[d] - One.
-[d] - Two.
-[d] End.
+[k] Begin.
+[k] - One.
+[k] - Two.
+[k] End.
 
 EOT
         );
@@ -87,9 +87,9 @@ EOT
             ->end('Done');
 
         $this->expectOutputString(<<<EOT
-[d] One
-[d] - Two Done
-[d] Done
+[k] One
+[k] - Two Done
+[k] Done
 
 EOT
         );
@@ -109,11 +109,11 @@ EOT
             ->end('Done');
 
         $this->expectOutputString(<<<EOT
-[d] One
-[d] - Two
-[d]   - Three Error
-[d] - Done
-[d] Done
+[k] One
+[k] - Two
+[k]   - Three Error
+[k] - Done
+[k] Done
 
 EOT
         );
@@ -130,7 +130,7 @@ EOT
             ->end('Done');
 
         $this->expectOutputString(<<<EOT
-[d] One Done
+[k] One Done
 
 EOT
         );
@@ -148,7 +148,7 @@ EOT
             ->end('Done One');
 
         $this->expectOutputString(<<<EOT
-[d] One Done One
+[k] One Done One
 
 EOT
         );
@@ -168,10 +168,10 @@ EOT
             ->end('Done One');
 
         $this->expectOutputString(<<<EOT
-[d] One
-[d] - Two
-[d]   - Three Error
-[d] Done One
+[k] One
+[k] - Two
+[k]   - Three Error
+[k] Done One
 
 EOT
         );
@@ -190,9 +190,9 @@ EOT
             ->end('Done One');
 
         $this->expectOutputString(<<<EOT
-[d] One
-[d] - Two Error Two
-[d] Done One
+[k] One
+[k] - Two Error Two
+[k] Done One
 
 EOT
         );
@@ -232,8 +232,8 @@ EOT
         @$log->end('done 2');
 
         $this->expectOutputString(<<<EOT
-[d] Begin done
-[d] done 2
+[k] Begin done
+[k] done 2
 
 EOT
         );

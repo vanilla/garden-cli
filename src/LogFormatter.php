@@ -14,9 +14,9 @@ namespace Garden\Cli;
  */
 class LogFormatter {
     /**
-     * @var string The date format as passed to {@link strftime()}.
+     * @var string The date format as passed to {@link date()}.
      */
-    protected $dateFormat = '[%F %T]';
+    protected $dateFormat = '[Y-m-d H:i:s]';
 
     /**
      * @var string The end of line string to use.
@@ -348,7 +348,7 @@ class LogFormatter {
         $result = $indentStr.$str;
 
         if ($this->getDateFormat()) {
-            $result = strftime($this->getDateFormat(), $timestamp).' '.$result;
+            $result = date($this->getDateFormat(), intval($timestamp)).' '.$result;
         }
 
         if ($eol) {
@@ -408,21 +408,21 @@ class LogFormatter {
     }
 
     /**
-     * Get the date format as passed to {@link strftime()}.
+     * Get the date format as passed to {@link date()}.
      *
      * @return string Returns the date format.
-     * @see strftime()
+     * @see date()
      */
     public function getDateFormat() {
         return $this->dateFormat;
     }
 
     /**
-     * Set the date format as passed to {@link strftime()}.
+     * Set the date format as passed to {@link date()}.
      *
      * @param string $dateFormat
      * @return $this
-     * @see strftime()
+     * @see date()
      */
     public function setDateFormat($dateFormat) {
         $this->dateFormat = $dateFormat;
