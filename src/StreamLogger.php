@@ -52,7 +52,7 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var bool Whether the console is on a new line.
      */
-    private bool $inBegin;
+    private bool $inBegin = false;
 
     /**
      * @var bool Whether to show durations for tasks.

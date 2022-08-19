@@ -34,7 +34,7 @@ class Cli {
     /**
      * @var CommandSchema[] All the schemas, indexed by command pattern.
      */
-    protected array $commandSchemas;
+    protected array $commandSchemas = [];
 
     /**
      * @var CommandSchema A pointer to the current schema.
@@ -44,7 +44,7 @@ class Cli {
     /**
      * @var bool Whether to format output with console codes.
      */
-    protected bool $formatOutput;
+    protected bool $formatOutput = false;
 
     protected static array $types = [
         'i' => self::TYPE_INTEGER,

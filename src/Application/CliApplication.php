@@ -47,14 +47,14 @@ class CliApplication extends Cli {
     const OPT_COMMAND_REGEX = 'commandRegex';
 
     /**
-     * @var Container
+     * @var Container|null
      */
-    private Container $container;
+    private ?Container $container = null;
 
     /**
-     * @var DocBlockFactory
+     * @var DocBlockFactory|null
      */
-    private DocBlockFactory $factory;
+    private ?DocBlockFactory $factory = null;
 
     /**
      * CliApplication constructor.
