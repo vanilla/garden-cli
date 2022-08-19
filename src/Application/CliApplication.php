@@ -60,7 +60,7 @@ class CliApplication extends Cli {
      * CliApplication constructor.
      */
     public function __construct() {
-        // parent::__construct();
+        parent::__construct();
         $this->configureCli();
     }
 
@@ -117,14 +117,15 @@ class CliApplication extends Cli {
 
         try {
             $action = $this->route($args);
-            $r = $this->dispatch($action);
+            $this->dispatch($action);
+            return 0;
         } catch (Exception $ex) {
             /* @var LoggerInterface $log */
-            $log = $this->container->get(LoggerInterface::class);
+            $log = $this->getContainer()->get(LoggerInterface::class);
             $log->error($ex->getMessage());
             $r = $ex->getCode();
+            return is_numeric($r) ? (int)$r : 0;
         }
-        return is_numeric($r) ? (int)$r : 0;
     }
 
     /**
@@ -332,6 +333,7 @@ class CliApplication extends Cli {
         /**
          * @var OptSchema $opt
          * @var ReflectionParameter $params
+         * @psalm-suppress RawObjectIteration
          */
         foreach ($params as $optName => [$opt, $param]) {
             /** @var ReflectionParameter $param */
@@ -360,7 +362,7 @@ class CliApplication extends Cli {
         ];
 
         $dic = $this->getContainer();
-        $realFactory = function () use ($factory, $options, $dic) {
+        $realFactory = function () use ($factory, $options, $dic): mixed {
             /** @var Args $opts */
             $opts = $dic->get(Args::class);
             $method = self::reflectCallable($factory);
@@ -370,8 +372,7 @@ class CliApplication extends Cli {
                 /** @var ReflectionParameter $param */
                 $args[$param->getName()] = $opts->get($optName);
             }
-            $r = $dic->call($factory, $args);
-            return $r;
+            return $dic->call($factory, $args);
         };
 
         $this->getContainer()->rule($classOrRule)->setFactory($realFactory);
@@ -546,8 +547,6 @@ class CliApplication extends Cli {
 
         if ($type === null) {
             return '';
-        } elseif (!$type->isBuiltin()) {
-            return null;
         } else {
             $type = $param->getType();
             $t = $type instanceof ReflectionNamedType ? $type->getName() : (string)$type;
@@ -564,7 +563,7 @@ class CliApplication extends Cli {
      * @param ReflectionFunctionAbstract $method
      * @param array $options
      */
-    private function addParams(ReflectionFunctionAbstract $method, array $options = []) {
+    private function addParams(ReflectionFunctionAbstract $method, array $options = []): void {
         $options += [
             self::OPT_PREFIX => '',
         ];
@@ -603,7 +602,9 @@ class CliApplication extends Cli {
         $docs = [];
         foreach ($paramTags as $tag) {
             /** @var Param $tag */
-            $docs[$tag->getVariableName()] = $tag;
+            if ($tag->getVariableName() !== null) {
+                $docs[$tag->getVariableName()] = $tag;
+            }
         }
 
         $result = [];

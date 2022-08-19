@@ -114,8 +114,10 @@ class Cli {
      */
     public static function create(...$args): static
     {
-        /** @psalm-suppress TooManyArguments **/
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
+        /**
+         * @psalm-suppress TooManyArguments
+         * @psalm-suppress UnsafeInstantiation
+         */
         return new static(...$args);
     }
 
@@ -480,7 +482,7 @@ class Cli {
                         $v = Cli::val($type, [self::TYPE_BOOLEAN => true, self::TYPE_INTEGER => 1, self::TYPE_STRING => '']);
                     }
 
-                    $this->pushOpt($parsed, $key, $v);
+                    $this->pushOpt($parsed, (string)$key, $v);
                 } elseif (strlen($str) > 1 && $str[0] == '-') {
                     // -abcdef
                     for ($j = 1; $j < strlen($str); $j++) {
@@ -493,7 +495,7 @@ class Cli {
                             $remaining = substr($remaining, 1);
                             if ($type === self::TYPE_BOOLEAN) {
                                 // Bypass the boolean flag checking below.
-                                $this->pushOpt($parsed, $opt, $remaining);
+                                $this->pushOpt($parsed, (string)$opt, $remaining);
                                 break;
                             }
                         }
@@ -501,25 +503,25 @@ class Cli {
                         if ($type === self::TYPE_BOOLEAN) {
                             if (preg_match('`^([01])`', $remaining, $matches)) {
                                 // Treat the 0 or 1 as a true or false.
-                                $this->pushOpt($parsed, $opt, $matches[1]);
+                                $this->pushOpt($parsed, (string)$opt, $matches[1]);
                                 $j += strlen($matches[1]);
                             } else {
                                 // Treat the option as a flag.
-                                $this->pushOpt($parsed, $opt, true);
+                                $this->pushOpt($parsed, (string)$opt, true);
                             }
                         } elseif ($type === self::TYPE_STRING) {
                             // Treat the option as a set with no = sign.
-                            $this->pushOpt($parsed, $opt, $remaining);
+                            $this->pushOpt($parsed, (string)$opt, $remaining);
                             break;
                         } elseif ($type === self::TYPE_INTEGER) {
                             if (preg_match('`^(\d+)`', $remaining, $matches)) {
                                 // Treat the option as a set with no = sign.
-                                $this->pushOpt($parsed, $opt, $matches[1]);
+                                $this->pushOpt($parsed, (string)$opt, $matches[1]);
                                 $j += strlen($matches[1]);
                             } else {
                                 // Treat the option as either multiple flags.
-                                $optVal = $parsed->getOpt($opt, 0);
-                                $parsed->setOpt($opt, $optVal + 1);
+                                $optVal = $parsed->getOpt((string)$opt, 0);
+                                $parsed->setOpt((string)$opt, $optVal + 1);
                             }
                         } else {
                             // This should not happen unless we've put a bug in our code.
@@ -863,13 +865,13 @@ class Cli {
      * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
      * machines do not support terminal colors so formatting should be suppressed on them too.
      *
-     * @param bool|mixed|resource $stream The stream to interrogate for output format support.
+     * @param mixed|resource $stream The stream to interrogate for output format support.
      * @return bool Returns **true** if the output can be formatter or **false** otherwise.
      */
     public static function guessFormatOutput(mixed $stream = STDOUT): bool {
         if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
             return false;
-        } elseif (function_exists('posix_isatty')) {
+        } elseif (function_exists('posix_isatty') && (is_int($stream) || is_resource($stream))) {
             try {
                 return @posix_isatty($stream);
             } catch (Throwable $ex) {

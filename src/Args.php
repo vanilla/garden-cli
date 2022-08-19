@@ -290,10 +290,8 @@ class Args implements JsonSerializable, ArrayAccess {
     public function hasArg(int|string $arg): bool {
         if (is_string($arg)) {
             return isset($this->args[$arg]);
-        } elseif (is_int($arg)) {
-            return $arg < count($this->args);
         } else {
-            throw new InvalidArgumentException("Args::hasArg() expects an integer or string.", 400);
+            return $arg < count($this->args);
         }
     }
 }

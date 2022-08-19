@@ -44,9 +44,9 @@ class TaskLogger implements LoggerInterface {
      */
     private array $taskStack = [];
     /**
-     * @var LoggerInterface|null|StreamLogger The logger to ultimately log the information to.
+     * @var LoggerInterface|StreamLogger The logger to ultimately log the information to.
      */
-    private LoggerInterface|null|StreamLogger $logger;
+    private LoggerInterface|StreamLogger $logger;
 
     /**
      * TaskLogger constructor.

@@ -20,32 +20,32 @@ class OptSchema implements JsonSerializable {
     /**
      * @var string
      */
-    private string $name;
+    private string $name = '';
 
     /**
      * @var string
      */
-    private string $description;
+    private string $description = '';
 
     /**
      * @var string
      */
-    private string $short;
+    private string $short = '';
 
     /**
      * @var string
      */
-    private string $type;
+    private string $type = '';
 
     /**
      * @var bool
      */
-    private bool $array;
+    private bool $array = false;
 
     /**
      * @var bool
      */
-    private bool $required;
+    private bool $required = false;
 
     /**
      * OptSchema constructor.

@@ -45,9 +45,9 @@ class StreamLogger implements LoggerInterface {
     private bool $colorizeOutput;
 
     /**
-     * @var resource The output file handle.
+     * @var resource|null The output file handle.
      */
-    private $outputHandle;
+    private $outputHandle = null;
 
     /**
      * @var bool Whether the console is on a new line.
@@ -76,9 +76,9 @@ class StreamLogger implements LoggerInterface {
     ];
 
     /**
-     * @var resource Whether the default stream was opened.
+     * @var resource|null Whether the default stream was opened.
      */
-    private $defaultStream;
+    private $defaultStream = null;
 
     /**
      * LogFormatter constructor.
@@ -101,10 +101,24 @@ class StreamLogger implements LoggerInterface {
 
         $this->outputHandle = $out;
         $this->colorizeOutput = Cli::guessFormatOutput($this->outputHandle);
-        $this->setTimeFormat('%F %T');
-        $this->setLevelFormat(function ($l) {
+
+        /*
+        The below code could have been done like this, but psalm doesn't
+        pick up that the timeFormatter and levelFormat properties are set
+        and so it generates PropertyNotSetInConstructor warnings.
+
+        $this->setTimeFormat('Y-m-d H:i:s');
+        $this->setLevelFormat(function (string $l): string {
             return $l;
         });
+        */
+
+        $this->timeFormatter = function (int|float $t): string {
+            return date('Y-m-d H:i:s', (int)$t);
+        };
+        $this->levelFormat = function (string $l): string {
+            return $l;
+        };
     }
 
     /**
@@ -119,8 +133,8 @@ class StreamLogger implements LoggerInterface {
      */
     public function setTimeFormat(callable|string $format): self {
         if (is_string($format)) {
-            $this->timeFormatter = function ($t) use ($format): string {
-                return date($format, intval($t));
+            $this->timeFormatter = function (int|float $t) use ($format): string {
+                return date($format, (int)$t);
             };
         } else {
             $this->timeFormatter = $format;

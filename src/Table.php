@@ -92,10 +92,12 @@ class Table {
             $this->row();
         }
 
-        $i = count($this->currentRow);
-        $this->columnWidths[$i] = max(strlen($text), Cli::val($i, $this->columnWidths, 0)); // max column width
+        if ($this->currentRow !== null) {
+            $i = count($this->currentRow);
+            $this->columnWidths[$i] = max(strlen($text), Cli::val($i, $this->columnWidths, 0)); // max column width
 
-        $this->currentRow[$i] = [$text, $wrap];
+            $this->currentRow[$i] = [$text, $wrap];
+        }
         return $this;
     }
 
