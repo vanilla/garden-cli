@@ -15,10 +15,10 @@ use JsonSerializable;
  * This class represents the parsed and validated argument list.
  */
 class Args implements JsonSerializable, ArrayAccess {
-    protected $command;
-    protected $opts;
-    protected $args;
-    protected $meta;
+    protected string $command;
+    protected array $opts;
+    protected array $args;
+    protected array $meta;
 
     /**
      * Initialize the {@link Args} instance.
@@ -55,11 +55,13 @@ class Args implements JsonSerializable, ArrayAccess {
      *
      * Arguments can be accessed by name or index.
      *
-     * @param string|int $index
-     * @param mixed $default The default value to return if the argument is not found.
+     * @param int|string $index
+     * @param mixed|null $default The default value to return if the argument is not found.
+     *
      * @return mixed Returns the argument at {@link $index} or {@link $default}.
      */
-    public function getArg($index, $default = null) {
+    public function getArg(int|string $index, mixed $default = null): mixed
+    {
         if (array_key_exists($index, $this->args)) {
             return $this->args[$index];
         } elseif (is_int($index)) {
@@ -74,11 +76,12 @@ class Args implements JsonSerializable, ArrayAccess {
     /**
      * Set an argument in the args array.
      *
-     * @param string|int $index The index to set at.
-     * @param mixed $value The value of the arg.
+     * @param int|string $index The index to set at.
+     * @param mixed      $value The value of the arg.
+     *
      * @return $this
      */
-    public function setArg($index, $value): self {
+    public function setArg(int|string $index, mixed $value): self {
         $this->args[$index] = $value;
         return $this;
     }
@@ -126,11 +129,13 @@ class Args implements JsonSerializable, ArrayAccess {
     /**
      * Get a meta value.
      *
-     * @param string $name The name of the meta value.
-     * @param mixed $default The default value to return if {@link $name} is not found.
+     * @param string     $name    The name of the meta value.
+     * @param mixed|null $default The default value to return if {@link $name} is not found.
+     *
      * @return mixed Returns the meta value or {@link $default} if it doesn't exist.
      */
-    public function getMeta(string $name, $default = null) {
+    public function getMeta(string $name, mixed $default = null): mixed
+    {
         return Cli::val($name, $this->meta, $default);
     }
 
@@ -141,7 +146,7 @@ class Args implements JsonSerializable, ArrayAccess {
      * @param mixed $value The new meta value.
      * @return $this
      */
-    public function setMeta(string $name, $value): self {
+    public function setMeta(string $name, mixed $value): self {
         $this->meta[$name] = $value;
         return $this;
     }
@@ -169,11 +174,13 @@ class Args implements JsonSerializable, ArrayAccess {
     /**
      * Get the value of a passed option.
      *
-     * @param string $option The name of the option to get.
-     * @param mixed $default The default value if the option does not exist.
+     * @param string     $option  The name of the option to get.
+     * @param mixed|null $default The default value if the option does not exist.
+     *
      * @return mixed Returns the option or {@link $default} if it does not exist.
      */
-    public function getOpt(string $option, $default = null) {
+    public function getOpt(string $option, mixed $default = null): mixed
+    {
         return Cli::val($option, $this->opts, $default);
     }
 
@@ -183,8 +190,9 @@ class Args implements JsonSerializable, ArrayAccess {
      * @param string $name The name of the opt to get.
      * @return mixed
      */
-    public function get(string $name) {
-        return $this->getOpt($name, null);
+    public function get(string $name): mixed
+    {
+        return $this->getOpt($name);
     }
 
     /**
@@ -204,7 +212,7 @@ class Args implements JsonSerializable, ArrayAccess {
      * @param mixed $value The value of the option.
      * @return $this
      */
-    public function setOpt(string $option, $value): self {
+    public function setOpt(string $option, mixed $value): self {
         $this->opts[$option] = $value;
         return $this;
     }
@@ -226,14 +234,14 @@ class Args implements JsonSerializable, ArrayAccess {
     }
 
     /**
-     * Whether a offset exists.
+     * Whether an offset exists.
      *
      * @param mixed $offset An offset to check for.
      * @return boolean true on success or false on failure.
-     * The return value will be casted to boolean if non-boolean was returned.
+     * The return value will be cast to boolean if non-boolean was returned.
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      */
-    public function offsetExists($offset): bool {
+    public function offsetExists(mixed $offset): bool {
         return isset($this->opts[$offset]);
     }
 
@@ -244,9 +252,9 @@ class Args implements JsonSerializable, ArrayAccess {
      * @return mixed Can return all value types.
      * @link http://php.net/manual/en/arrayaccess.offsetget.php
      */
-    #[\ReturnTypeWillChange]
-    public function offsetGet($offset) {
-        return $this->getOpt($offset, null);
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->getOpt($offset);
     }
 
     /**
@@ -257,7 +265,7 @@ class Args implements JsonSerializable, ArrayAccess {
      * @return void
      * @link http://php.net/manual/en/arrayaccess.offsetset.php
      */
-    public function offsetSet($offset, $value): void {
+    public function offsetSet(mixed $offset, mixed $value): void {
         $this->setOpt($offset, $value);
     }
 
@@ -268,17 +276,18 @@ class Args implements JsonSerializable, ArrayAccess {
      * @return void
      * @link http://php.net/manual/en/arrayaccess.offsetunset.php
      */
-    public function offsetUnset($offset): void {
+    public function offsetUnset(mixed $offset): void {
         unset($this->opts[$offset]);
     }
 
     /**
-     * Whether or not an arg exists.
+     * Whether an arg exists.
      *
-     * @param string|int $arg The name of the arg or the zero based position of it.
+     * @param int|string $arg The name of the arg or the zero based position of it.
+     *
      * @return bool
      */
-    public function hasArg($arg): bool {
+    public function hasArg(int|string $arg): bool {
         if (is_string($arg)) {
             return isset($this->args[$arg]);
         } elseif (is_int($arg)) {
