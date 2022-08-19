@@ -20,39 +20,39 @@ class OptSchema implements JsonSerializable {
     /**
      * @var string
      */
-    private $name;
+    private string $name;
 
     /**
      * @var string
      */
-    private $description;
+    private string $description;
 
     /**
      * @var string
      */
-    private $short;
+    private string $short;
 
     /**
      * @var string
      */
-    private $type;
+    private string $type;
 
     /**
      * @var bool
      */
-    private $array;
+    private bool $array;
 
     /**
      * @var bool
      */
-    private $required;
+    private bool $required;
 
     /**
      * OptSchema constructor.
      *
      * @param string $name The name of the opt in the form: `"$longName"` or `"$longName:$shortName"`.
      * @param string $description The description of the opt for users.
-     * @param bool $required Whether or not the opt is required.
+     * @param bool $required Whether the opt is required.
      * @param string $type The data type of the opt.
      * @param array $meta Additional meta information for the opt.
      */
@@ -82,7 +82,7 @@ class OptSchema implements JsonSerializable {
      * @param string $name
      * @return $this
      */
-    public function setName(string $name) {
+    public function setName(string $name): static {
         $this->name = $name;
         return $this;
     }
@@ -102,7 +102,7 @@ class OptSchema implements JsonSerializable {
      * @param string $description
      * @return $this
      */
-    public function setDescription(string $description) {
+    public function setDescription(string $description): static {
         $this->description = $description;
         return $this;
     }
@@ -122,7 +122,7 @@ class OptSchema implements JsonSerializable {
      * @param string $short
      * @return $this
      */
-    public function setShortName(string $short) {
+    public function setShortName(string $short): static {
         $this->short = $short;
         return $this;
     }
@@ -142,36 +142,27 @@ class OptSchema implements JsonSerializable {
      * @param string $type
      * @return $this
      */
-    public function setType(string $type) {
-        if (substr($type, -2) === '[]') {
+    public function setType(string $type): static {
+        if (str_ends_with($type, '[]')) {
             $this->setArray(true);
             $type = substr($type, 0, -2);
         } else {
             $this->setArray(false);
         }
 
-        switch ($type) {
-            case 'str':
-            case Cli::TYPE_STRING:
-                $this->type = Cli::TYPE_STRING;
-                break;
-            case 'bool':
-            case Cli::TYPE_BOOLEAN:
-                $this->type = Cli::TYPE_BOOLEAN;
-                break;
-            case 'int':
-            case Cli::TYPE_INTEGER:
-                $this->type = Cli::TYPE_INTEGER;
-                break;
-            default:
-                throw new InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
-        }
+        $this->type = match ($type) {
+            'str', Cli::TYPE_STRING => Cli::TYPE_STRING,
+            'bool', Cli::TYPE_BOOLEAN => Cli::TYPE_BOOLEAN,
+            'int', Cli::TYPE_INTEGER => Cli::TYPE_INTEGER,
+            default => throw new InvalidArgumentException(
+                "Invalid type: $type. Must be one of string, boolean, or integer.", 422),
+        };
 
         return $this;
     }
 
     /**
-     * Whether or not this is an array opt.
+     * Whether this is an array opt.
      *
      * @return bool
      */
@@ -180,18 +171,18 @@ class OptSchema implements JsonSerializable {
     }
 
     /**
-     * Set whether or not this is an array opt.
+     * Set whether this is an array opt.
      *
      * @param bool $isArray
      * @return $this
      */
-    public function setArray(bool $isArray) {
+    public function setArray(bool $isArray): static {
         $this->array = $isArray;
         return $this;
     }
 
     /**
-     * Whether or not the opt is required.
+     * Whether the opt is required.
      *
      * @return bool
      */
@@ -200,12 +191,12 @@ class OptSchema implements JsonSerializable {
     }
 
     /**
-     * Set whether or not the opt is required.
+     * Set whether the opt is required.
      *
      * @param bool $required
      * @return $this
      */
-    public function setRequired(bool $required) {
+    public function setRequired(bool $required): static {
         $this->required = $required;
         return $this;
     }
@@ -229,7 +220,6 @@ class OptSchema implements JsonSerializable {
      * {@inheritDoc}
      */
     public function jsonSerialize(): mixed {
-        $vars = get_object_vars($this);
-        return $vars;
+        return get_object_vars($this);
     }
 }

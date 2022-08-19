@@ -18,27 +18,29 @@ trait MetaTrait {
     /**
      * @var array
      */
-    private $meta = [];
+    private array $meta = [];
 
     /**
      * Get a single item from the meta array.
      *
-     * @param string $name The key to get from.
-     * @param mixed $default The default value if no item at the key exists.
+     * @param string     $name    The key to get from.
+     * @param mixed|null $default The default value if no item at the key exists.
+     *
      * @return mixed Returns the meta value.
      */
-    public function getMeta($name, $default = null) {
-        return isset($this->meta[$name]) ? $this->meta[$name] : $default;
+    public function getMeta(string $name, mixed $default = null): mixed {
+        return $this->meta[$name] ?? $default;
     }
 
     /**
      * Set a single item to the meta array.
      *
-     * @param string $name The key to set.
-     * @param mixed $value The new value.
+     * @param string $name  The key to set.
+     * @param mixed  $value The new value.
+     *
      * @return $this
      */
-    public function setMeta($name, $value) {
+    public function setMeta(string $name, mixed $value): static {
         $this->meta[$name] = $value;
         return $this;
     }
@@ -52,11 +54,11 @@ trait MetaTrait {
      * 2. `$o->addMeta('name', 'key', $value)` adds **$value** to the array at  **'name'** and uses **'key'** as the key.
      *     This may result in an existing item being overwritten.
      *
-     * @param string $name The name of the meta key.
-     * @param mixed[] $value Either a single value or a key then a value to set.
+     * @param string $name  The name of the meta key.
+     * @param array $value Either a single value or a key then a value to set.
      * @return $this
      */
-    public function addMeta($name, ...$value) {
+    public function addMeta(string $name, ...$value): static {
         if (isset($this->meta[$name]) && !is_array($this->meta[$name])) {
             $this->meta[$name] = [$this->meta[$name]];
         }
@@ -92,7 +94,7 @@ trait MetaTrait {
      *
      * @return array Returns the meta.
      */
-    public function getMetaArray() {
+    public function getMetaArray(): array {
         return $this->meta;
     }
 
@@ -102,7 +104,7 @@ trait MetaTrait {
      * @param array $meta The new meta array.
      * @return $this
      */
-    public function setMetaArray(array $meta) {
+    public function setMetaArray(array $meta): static {
         $this->meta = $meta;
         return $this;
     }
@@ -113,7 +115,7 @@ trait MetaTrait {
      * @param array $meta The meta array to merge.
      * @return $this
      */
-    public function mergeMetaArray(array $meta) {
+    public function mergeMetaArray(array $meta): static {
         $this->meta = array_merge_recursive($this->meta, $meta);
         return $this;
     }
