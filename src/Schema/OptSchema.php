@@ -228,7 +228,7 @@ class OptSchema implements JsonSerializable {
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         $vars = get_object_vars($this);
         return $vars;
     }
