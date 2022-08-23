@@ -156,12 +156,12 @@ class StreamLogger implements LoggerInterface {
      * Logs with an arbitrary level.
      *
      * @param mixed $level
-     * @param string $message
+     * @param string|\Stringable $message
      * @param array $context
      *
      * @return void
      */
-    public function log($level, $message, array $context = array()): void {
+    public function log($level, string|\Stringable $message, array $context = array()): void {
         if (!isset($this->wraps[$level])) {
             throw new InvalidArgumentException("Invalid log level: $level", 400);
         }
