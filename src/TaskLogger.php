@@ -135,12 +135,12 @@ class TaskLogger implements LoggerInterface {
      * Logs with an arbitrary level.
      *
      * @param mixed $level
-     * @param string $message
+     * @param string|\Stringable $message
      * @param array $context
      *
      * @return void
      */
-    public function log($level, $message, array $context = []): void {
+    public function log($level, string|\Stringable $message, array $context = []): void {
         if ($this->compareLevel($level, $this->getMinLevel()) >= 0) {
             $this->outputTaskStack();
 
