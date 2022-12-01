@@ -25,15 +25,25 @@ PHP's `getopt()` provides little functionality and is prone to failure where one
 
 ### Installation
 
-*Garden CLI requires PHP 7.0 or higher*
+*Garden CLI requires PHP 8.1 or higher*
 
 Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md) compliant and can be installed using [composer](//getcomposer.org). Just add `vanilla/garden-cli` to your composer.json.
 
 ```json
 "require": {
-    "vanilla/garden-cli": "~2.0"
+    "vanilla/garden-cli": "~3.0"
 }
 ```
+
+### Upgrading from 2.x
+
+* This version supports PHP 8.1 and later only.
+* The previously deprecated `LogFormatter` class and unit tests is now removed.
+* In the past you could set a custom time format using `setTimeFormat('%F %T')`.
+  Internally Garden CLI used PHP's [`strftime()`](https://www.php.net/manual/en/function.strftime.php)
+  which is now deprecated. This has been replaced by the PHP [`date()`](https://www.php.net/manual/en/function.date.php)
+  function which accepts these [formats](https://www.php.net/manual/en/datetime.format.php).
+  For example, to have the same output as `setTimeFormat('%F %T')`, simply use `setTimeFormat('Y-m-d H:i:s')`.
 
 ## Defining The CLI
 
@@ -327,13 +337,13 @@ things like install scripts, scripts that take a long time, or scripts you put i
 When using the `TaskLogger` you want to think in terms of messages and tasks. A message is a single log item to output
 to the user. A task has a begin and an end and can be nested as much as you want. Messages are output using the various PSR-3 methods while tasks are output with `begin()` and `end()`. Here are all of the methods you can use to log tasks.
 
-| Method        | Notes |
-| ------        | ----- |
-| `begin`       | Log the beginning of a task. |
-| `beginDebug`, `beginInfo`, `beginNotice`, `beginWarning`, `beginError`, `beginCritical`, `beginAlert`, `beginEmergency` | Log the beginning of a task with the given log level. |
-| `end`         | Log the end of a task with the same level as it began. |
-| `endError`    | Log the end of a task that resulted in an error. |
-| `endHttpStatus`   | Log the end of a task with an HTTP status. The log level is calculated from the number of the status. |
+| Method                                                                                                                  | Notes                                                                                                 |
+|-------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `begin`                                                                                                                 | Log the beginning of a task.                                                                          |
+| `beginDebug`, `beginInfo`, `beginNotice`, `beginWarning`, `beginError`, `beginCritical`, `beginAlert`, `beginEmergency` | Log the beginning of a task with the given log level.                                                 |
+| `end`                                                                                                                   | Log the end of a task with the same level as it began.                                                |
+| `endError`                                                                                                              | Log the end of a task that resulted in an error.                                                      |
+| `endHttpStatus`                                                                                                         | Log the end of a task with an HTTP status. The log level is calculated from the number of the status. |
 
 #### Task Nesting and Durations
 
@@ -372,13 +382,13 @@ $log->end('done.');
 
 If you create and use a `TaskLogger` object it will output nicely to the console out of the box. Under the hood it is using a `StreamLogger` object to handle the formatting of the tasks to an output stream, in this case stdout. You can replace or modify the `StreamLogger` if you want to control logging in a more granular level. Here are some options.
 
-| Method                | Default   | Notes |
-| ------                | -------   | ----- |
-| `setLineFormat`       | `'[{time}] {message}'`    | Set the format of lines. Use the `{level}`, `{time}`, `{message}` strings to move the components around. |
-| `setColorizeOutput`   | automatic | Whether or not to use console colors. |
-| `setBufferBegins`     | `true`    | Attempt to put task begin/end messages on the same line. Turn this off if you plan on writing to the log concurrently. |
-| `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `strftime` string or a callback. |
-| `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant. |
+| Method              | Default                | Notes                                                                                                                  |
+|---------------------|------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `setLineFormat`     | `'[{time}] {message}'` | Set the format of lines. Use the `{level}`, `{time}`, `{message}` strings to move the components around.               |
+| `setColorizeOutput` | automatic              | Whether or not to use console colors.                                                                                  |
+| `setBufferBegins`   | `true`                 | Attempt to put task begin/end messages on the same line. Turn this off if you plan on writing to the log concurrently. |
+| `setTimeFormat`     | `'Y-m-d H:i:s'`        | Set the time format. This can be a `date` string or a callback.                                                        |
+| `setLevelFormat`    | nothing                | Set a callback to format a `LogLevel` constant.                                                                        |
 
 #### Example
 
@@ -402,10 +412,11 @@ $log = new TaskLogger($fmt);
 
 You can give the `TaskLogger` any PSR-3 compliant logger and it will send its output to it. In order to use some of the special task functionality, you'll have to inspect the `$contenxt` argument of your `log` method. Here the fields that you may receive.
 
-| Field                         | Type  | Notes |
-| -----                         | ----  | ----- |
-| `TaskLogger::FIELD_TIME`      | `int` | The timestamp of the message. |
-| `TaskLogger::FIELD_INDENT`    | `int` | The indent level of the message. |
-| `TaskLogger::FIELD_BEGIN`     | `bool` | True if the message denotes the beginning of a task. |
-| `TaskLogger::FIELD_END`       | `bool` | True if the message denotes the end of a task. |
-| `TaskLogger::FIELD_DURATION`  | `float` | The duration of a task in seconds and milliseconds. |
+| Field                        | Type    | Notes                                                |
+|------------------------------|---------|------------------------------------------------------|
+| `TaskLogger::FIELD_TIME`     | `int`   | The timestamp of the message.                        |
+| `TaskLogger::FIELD_INDENT`   | `int`   | The indent level of the message.                     |
+| `TaskLogger::FIELD_BEGIN`    | `bool`  | True if the message denotes the beginning of a task. |
+| `TaskLogger::FIELD_END`      | `bool`  | True if the message denotes the end of a task.       |
+| `TaskLogger::FIELD_DURATION` | `float` | The duration of a task in seconds and milliseconds.  |
+

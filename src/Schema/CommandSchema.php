@@ -8,6 +8,7 @@
 namespace Garden\Cli\Schema;
 
 use Garden\Cli\Cli;
+use InvalidArgumentException;
 
 /**
  * A data class for the information describing a command line command or subcommand.
@@ -18,7 +19,7 @@ class CommandSchema {
     /**
      * @var OptSchema[]
      */
-    private $opts;
+    private array $opts;
 
     /**
      * CommandSchema constructor.
@@ -27,7 +28,7 @@ class CommandSchema {
      */
     public function __construct(array $schema = []) {
         if (!is_array($meta = $schema[Cli::META] ?? [])) {
-            throw new \InvalidArgumentException("The meta must be an array.", 400);
+            throw new InvalidArgumentException("The meta must be an array.", 400);
         }
         $this->meta = $meta;
         unset($schema[Cli::META]);
@@ -41,7 +42,12 @@ class CommandSchema {
      * @return string
      */
     public function getDescription(): string {
-        return $this->meta['description'] ?? '';
+        $description = $this->meta['description'] ?? '';
+        // The OptSchema::merge() function may create an array of strings
+        // if a "main"/"global" description is supplied as well as a description
+        // for individual commands. If this happens we return the last
+        // of the descriptions.
+        return is_array($description) ? $description[count($description)-1] : $description;
     }
 
     /**
@@ -49,16 +55,18 @@ class CommandSchema {
      *
      * @return array|mixed
      */
-    public function getArgs() {
+    public function getArgs(): mixed
+    {
         return $this->meta[Cli::ARGS] ?? [];
     }
 
     /**
-     * Whether or not the command has args.
+     * Whether the command has args.
      *
      * @return bool
      */
-    public function hasArgs() {
+    public function hasArgs(): bool
+    {
         return !empty($this->meta[Cli::ARGS]);
     }
 
@@ -82,7 +90,7 @@ class CommandSchema {
     }
 
     /**
-     * Whether or not the command has an opt.
+     * Whether the command has an opt.
      *
      * @param string $name The long name of the opt.
      * @return bool
@@ -92,7 +100,7 @@ class CommandSchema {
     }
 
     /**
-     * Whether or not the command has any opts.
+     * Whether the command has any opts.
      *
      * @return bool
      */
@@ -105,7 +113,7 @@ class CommandSchema {
      *
      * @param CommandSchema $schema
      */
-    public function mergeSchema(CommandSchema $schema) {
+    public function mergeSchema(CommandSchema $schema): void {
         $this->mergeMetaArray($schema->getMetaArray());
 
         /**
@@ -127,7 +135,7 @@ class CommandSchema {
      * @param OptSchema $opt
      * @return $this
      */
-    public function addOpt(OptSchema $opt) {
+    public function addOpt(OptSchema $opt): static {
         $this->opts[$opt->getName()] = $opt;
         return $this;
     }

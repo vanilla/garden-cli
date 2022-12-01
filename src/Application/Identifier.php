@@ -11,7 +11,7 @@ namespace Garden\Cli\Application;
  * A utility data object for converting identifiers between different casing schemes.
  */
 class Identifier {
-    private $parts = [];
+    private array $parts = [];
 
     /**
      * Identifier constructor.
@@ -37,7 +37,7 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromCamel(string $name) {
+    public static function fromCamel(string $name): Identifier {
         $parts = preg_split('`(?<=[a-z])(?=[A-Z0-9])`x', $name);
         $parts = array_map('strtolower', $parts);
         return new self(...$parts);
@@ -59,7 +59,7 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromPascal(string $name) {
+    public static function fromPascal(string $name): Identifier {
         return static::fromCamel($name);
     }
 
@@ -95,7 +95,7 @@ class Identifier {
     }
 
     /**
-     * Create an identifer from a kebab-case string.
+     * Create an identifier from a kebab-case string.
      *
      * @param string $name
      * @return Identifier
@@ -134,10 +134,11 @@ class Identifier {
     /**
      * Create an identifier from a class, using it's basename.
      *
-     * @param string|object $class A class name or instance.
+     * @param object|string $class A class name or instance.
+     *
      * @return Identifier
      */
-    public static function fromClassBasename($class): Identifier {
+    public static function fromClassBasename(object|string $class): Identifier {
         if (is_object($class)) {
             $class = get_class($class);
         }

@@ -13,6 +13,8 @@ use Garden\Cli\Cli;
 use Garden\Cli\Schema\CommandSchema;
 use Garden\Cli\Schema\OptSchema;
 use Garden\Container\Container;
+use Garden\Container\ContainerException;
+use Garden\Container\NotFoundException;
 use Garden\Container\Reference;
 use InvalidArgumentException;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
@@ -20,8 +22,10 @@ use phpDocumentor\Reflection\DocBlockFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
 
 /**
@@ -43,19 +47,20 @@ class CliApplication extends Cli {
     const OPT_COMMAND_REGEX = 'commandRegex';
 
     /**
-     * @var Container
+     * @var Container|null
      */
-    private $container;
+    private ?Container $container = null;
 
     /**
-     * @var DocBlockFactory
+     * @var DocBlockFactory|null
      */
-    private $factory;
+    private ?DocBlockFactory $factory = null;
 
     /**
      * CliApplication constructor.
      */
     public function __construct() {
+        parent::__construct();
         $this->configureCli();
     }
 
@@ -105,20 +110,22 @@ class CliApplication extends Cli {
      *
      * @param array $argv Command line arguments.
      * @return int Returns the integer result of the command which should be propagated back to the command line.
+     * @throws Exception
      */
     public function main(array $argv): int {
         $args = $this->parse($argv);
 
         try {
             $action = $this->route($args);
-            $r = $this->dispatch($action);
+            $this->dispatch($action);
+            return 0;
         } catch (Exception $ex) {
             /* @var LoggerInterface $log */
-            $log = $this->container->get(LoggerInterface::class);
+            $log = $this->getContainer()->get(LoggerInterface::class);
             $log->error($ex->getMessage());
             $r = $ex->getCode();
+            return is_numeric($r) ? (int)$r : 0;
         }
-        return is_numeric($r) ? (int)$r : 0;
     }
 
     /**
@@ -128,29 +135,28 @@ class CliApplication extends Cli {
      * @return Args Returns a copy of `$args` ready for dispatching.
      */
     protected function route(Args $args): Args {
-        $schema = $this->getSchema($args->getCommand());
-
-        $result = clone $args;
-        return $result;
+        $this->getSchema($args->getCommand());
+        return clone $args;
     }
 
     /**
      * Dispatch a routed set of args to their action and return the result.
      *
      * @param Args $args The args to dispatch.
-     * @return mixed Returns the result of the dispatched method.
-     * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
+     *
+     * @return void
+     * @throws ContainerException
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
-    final public function dispatch(Args $args) {
+    final public function dispatch(Args $args): void
+    {
         $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
         try {
-            // Set the args in the container so they can be injected into classes.
+            // Set the args in the container, so they can be injected into classes.
             $this->getContainer()->setInstance(Args::class, $args);
-
             $schema = $this->getSchema($args->getCommand());
-
-            $result = $this->dispatchInternal($args, $schema, true);
-            return $result;
+            $this->dispatchInternal($args, $schema);
         } finally {
             $this->getContainer()->setInstance(Args::class, $argsBak);
         }
@@ -166,11 +172,15 @@ class CliApplication extends Cli {
      *
      * If you want to do some custom dispatching then override this method and
      *
-     * @param Args $args
+     * @param Args          $args
      * @param CommandSchema $schema
-     * @param bool $throw
+     * @param bool          $throw
+     *
+     * @throws ContainerException
+     * @throws NotFoundException
+     * @throws ReflectionException
      */
-    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true) {
+    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true): void {
         $action = $schema->getMeta(self::META_ACTION);
         if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
             /** @psalm-var class-string $className */
@@ -205,7 +215,7 @@ class CliApplication extends Cli {
                 }
             }
 
-            $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+            $this->getContainer()->call([$obj, $methodName], $optParams);
         } elseif ($throw) {
             throw new InvalidArgumentException("Invalid action: " . $action, 400);
         }
@@ -216,11 +226,13 @@ class CliApplication extends Cli {
      *
      * The method will be reflected and its parameters will be added as opts. object setters can also be mapped.
      *
-     * @param string $className The name of the class that has the method.
      * @psalm-param class-string $className
-     * @param string $methodName The name of the method.
-     * @param array $options Options to modify the behavior of the reflection.
+     * @param string             $className  The name of the class that has the method.
+     * @param string             $methodName The name of the method.
+     * @param array              $options    Options to modify the behavior of the reflection.
+     *
      * @return $this
+     * @throws ReflectionException
      */
     public function addMethod(string $className, string $methodName, array $options = []): self {
         $options += [
@@ -255,11 +267,13 @@ class CliApplication extends Cli {
      * command class is mapped to the CLI with the description defaulting to the class description and the command name
      * coming from the class name.
      *
-     * @param string $className The name of the command class.
      * @psalm-param class-string $className
-     * @param string $methodName The name of the run method.
-     * @param array $options Options to control the behavior of the mapping.
+     * @param string             $className  The name of the command class.
+     * @param string             $methodName The name of the run method.
+     * @param array              $options    Options to control the behavior of the mapping.
+     *
      * @return $this
+     * @throws ReflectionException
      */
     public function addCommandClass(string $className, string $methodName = 'run', array $options = []): self {
         $options += [
@@ -294,10 +308,12 @@ class CliApplication extends Cli {
      *
      * TLDR: If you want to allow dependencies to be controlled from the command line then this is your method.
      *
-     * @param string $className
      * @psalm-param class-string $className
-     * @param array $options
+     * @param string             $className
+     * @param array              $options
+     *
      * @return $this
+     * @throws ReflectionException
      */
     public function addConstructor(string $className, array $options = []): self {
         $options += [
@@ -317,6 +333,7 @@ class CliApplication extends Cli {
         /**
          * @var OptSchema $opt
          * @var ReflectionParameter $params
+         * @psalm-suppress RawObjectIteration
          */
         foreach ($params as $optName => [$opt, $param]) {
             /** @var ReflectionParameter $param */
@@ -331,7 +348,7 @@ class CliApplication extends Cli {
      * Map a class's factory method to the command line.
      *
      * This method takes the name of a class or a container rule and a callable and then makes that callable the factory
-     * for that class or rule. All of the factory's parameters are wired up to command opts and the factory is configured
+     * for that class or rule. All the factory's parameters are wired up to command opts and the factory is configured
      * on the container.
      *
      * @param string $classOrRule The name of the class or container rule you want to set the factory on.
@@ -345,7 +362,7 @@ class CliApplication extends Cli {
         ];
 
         $dic = $this->getContainer();
-        $realFactory = function () use ($factory, $options, $dic) {
+        $realFactory = function () use ($factory, $options, $dic): mixed {
             /** @var Args $opts */
             $opts = $dic->get(Args::class);
             $method = self::reflectCallable($factory);
@@ -355,8 +372,7 @@ class CliApplication extends Cli {
                 /** @var ReflectionParameter $param */
                 $args[$param->getName()] = $opts->get($optName);
             }
-            $r = $dic->call($factory, $args);
-            return $r;
+            return $dic->call($factory, $args);
         };
 
         $this->getContainer()->rule($classOrRule)->setFactory($realFactory);
@@ -369,11 +385,13 @@ class CliApplication extends Cli {
      * The most common use of `addCall` is wiring up setter injection from the command line. If you want to instantiate
      * a class and then call a setter from a command line opt then this is the method to use.
      *
-     * @param string $className The name of the class.
      * @psalm-param class-string $className
-     * @param string $methodName The name of the method.
-     * @param array $options Additional options to control the wiring.
+     * @param string             $className  The name of the class.
+     * @param string             $methodName The name of the method.
+     * @param array              $options    Additional options to control the wiring.
+     *
      * @return $this
+     * @throws ReflectionException
      */
     public function addCall(string $className, string $methodName, array $options = []): self {
         $options += [
@@ -398,6 +416,7 @@ class CliApplication extends Cli {
      *
      * @param callable $callable The callable to reflect.
      * @return ReflectionFunctionAbstract Returns the reflection primitive.
+     * @throws ReflectionException
      */
     private static function reflectCallable(callable $callable): ReflectionFunctionAbstract {
         if (is_array($callable)) {
@@ -413,10 +432,11 @@ class CliApplication extends Cli {
     /**
      * Add a closure/function to the application.
      *
-     * @param string $command The name of the command to map the callable to.
+     * @param string   $command  The name of the command to map the callable to.
      * @param callable $callable The callable to reflect.
-     * @param array $options Options to modify the behavior of the reflection.
+     * @param array    $options  Options to modify the behavior of the reflection.
      * @return $this
+     * @throws ReflectionException
      */
     public function addCallable(string $command, callable $callable, array $options = []): self {
         $options += [
@@ -468,7 +488,7 @@ class CliApplication extends Cli {
             if (null === $t = $param->getType()) {
                 $type = 'string';
             } else {
-                $type = $t instanceof \ReflectionNamedType ? $t->getName() : (string)$t;
+                $type = $t instanceof ReflectionNamedType ? $t->getName() : (string)$t;
             }
 
             if (!empty($method->getDocComment())) {
@@ -491,10 +511,10 @@ class CliApplication extends Cli {
     }
 
     /**
-     * Reflect all of the setters on a class and yield them.
+     * Reflect all the setters on a class and yield them.
      *
      * @param ReflectionClass $class The class to reflect.
-     * @param callable|null $filter A filter used to determine whether or not a method qualifies as a setter.
+     * @param callable|null $filter A filter used to determine whether a method qualifies as a setter.
      * @return iterable Returns an iterator in the form: `$optName => $reflectionMethod`.
      */
     final protected function reflectSetters(ReflectionClass $class, callable $filter = null): iterable {
@@ -527,14 +547,11 @@ class CliApplication extends Cli {
 
         if ($type === null) {
             return '';
-        } elseif (!$type->isBuiltin()) {
-            return null;
         } else {
             $type = $param->getType();
-            $t = $type instanceof \ReflectionNamedType ? $type->getName() : (string)$type;
+            $t = $type instanceof ReflectionNamedType ? $type->getName() : (string)$type;
             if (in_array($t, self::ALLOWED_TYPES)) {
-                $t = ['int' => 'integer', 'str' => 'string', 'bool' => 'boolean'][$t] ?? $t;
-                return $t;
+                return ['int' => 'integer', 'str' => 'string', 'bool' => 'boolean'][$t] ?? $t;
             }
         }
         return null;
@@ -546,7 +563,7 @@ class CliApplication extends Cli {
      * @param ReflectionFunctionAbstract $method
      * @param array $options
      */
-    private function addParams(ReflectionFunctionAbstract $method, array $options = []) {
+    private function addParams(ReflectionFunctionAbstract $method, array $options = []): void {
         $options += [
             self::OPT_PREFIX => '',
         ];
@@ -585,7 +602,9 @@ class CliApplication extends Cli {
         $docs = [];
         foreach ($paramTags as $tag) {
             /** @var Param $tag */
-            $docs[$tag->getVariableName()] = $tag;
+            if ($tag->getVariableName() !== null) {
+                $docs[$tag->getVariableName()] = $tag;
+            }
         }
 
         $result = [];
@@ -636,7 +655,7 @@ class CliApplication extends Cli {
     final protected function setterFilter(ReflectionMethod $method): bool {
         $name = $method->getName();
         if (strlen($name) <= 3 ||
-            substr($name, 0, 3) !== 'set' ||
+            !str_starts_with($name, 'set') ||
             strcasecmp($name, 'setup') === 0 ||
             $method->getNumberOfParameters() !== 1
         ) {
