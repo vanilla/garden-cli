@@ -166,7 +166,7 @@ class StreamLogger implements LoggerInterface {
             throw new InvalidArgumentException("Invalid log level: $level", 400);
         }
 
-        $msg = $this->replaceContext($message, $context);
+        $msg = $this->replaceContext((string)$message, $context);
 
         $eol = true;
         $fullLine = true;

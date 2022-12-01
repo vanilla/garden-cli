@@ -151,7 +151,7 @@ class TaskLogger implements LoggerInterface {
                 }
             }
 
-            $this->logInternal($level, $message, [self::FIELD_INDENT => $this->currentIndent()] + $context);
+            $this->logInternal($level, (string)$message, [self::FIELD_INDENT => $this->currentIndent()] + $context);
         }
     }
 
