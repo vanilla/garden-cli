@@ -42,7 +42,12 @@ class CommandSchema {
      * @return string
      */
     public function getDescription(): string {
-        return $this->meta['description'] ?? '';
+        $description = $this->meta['description'] ?? '';
+        // The OptSchema::merge() function may create an array of strings
+        // if a "main"/"global" description is supplied as well as a description
+        // for individual commands. If this happens we return the last
+        // of the descriptions.
+        return is_array($description) ? $description[count($description)-1] : $description;
     }
 
     /**
