@@ -18,7 +18,7 @@ class CommandSchema {
     /**
      * @var OptSchema[]
      */
-    private $opts;
+    private array $opts;
 
     /**
      * CommandSchema constructor.
@@ -41,7 +41,8 @@ class CommandSchema {
      * @return string
      */
     public function getDescription(): string {
-        return $this->meta['description'] ?? '';
+        $description = $this->meta['description'] ?? '';
+        return is_array($description) ? end($description) : $description;
     }
 
     /**
@@ -58,7 +59,7 @@ class CommandSchema {
      *
      * @return bool
      */
-    public function hasArgs() {
+    public function hasArgs(): bool {
         return !empty($this->meta[Cli::ARGS]);
     }
 
@@ -105,7 +106,7 @@ class CommandSchema {
      *
      * @param CommandSchema $schema
      */
-    public function mergeSchema(CommandSchema $schema) {
+    public function mergeSchema(CommandSchema $schema): void {
         $this->mergeMetaArray($schema->getMetaArray());
 
         /**
@@ -127,7 +128,7 @@ class CommandSchema {
      * @param OptSchema $opt
      * @return $this
      */
-    public function addOpt(OptSchema $opt) {
+    public function addOpt(OptSchema $opt): static {
         $this->opts[$opt->getName()] = $opt;
         return $this;
     }

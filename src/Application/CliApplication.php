@@ -22,6 +22,7 @@ use Psr\Log\NullLogger;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionNamedType;
 use ReflectionParameter;
 
 /**
@@ -56,6 +57,7 @@ class CliApplication extends Cli {
      * CliApplication constructor.
      */
     public function __construct() {
+        parent::__construct();
         $this->configureCli();
     }
 
@@ -114,7 +116,7 @@ class CliApplication extends Cli {
             $r = $this->dispatch($action);
         } catch (Exception $ex) {
             /* @var LoggerInterface $log */
-            $log = $this->container->get(LoggerInterface::class);
+            $log = $this->getContainer()->get(LoggerInterface::class);
             $log->error($ex->getMessage());
             $r = $ex->getCode();
         }
@@ -141,7 +143,7 @@ class CliApplication extends Cli {
      * @return mixed Returns the result of the dispatched method.
      * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
      */
-    final public function dispatch(Args $args) {
+    final public function dispatch(Args $args): void {
         $argsBak = $this->getContainer()->hasInstance(Args::class) ? $this->getContainer()->get(Args::class) : null;
         try {
             // Set the args in the container so they can be injected into classes.
@@ -149,8 +151,7 @@ class CliApplication extends Cli {
 
             $schema = $this->getSchema($args->getCommand());
 
-            $result = $this->dispatchInternal($args, $schema, true);
-            return $result;
+            $this->dispatchInternal($args, $schema);
         } finally {
             $this->getContainer()->setInstance(Args::class, $argsBak);
         }
@@ -170,7 +171,7 @@ class CliApplication extends Cli {
      * @param CommandSchema $schema
      * @param bool $throw
      */
-    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true) {
+    protected function dispatchInternal(Args $args, CommandSchema $schema, bool $throw = true): void {
         $action = $schema->getMeta(self::META_ACTION);
         if (is_string($action) && preg_match('`^([\a-z0-9_]+)::([a-z0-9_]+)$`i', $action, $m)) {
             /** @psalm-var class-string $className */
@@ -205,7 +206,7 @@ class CliApplication extends Cli {
                 }
             }
 
-            $result = $this->getContainer()->call([$obj, $methodName], $optParams);
+            $this->getContainer()->call([$obj, $methodName], $optParams);
         } elseif ($throw) {
             throw new InvalidArgumentException("Invalid action: " . $action, 400);
         }
@@ -468,7 +469,7 @@ class CliApplication extends Cli {
             if (null === $t = $param->getType()) {
                 $type = 'string';
             } else {
-                $type = $t instanceof \ReflectionNamedType ? $t->getName() : (string)$t;
+                $type = $t instanceof ReflectionNamedType ? $t->getName() : (string)$t;
             }
 
             if (!empty($method->getDocComment())) {
@@ -527,11 +528,9 @@ class CliApplication extends Cli {
 
         if ($type === null) {
             return '';
-        } elseif (!$type->isBuiltin()) {
-            return null;
         } else {
             $type = $param->getType();
-            $t = $type instanceof \ReflectionNamedType ? $type->getName() : (string)$type;
+            $t = $type instanceof ReflectionNamedType ? $type->getName() : (string)$type;
             if (in_array($t, self::ALLOWED_TYPES)) {
                 $t = ['int' => 'integer', 'str' => 'string', 'bool' => 'boolean'][$t] ?? $t;
                 return $t;
@@ -546,7 +545,7 @@ class CliApplication extends Cli {
      * @param ReflectionFunctionAbstract $method
      * @param array $options
      */
-    private function addParams(ReflectionFunctionAbstract $method, array $options = []) {
+    private function addParams(ReflectionFunctionAbstract $method, array $options = []): void {
         $options += [
             self::OPT_PREFIX => '',
         ];
@@ -585,7 +584,9 @@ class CliApplication extends Cli {
         $docs = [];
         foreach ($paramTags as $tag) {
             /** @var Param $tag */
-            $docs[$tag->getVariableName()] = $tag;
+            if ($tag->getVariableName() !== null) {
+                $docs[$tag->getVariableName()] = $tag;
+            }
         }
 
         $result = [];
@@ -636,7 +637,7 @@ class CliApplication extends Cli {
     final protected function setterFilter(ReflectionMethod $method): bool {
         $name = $method->getName();
         if (strlen($name) <= 3 ||
-            substr($name, 0, 3) !== 'set' ||
+            !str_starts_with($name, 'set') ||
             strcasecmp($name, 'setup') === 0 ||
             $method->getNumberOfParameters() !== 1
         ) {

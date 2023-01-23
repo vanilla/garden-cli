@@ -11,7 +11,7 @@ namespace Garden\Cli\Application;
  * A utility data object for converting identifiers between different casing schemes.
  */
 class Identifier {
-    private $parts = [];
+    private array $parts = [];
 
     /**
      * Identifier constructor.
@@ -23,7 +23,7 @@ class Identifier {
     }
 
     /**
-     * Get the words in the identifier.
+     * Get the words in the Identifier.
      *
      * @return string[]
      */
@@ -32,19 +32,19 @@ class Identifier {
     }
 
     /**
-     * Create an identifier from a camelCase name.
+     * Create an Identifier from a camelCase name.
      *
      * @param string $name
      * @return Identifier
      */
-    public static function fromCamel(string $name) {
+    public static function fromCamel(string $name): Identifier {
         $parts = preg_split('`(?<=[a-z])(?=[A-Z0-9])`x', $name);
         $parts = array_map('strtolower', $parts);
         return new self(...$parts);
     }
 
     /**
-     * Convert this identifier to camelCase.
+     * Convert this Identifier to camelCase.
      *
      * @return string
      */
@@ -54,17 +54,17 @@ class Identifier {
     }
 
     /**
-     * Create an identifier from a PascalCase string.
+     * Create an Identifier from a PascalCase string.
      *
      * @param string $name
      * @return Identifier
      */
-    public static function fromPascal(string $name) {
+    public static function fromPascal(string $name): Identifier {
         return static::fromCamel($name);
     }
 
     /**
-     * Convert this identifier to PascalCase.
+     * Convert this Identifier to PascalCase.
      *
      * @return string
      */
@@ -74,7 +74,7 @@ class Identifier {
     }
 
     /**
-     * Create an identifier from a snake_case string.
+     * Create an Identifier from a snake_case string.
      *
      * @param string $name
      * @return Identifier
@@ -86,7 +86,7 @@ class Identifier {
     }
 
     /**
-     * Convert this identifier to snake_case.
+     * Convert this Identifier to snake_case.
      *
      * @return string
      */
@@ -95,7 +95,7 @@ class Identifier {
     }
 
     /**
-     * Create an identifer from a kebab-case string.
+     * Create an Identifer from a kebab-case string.
      *
      * @param string $name
      * @return Identifier
@@ -107,7 +107,7 @@ class Identifier {
     }
 
     /**
-     * Convert this identifier to kebab-case.
+     * Convert this Identifier to kebab-case.
      *
      * @return string
      */
@@ -116,7 +116,7 @@ class Identifier {
     }
 
     /**
-     * Create an identifier from a string that is one of the cases supported in this class.
+     * Create an Identifier from a string that is one of the cases supported in this class.
      *
      * @param string $name A camelCase, PascalCase, snake_case, or kebab-case string.
      * @return Identifier
@@ -132,7 +132,7 @@ class Identifier {
     }
 
     /**
-     * Create an identifier from a class, using it's basename.
+     * Create an Identifier from a class, using it's basename.
      *
      * @param string|object $class A class name or instance.
      * @return Identifier

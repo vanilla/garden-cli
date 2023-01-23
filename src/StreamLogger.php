@@ -11,6 +11,7 @@ use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
+use Throwable;
 
 /**
  * A logger that logs to a stream.
@@ -21,7 +22,7 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var string The line format.
      */
-    private $lineFormat = '[{time}] {message}';
+    private string $lineFormat = '[{time}] {message}';
 
     /**
      * @var callable The level formatting function.
@@ -41,7 +42,7 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var bool Whether or not to format output.
      */
-    private $colorizeOutput;
+    private bool $colorizeOutput;
 
     /**
      * @var resource The output file handle.
@@ -51,19 +52,19 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var bool Whether or not the console is on a new line.
      */
-    private $inBegin;
+    private bool $inBegin;
 
     /**
      * @var bool Whether or not to show durations for tasks.
      */
-    private $showDurations = true;
+    private bool $showDurations = true;
 
     /**
      * @var bool Whether or not to buffer begin logs.
      */
-    private $bufferBegins = true;
+    private bool $bufferBegins = true;
 
-    private $wraps = [
+    private array $wraps = [
         LogLevel::DEBUG => ["\033[0;37m", "\033[0m"],
         LogLevel::INFO => ['', ''],
         LogLevel::NOTICE => ["\033[1m", "\033[0m"],
@@ -88,14 +89,14 @@ class StreamLogger implements LoggerInterface {
         if (is_string($out)) {
             try {
                 $this->defaultStream = $out = fopen($out, 'a+');
-            } catch (\Throwable $ex) {
-                throw new \InvalidArgumentException($ex->getMessage(), 500);
+            } catch (Throwable $ex) {
+                throw new InvalidArgumentException($ex->getMessage(), 500);
             }
             if (!is_resource($out)) {
-                throw new \InvalidArgumentException("The supplied path could not be opened: $out", 500);
+                throw new InvalidArgumentException("The supplied path could not be opened: $out", 500);
             }
         } elseif (!is_resource($out)) {
-            throw new \InvalidArgumentException('The value supplied for $out must be either a stream resource or a path.', 500);
+            throw new InvalidArgumentException('The value supplied for $out must be either a stream resource or a path.', 500);
         }
 
         $this->outputHandle = $out;

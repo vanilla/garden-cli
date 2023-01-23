@@ -20,32 +20,32 @@ class OptSchema implements JsonSerializable {
     /**
      * @var string
      */
-    private $name;
+    private string $name;
 
     /**
      * @var string
      */
-    private $description;
+    private string $description;
 
     /**
      * @var string
      */
-    private $short;
+    private string $short;
 
     /**
      * @var string
      */
-    private $type;
+    private string $type;
 
     /**
      * @var bool
      */
-    private $array;
+    private bool $array;
 
     /**
      * @var bool
      */
-    private $required;
+    private bool $required;
 
     /**
      * OptSchema constructor.
@@ -82,7 +82,7 @@ class OptSchema implements JsonSerializable {
      * @param string $name
      * @return $this
      */
-    public function setName(string $name) {
+    public function setName(string $name): static {
         $this->name = $name;
         return $this;
     }
@@ -143,29 +143,19 @@ class OptSchema implements JsonSerializable {
      * @return $this
      */
     public function setType(string $type) {
-        if (substr($type, -2) === '[]') {
+        if (str_ends_with($type, '[]')) {
             $this->setArray(true);
             $type = substr($type, 0, -2);
         } else {
             $this->setArray(false);
         }
 
-        switch ($type) {
-            case 'str':
-            case Cli::TYPE_STRING:
-                $this->type = Cli::TYPE_STRING;
-                break;
-            case 'bool':
-            case Cli::TYPE_BOOLEAN:
-                $this->type = Cli::TYPE_BOOLEAN;
-                break;
-            case 'int':
-            case Cli::TYPE_INTEGER:
-                $this->type = Cli::TYPE_INTEGER;
-                break;
-            default:
-                throw new InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
-        }
+        $this->type = match ($type) {
+            'str', Cli::TYPE_STRING => Cli::TYPE_STRING,
+            'bool', Cli::TYPE_BOOLEAN => Cli::TYPE_BOOLEAN,
+            'int', Cli::TYPE_INTEGER => Cli::TYPE_INTEGER,
+            default => throw new InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422),
+        };
 
         return $this;
     }
@@ -185,7 +175,7 @@ class OptSchema implements JsonSerializable {
      * @param bool $isArray
      * @return $this
      */
-    public function setArray(bool $isArray) {
+    public function setArray(bool $isArray): static {
         $this->array = $isArray;
         return $this;
     }
@@ -205,7 +195,7 @@ class OptSchema implements JsonSerializable {
      * @param bool $required
      * @return $this
      */
-    public function setRequired(bool $required) {
+    public function setRequired(bool $required): static {
         $this->required = $required;
         return $this;
     }

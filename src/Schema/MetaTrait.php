@@ -18,7 +18,7 @@ trait MetaTrait {
     /**
      * @var array
      */
-    private $meta = [];
+    private array $meta = [];
 
     /**
      * Get a single item from the meta array.
@@ -28,7 +28,7 @@ trait MetaTrait {
      * @return mixed Returns the meta value.
      */
     public function getMeta($name, $default = null) {
-        return isset($this->meta[$name]) ? $this->meta[$name] : $default;
+        return $this->meta[$name] ?? $default;
     }
 
     /**
@@ -38,7 +38,7 @@ trait MetaTrait {
      * @param mixed $value The new value.
      * @return $this
      */
-    public function setMeta($name, $value) {
+    public function setMeta(string $name, mixed $value): static {
         $this->meta[$name] = $value;
         return $this;
     }
@@ -56,7 +56,7 @@ trait MetaTrait {
      * @param mixed[] $value Either a single value or a key then a value to set.
      * @return $this
      */
-    public function addMeta($name, ...$value) {
+    public function addMeta(string $name, ...$value): static {
         if (isset($this->meta[$name]) && !is_array($this->meta[$name])) {
             $this->meta[$name] = [$this->meta[$name]];
         }
@@ -92,7 +92,7 @@ trait MetaTrait {
      *
      * @return array Returns the meta.
      */
-    public function getMetaArray() {
+    public function getMetaArray(): array {
         return $this->meta;
     }
 
@@ -102,7 +102,7 @@ trait MetaTrait {
      * @param array $meta The new meta array.
      * @return $this
      */
-    public function setMetaArray(array $meta) {
+    public function setMetaArray(array $meta): static {
         $this->meta = $meta;
         return $this;
     }
@@ -113,7 +113,7 @@ trait MetaTrait {
      * @param array $meta The meta array to merge.
      * @return $this
      */
-    public function mergeMetaArray(array $meta) {
+    public function mergeMetaArray(array $meta): static {
         $this->meta = array_merge_recursive($this->meta, $meta);
         return $this;
     }
