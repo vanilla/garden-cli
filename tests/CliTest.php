@@ -336,21 +336,6 @@ EOT;
     }
 
     /**
-     * Test that the backwards compatibility of the format property works.
-     */
-    public function testFormatCompat() {
-        $cli = new Cli();
-
-        $format = @$cli->format;
-        $format2 = !$format;
-        @$cli->format = $format2;
-        $this->assertSame($format2, $cli->getFormatOutput());
-
-        $this->expectDeprecation();
-        $format = $cli->format;
-    }
-
-    /**
      * Test array opts.
      *
      * @param array $argv The input command.

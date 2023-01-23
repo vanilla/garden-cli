@@ -102,7 +102,7 @@ class OptSchema implements JsonSerializable {
      * @param string $description
      * @return $this
      */
-    public function setDescription(string $description) {
+    public function setDescription(string $description): static {
         $this->description = $description;
         return $this;
     }
@@ -122,7 +122,7 @@ class OptSchema implements JsonSerializable {
      * @param string $short
      * @return $this
      */
-    public function setShortName(string $short) {
+    public function setShortName(string $short): static {
         $this->short = $short;
         return $this;
     }
@@ -142,7 +142,7 @@ class OptSchema implements JsonSerializable {
      * @param string $type
      * @return $this
      */
-    public function setType(string $type) {
+    public function setType(string $type): static {
         if (str_ends_with($type, '[]')) {
             $this->setArray(true);
             $type = substr($type, 0, -2);
@@ -218,7 +218,7 @@ class OptSchema implements JsonSerializable {
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize() {
+    public function jsonSerialize(): array {
         $vars = get_object_vars($this);
         return $vars;
     }

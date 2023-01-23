@@ -25,7 +25,7 @@ class TestLogger implements LoggerInterface {
      *
      * @return void
      */
-    public function log($level, $message, array $context = array()) {
+    public function log($level, $message, array $context = array()): void {
         $this->log[] = [$level, $message, $context];
     }
 }

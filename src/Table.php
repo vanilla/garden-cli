@@ -16,37 +16,37 @@ class Table {
     /**
      * @var array An array of column widths.
      */
-    protected $columnWidths;
+    protected array $columnWidths;
 
     /**
      * @var bool Whether or not to format the console commands.
      */
-    protected $formatOutput = true;
+    protected bool $formatOutput = true;
 
     /**
      * @var array An array of the row data.
      */
-    protected $rows;
+    protected array $rows;
 
     /**
      * @var array|null A pointer to the current row.
      */
-    protected $currentRow;
+    protected ?array $currentRow;
 
     /**
      * @var int The maximum width of the table.
      */
-    public $maxWidth = 80;
+    public int $maxWidth = 80;
 
     /**
      * @var int The left padding on each cell.
      */
-    public $padding = 3;
+    public int $padding = 3;
 
     /**
      * @var int The left indent on the table.
      */
-    public $indent = 2;
+    public int $indent = 2;
 
 
     /// Methods ///
@@ -65,7 +65,7 @@ class Table {
      * @param string $name Must be **format**.
      * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
      */
-    public function __get($name) {
+    public function __get(string $name) {
         if ($name === 'format') {
             trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
             return $this->getFormatOutput();
@@ -79,7 +79,7 @@ class Table {
      * @param string $name Must be **format**.
      * @param bool $value One of **true** or **false**.
      */
-    public function __set($name, $value) {
+    public function __set(string $name, bool $value) {
         if ($name === 'format') {
             trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
             $this->setFormatOutput($value);
@@ -102,7 +102,7 @@ class Table {
      *
      * @return self
      */
-    public function setFormatOutput($formatOutput): self {
+    public function setFormatOutput(bool $formatOutput): self {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -114,7 +114,7 @@ class Table {
      * @param array $wrap A two element array used to wrap the text in the cell.
      * @return $this
      */
-    protected function addCell($text, $wrap = ['', '']) {
+    protected function addCell(string $text, array $wrap = ['', '']): static {
         if ($this->currentRow === null) {
             $this->row();
         }
@@ -132,7 +132,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function cell($text) {
+    public function cell(string $text): static {
         return $this->addCell($text);
     }
 
@@ -142,7 +142,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function bold($text) {
+    public function bold(string $text): static {
         return $this->addCell($text, ["\033[1m", "\033[0m"]);
     }
 
@@ -152,7 +152,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function red($text) {
+    public function red(string $text): static {
         return $this->addCell($text, ["\033[1;31m", "\033[0m"]);
     }
 
@@ -162,7 +162,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function green($text) {
+    public function green(string $text): static {
         return $this->addCell($text, ["\033[1;32m", "\033[0m"]);
     }
 
@@ -172,7 +172,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function blue($text) {
+    public function blue(string $text): static {
         return $this->addCell($text, ["\033[1;34m", "\033[0m"]);
     }
 
@@ -182,7 +182,7 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function purple($text) {
+    public function purple(string $text): static {
         return $this->addCell($text, ["\033[0;35m", "\033[0m"]);
     }
 
@@ -202,7 +202,7 @@ class Table {
      *
      * @return $this
      */
-    public function row() {
+    public function row(): static {
         $this->rows[] = [];
         $this->currentRow =& $this->rows[count($this->rows) - 1];
         return $this;

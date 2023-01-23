@@ -68,33 +68,6 @@ class Cli {
     }
 
     /**
-     * Backwards compatibility for the **format** property.
-     *
-     * @param string $name Must be **format**.
-     * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
-     */
-    public function __get($name) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
-            return $this->getFormatOutput();
-        }
-        return null;
-    }
-
-    /**
-     * Backwards compatibility for the **format** property.
-     *
-     * @param string $name Must be **format**.
-     * @param bool $value One of **true** or **false**.
-     */
-    public function __set($name, $value) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
-            $this->setFormatOutput($value);
-        }
-    }
-
-    /**
      * Get whether or not output should be formatted.
      *
      * @return boolean Returns **true** if output should be formatted or **false** otherwise.

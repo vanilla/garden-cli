@@ -27,7 +27,7 @@ trait MetaTrait {
      * @param mixed $default The default value if no item at the key exists.
      * @return mixed Returns the meta value.
      */
-    public function getMeta($name, $default = null) {
+    public function getMeta($name, $default = null): mixed {
         return $this->meta[$name] ?? $default;
     }
 
