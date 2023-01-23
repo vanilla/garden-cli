@@ -24,7 +24,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log = new StreamLogger('php://output');
         $this->log
             ->setShowDurations(false)
-            ->setTimeFormat('d');
+            ->setTimeFormat('k');
     }
 
     /**
@@ -58,7 +58,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->setEol("\r\n");
         $this->log->info('foo');
 
-        $this->expectOutputString("[d] foo\r\n");
+        $this->expectOutputString("[k] foo\r\n");
     }
 
     /**
@@ -68,7 +68,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('begin', [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info('end', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] begin end\n");
+        $this->expectOutputString("[k] begin end\n");
     }
 
     /**
@@ -79,7 +79,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('begin', [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info('end', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] begin\n[d] end\n");
+        $this->expectOutputString("[k] begin\n[k] end\n");
     }
 
     /**
@@ -90,7 +90,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('log');
         $this->log->info('end', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] begin\n[d] log\n[d] end\n");
+        $this->expectOutputString("[k] begin\n[k] log\n[k] end\n");
     }
 
     /**
@@ -102,7 +102,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('end1', [TaskLogger::FIELD_END => true]);
         $this->log->info('end2', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] begin1\n[d] begin2 end1\n[d] end2\n");
+        $this->expectOutputString("[k] begin1\n[k] begin2 end1\n[k] end2\n");
     }
 
     /**
@@ -112,7 +112,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('log');
         $this->log->info('end', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] log\n[d] end\n");
+        $this->expectOutputString("[k] log\n[k] end\n");
     }
 
     /**
@@ -122,7 +122,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('a', [TaskLogger::FIELD_INDENT => 1]);
         $this->log->info('b', [TaskLogger::FIELD_INDENT => 2]);
 
-        $this->expectOutputString("[d] - a\n[d]   - b\n");
+        $this->expectOutputString("[k] - a\n[k]   - b\n");
     }
 
     /**
@@ -133,7 +133,7 @@ class StreamLoggerTest extends AbstractCliTest {
             ->setShowDurations(true)
             ->info('a', [TaskLogger::FIELD_DURATION => 1]);
 
-        $this->expectOutputString("[d] a 1s\n");
+        $this->expectOutputString("[k] a 1s\n");
     }
 
     /**
@@ -141,7 +141,7 @@ class StreamLoggerTest extends AbstractCliTest {
      */
     public function testTimeField() {
         $this->log
-            ->setTimeFormat('%F %T')
+            ->setTimeFormat('Y-m-d H:i:s')
             ->info('foo', [TaskLogger::FIELD_TIME => strtotime('jan 31 2001 3pm')]);
 
 
@@ -154,7 +154,7 @@ class StreamLoggerTest extends AbstractCliTest {
     public function testNewlineExpansion() {
         $this->log->info("a\nb\nc", [TaskLogger::FIELD_INDENT => 1]);
 
-        $this->expectOutputString("[d] - a\n[d] - b\n[d] - c\n");
+        $this->expectOutputString("[k] - a\n[k] - b\n[k] - c\n");
     }
 
     /**
@@ -162,7 +162,7 @@ class StreamLoggerTest extends AbstractCliTest {
      */
     public function testNewlineExpansionNormalization() {
         $this->log->info("a\r\nb");
-        $this->expectOutputString("[d] a\n[d] b\n");
+        $this->expectOutputString("[k] a\n[k] b\n");
     }
 
     /**
@@ -172,7 +172,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info("a\nb", [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info('c', [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] a\n[d] b c\n");
+        $this->expectOutputString("[k] a\n[k] b c\n");
     }
 
     /**
@@ -182,7 +182,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info("a", [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info("b\nc", [TaskLogger::FIELD_END => true]);
 
-        $this->expectOutputString("[d] a\n[d] b\n[d] c\n");
+        $this->expectOutputString("[k] a\n[k] b\n[k] c\n");
     }
 
     /**
@@ -208,12 +208,12 @@ class StreamLoggerTest extends AbstractCliTest {
         $path = __DIR__.'/testCustomFile.log';
 
         $log = new StreamLogger($path);
-        $log->setTimeFormat('d')
+        $log->setTimeFormat('k')
             ->info('a');
         unset($log);
 
         $str = file_get_contents($path);
-        $this->assertEquals("[d] a\n", $str);
+        $this->assertEquals("[k] a\n", $str);
         unlink($path);
     }
 
@@ -239,7 +239,7 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->setColorizeOutput(true);
         $this->log->debug('debug');
 
-        $this->expectOutputString("\033[0;37m[d] debug\033[0m\n");
+        $this->expectOutputString("\033[0;37m[k] debug\033[0m\n");
     }
 
     /**
@@ -275,6 +275,6 @@ class StreamLoggerTest extends AbstractCliTest {
         $this->log->info('a', [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info('', [TaskLogger::FIELD_END => true, TaskLogger::FIELD_DURATION => 1]);
 
-        $this->expectOutputString("[d] a 1s\n");
+        $this->expectOutputString("[k] a 1s\n");
     }
 }
