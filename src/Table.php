@@ -32,7 +32,7 @@ class Table
     /**
      * @var array|null A pointer to the current row.
      */
-    protected ?array $currentRow;
+    protected ?array $currentRow = null;
 
     /**
      * @var int The maximum width of the table.
@@ -131,13 +131,15 @@ class Table
             $this->row();
         }
 
-        $i = count($this->currentRow);
-        $this->columnWidths[$i] = max(
-            strlen($text),
-            Cli::val($i, $this->columnWidths, 0)
-        ); // max column width
+        if (isset($this->currentRow)) {
+            $i = count($this->currentRow);
+            $this->columnWidths[$i] = max(
+                strlen($text),
+                Cli::val($i, $this->columnWidths, 0)
+            ); // max column width
 
-        $this->currentRow[$i] = [$text, $wrap];
+            $this->currentRow[$i] = [$text, $wrap];
+        }
         return $this;
     }
 

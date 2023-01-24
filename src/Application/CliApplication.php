@@ -116,10 +116,11 @@ class CliApplication extends Cli
     public function main(array $argv): int
     {
         $args = $this->parse($argv);
+        $r = 0;
 
         try {
             $action = $this->route($args);
-            $r = $this->dispatch($action);
+            $this->dispatch($action);
         } catch (Exception $ex) {
             /* @var LoggerInterface $log */
             $log = $this->getContainer()->get(LoggerInterface::class);
@@ -146,7 +147,6 @@ class CliApplication extends Cli
      * Dispatch a routed set of args to their action and return the result.
      *
      * @param Args $args The args to dispatch.
-     * @return mixed Returns the result of the dispatched method.
      * @throws InvalidArgumentException Throws an exception if the the command can't be dispatched to.
      */
     final public function dispatch(Args $args): void

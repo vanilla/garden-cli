@@ -372,7 +372,7 @@ class Cli
      * @return Args Returns the raw parsed arguments.
      * @throws Exception Throws an exception when {@see $argv} isn't an array.
      */
-    protected function parseRaw(?array $argv = null): args
+    protected function parseRaw(?array $argv = null): Args
     {
         if ($argv === null) {
             $argv = $GLOBALS["argv"];
