@@ -11,11 +11,12 @@ use Garden\Cli\TaskLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
-class TaskLoggerInterfaceTest extends StreamLoggerInterfaceTest {
-
+class TaskLoggerInterfaceTest extends StreamLoggerInterfaceTest
+{
     protected $taskLogger;
 
-    public function setUp(): void {
+    public function setUp(): void
+    {
         parent::setUp();
 
         $this->taskLogger = new TaskLogger($this->logger);
@@ -25,7 +26,8 @@ class TaskLoggerInterfaceTest extends StreamLoggerInterfaceTest {
     /**
      * @return LoggerInterface
      */
-    public function getLogger() {
+    public function getLogger()
+    {
         return $this->taskLogger;
     }
 }

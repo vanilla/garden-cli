@@ -10,11 +10,11 @@ namespace Garden\Cli\Tests\Fixtures;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 
-class TestLogger implements LoggerInterface {
+class TestLogger implements LoggerInterface
+{
     use LoggerTrait;
 
     public $log = [];
-
 
     /**
      * Logs with an arbitrary level.
@@ -25,7 +25,8 @@ class TestLogger implements LoggerInterface {
      *
      * @return void
      */
-    public function log($level, $message, array $context = array()): void {
+    public function log($level, $message, array $context = []): void
+    {
         $this->log[] = [$level, $message, $context];
     }
 }

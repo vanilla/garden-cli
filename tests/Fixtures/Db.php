@@ -7,8 +7,8 @@
 
 namespace Garden\Cli\Tests\Fixtures;
 
-
-class Db {
+class Db
+{
     /**
      * @var mixed|string
      */
@@ -18,20 +18,24 @@ class Db {
      */
     public $user;
 
-    public function __construct($name = '', $user = '') {
+    public function __construct($name = "", $user = "")
+    {
         $this->name = $name;
         $this->user = $user;
     }
 
-    public function setDbname(string $name) {
+    public function setDbname(string $name)
+    {
         $this->name = $name;
     }
 
-    public function setUser(string $user) {
+    public function setUser(string $user)
+    {
         $this->user = $user;
     }
 
-    public static function create($name, $user) {
+    public static function create($name, $user)
+    {
         return new Db($name, $user);
     }
 }

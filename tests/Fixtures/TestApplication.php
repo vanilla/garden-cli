@@ -7,28 +7,34 @@
 
 namespace Garden\Cli\Tests\Fixtures;
 
-
 use Garden\Cli\Application\CliApplication;
 use Garden\Container\Container;
 use Garden\Container\Reference;
 
-class TestApplication extends CliApplication {
-    protected function configureContainer(Container $container): void {
+class TestApplication extends CliApplication
+{
+    protected function configureContainer(Container $container): void
+    {
         parent::configureContainer($container);
 
         $container
             ->rule(TestCommands::class)
             ->setShared(true)
-            ->addCall('setDb', [new Reference(Db::class)]);
+            ->addCall("setDb", [new Reference(Db::class)]);
     }
 
-    protected function configureCli(): void {
+    protected function configureCli(): void
+    {
         parent::configureCli();
 
-        $this->addMethod(TestCommands::class, 'noParams', [self::OPT_SETTERS => true]);
-        $this->addMethod(TestCommands::class, 'DecodeStuff');
-        $this->addMethod(TestCommands::class, 'format', [self::OPT_SETTERS => true]);
+        $this->addMethod(TestCommands::class, "noParams", [
+            self::OPT_SETTERS => true,
+        ]);
+        $this->addMethod(TestCommands::class, "DecodeStuff");
+        $this->addMethod(TestCommands::class, "format", [
+            self::OPT_SETTERS => true,
+        ]);
 
-        $this->addCommandClass(TestCommands::class, 'noParams');
+        $this->addCommandClass(TestCommands::class, "noParams");
     }
 }

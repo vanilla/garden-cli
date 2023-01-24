@@ -10,7 +10,8 @@ namespace Garden\Cli\Application;
 /**
  * A utility data object for converting identifiers between different casing schemes.
  */
-class Identifier {
+class Identifier
+{
     private array $parts = [];
 
     /**
@@ -18,7 +19,8 @@ class Identifier {
      *
      * @param string[] $parts The words in the identifier.
      */
-    public function __construct(string ...$parts) {
+    public function __construct(string ...$parts)
+    {
         $this->parts = $parts;
     }
 
@@ -27,7 +29,8 @@ class Identifier {
      *
      * @return string[]
      */
-    public function getParts(): array {
+    public function getParts(): array
+    {
         return $this->parts;
     }
 
@@ -37,9 +40,10 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromCamel(string $name): Identifier {
-        $parts = preg_split('`(?<=[a-z])(?=[A-Z0-9])`x', $name);
-        $parts = array_map('strtolower', $parts);
+    public static function fromCamel(string $name): Identifier
+    {
+        $parts = preg_split("`(?<=[a-z])(?=[A-Z0-9])`x", $name);
+        $parts = array_map("strtolower", $parts);
         return new self(...$parts);
     }
 
@@ -48,9 +52,10 @@ class Identifier {
      *
      * @return string
      */
-    public function toCamel(): string {
-        $parts = array_map('ucfirst', $this->parts);
-        return lcfirst(implode('', $parts));
+    public function toCamel(): string
+    {
+        $parts = array_map("ucfirst", $this->parts);
+        return lcfirst(implode("", $parts));
     }
 
     /**
@@ -59,7 +64,8 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromPascal(string $name): Identifier {
+    public static function fromPascal(string $name): Identifier
+    {
         return static::fromCamel($name);
     }
 
@@ -68,9 +74,10 @@ class Identifier {
      *
      * @return string
      */
-    public function toPascal(): string {
-        $parts = array_map('ucfirst', $this->parts);
-        return implode('', $parts);
+    public function toPascal(): string
+    {
+        $parts = array_map("ucfirst", $this->parts);
+        return implode("", $parts);
     }
 
     /**
@@ -79,9 +86,10 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromSnake(string $name): Identifier {
-        $parts = explode('_', $name);
-        $parts = array_map('strtolower', $parts);
+    public static function fromSnake(string $name): Identifier
+    {
+        $parts = explode("_", $name);
+        $parts = array_map("strtolower", $parts);
         return new self(...$parts);
     }
 
@@ -90,8 +98,9 @@ class Identifier {
      *
      * @return string
      */
-    public function toSnake(): string {
-        return implode('_', $this->parts);
+    public function toSnake(): string
+    {
+        return implode("_", $this->parts);
     }
 
     /**
@@ -100,9 +109,10 @@ class Identifier {
      * @param string $name
      * @return Identifier
      */
-    public static function fromKebab(string $name): Identifier {
-        $parts = explode('-', $name);
-        $parts = array_map('strtolower', $parts);
+    public static function fromKebab(string $name): Identifier
+    {
+        $parts = explode("-", $name);
+        $parts = array_map("strtolower", $parts);
         return new self(...$parts);
     }
 
@@ -111,8 +121,9 @@ class Identifier {
      *
      * @return string
      */
-    public function toKebab(): string {
-        return implode('-', $this->parts);
+    public function toKebab(): string
+    {
+        return implode("-", $this->parts);
     }
 
     /**
@@ -121,10 +132,11 @@ class Identifier {
      * @param string $name A camelCase, PascalCase, snake_case, or kebab-case string.
      * @return Identifier
      */
-    public static function fromMixed(string $name): Identifier {
-        if (strpos($name, '_')) {
+    public static function fromMixed(string $name): Identifier
+    {
+        if (strpos($name, "_")) {
             return static::fromSnake($name);
-        } elseif (strpos($name, '-')) {
+        } elseif (strpos($name, "-")) {
             return static::fromKebab($name);
         } else {
             return static::fromCamel($name);
@@ -137,14 +149,15 @@ class Identifier {
      * @param string|object $class A class name or instance.
      * @return Identifier
      */
-    public static function fromClassBasename($class): Identifier {
+    public static function fromClassBasename($class): Identifier
+    {
         if (is_object($class)) {
             $class = get_class($class);
         }
 
-        if (($i = strrpos($class, '\\')) !== false) {
+        if (($i = strrpos($class, "\\")) !== false) {
             $basename = substr($class, $i + 1);
-        } elseif (($i = strrpos($class, '_')) !== false) {
+        } elseif (($i = strrpos($class, "_")) !== false) {
             $basename = substr($class, $i + 1);
         } else {
             $basename = $class;

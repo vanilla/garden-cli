@@ -25,13 +25,13 @@ PHP's `getopt()` provides little functionality and is prone to failure where one
 
 ### Installation
 
-*Garden CLI requires PHP 7.0 or higher*
+*Garden CLI requires PHP 8.1 or higher*
 
 Garden CLI is [PSR-4](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md) compliant and can be installed using [composer](//getcomposer.org). Just add `vanilla/garden-cli` to your composer.json.
 
 ```json
 "require": {
-    "vanilla/garden-cli": "~2.0"
+    "vanilla/garden-cli": "~3.0"
 }
 ```
 
@@ -372,13 +372,13 @@ $log->end('done.');
 
 If you create and use a `TaskLogger` object it will output nicely to the console out of the box. Under the hood it is using a `StreamLogger` object to handle the formatting of the tasks to an output stream, in this case stdout. You can replace or modify the `StreamLogger` if you want to control logging in a more granular level. Here are some options.
 
-| Method                | Default   | Notes                                                                                                                  |
-| ------                | -------   |------------------------------------------------------------------------------------------------------------------------|
-| `setLineFormat`       | `'[{time}] {message}'`    | Set the format of lines. Use the `{level}`, `{time}`, `{message}` strings to move the components around.               |
-| `setColorizeOutput`   | automatic | Whether or not to use console colors.                                                                                  |
+| Method                | Default   | Notes |
+| ------                | -------   | ----- |
+| `setLineFormat`       | `'[{time}] {message}'`    | Set the format of lines. Use the `{level}`, `{time}`, `{message}` strings to move the components around. |
+| `setColorizeOutput`   | automatic | Whether or not to use console colors. |
 | `setBufferBegins`     | `true`    | Attempt to put task begin/end messages on the same line. Turn this off if you plan on writing to the log concurrently. |
-| `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `date` string or a callback.                                                        |
-| `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant.                                                                        |
+| `setTimeFormat`       | `'%F %T'` | Set the time format. This can be a `strftime` string or a callback. |
+| `setLevelFormat`      | nothing   | Set a callback to format a `LogLevel` constant. |
 
 #### Example
 

@@ -11,7 +11,8 @@ use Garden\Cli\StreamLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\Test\LoggerInterfaceTest;
 
-class StreamLoggerInterfaceTest extends LoggerInterfaceTest {
+class StreamLoggerInterfaceTest extends LoggerInterfaceTest
+{
     /**
      * @var StreamLogger
      */
@@ -19,27 +20,29 @@ class StreamLoggerInterfaceTest extends LoggerInterfaceTest {
 
     protected $stream;
 
-    public function setUp(): void {
-        $this->stream = fopen('php://memory', 'w+');
+    public function setUp(): void
+    {
+        $this->stream = fopen("php://memory", "w+");
 
         $this->logger = new StreamLogger($this->stream);
         $this->logger
-            ->setLineFormat('{level} {message}')
+            ->setLineFormat("{level} {message}")
             ->setShowDurations(false);
 
         parent::setUp();
     }
 
-    public function tearDown(): void {
+    public function tearDown(): void
+    {
         parent::tearDown();
         fclose($this->stream);
     }
 
-
     /**
      * @return LoggerInterface
      */
-    public function getLogger() {
+    public function getLogger()
+    {
         return $this->logger;
     }
 
@@ -52,7 +55,8 @@ class StreamLoggerInterfaceTest extends LoggerInterfaceTest {
      *
      * @return string[]
      */
-    public function getLogs() {
+    public function getLogs()
+    {
         $pos = ftell($this->stream);
 
         rewind($this->stream);

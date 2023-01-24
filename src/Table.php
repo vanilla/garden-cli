@@ -10,7 +10,8 @@ namespace Garden\Cli;
 /**
  * Used to write a formatted table to the console.
  */
-class Table {
+class Table
+{
     /// Properties ///
 
     /**
@@ -48,13 +49,13 @@ class Table {
      */
     public int $indent = 2;
 
-
     /// Methods ///
 
     /**
      * Initialize an instance of the {@link Table} class.
      */
-    public function __construct() {
+    public function __construct()
+    {
         $this->formatOutput = Cli::guessFormatOutput();
         $this->reset();
     }
@@ -65,9 +66,13 @@ class Table {
      * @param string $name Must be **format**.
      * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
      */
-    public function __get(string $name) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
+    public function __get(string $name)
+    {
+        if ($name === "format") {
+            trigger_error(
+                "Cli->format is deprecated. Use Cli->getFormatOutput() instead.",
+                E_USER_DEPRECATED
+            );
             return $this->getFormatOutput();
         }
         return null;
@@ -79,9 +84,13 @@ class Table {
      * @param string $name Must be **format**.
      * @param bool $value One of **true** or **false**.
      */
-    public function __set(string $name, bool $value) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
+    public function __set(string $name, bool $value)
+    {
+        if ($name === "format") {
+            trigger_error(
+                "Cli->format is deprecated. Use Cli->setFormatOutput() instead.",
+                E_USER_DEPRECATED
+            );
             $this->setFormatOutput($value);
         }
     }
@@ -91,7 +100,8 @@ class Table {
      *
      * @return boolean Returns **true** if output should be formatted or **false** otherwise.
      */
-    public function getFormatOutput() {
+    public function getFormatOutput()
+    {
         return $this->formatOutput;
     }
 
@@ -102,7 +112,8 @@ class Table {
      *
      * @return self
      */
-    public function setFormatOutput(bool $formatOutput): self {
+    public function setFormatOutput(bool $formatOutput): self
+    {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -114,13 +125,17 @@ class Table {
      * @param array $wrap A two element array used to wrap the text in the cell.
      * @return $this
      */
-    protected function addCell(string $text, array $wrap = ['', '']): static {
+    protected function addCell(string $text, array $wrap = ["", ""]): static
+    {
         if ($this->currentRow === null) {
             $this->row();
         }
 
         $i = count($this->currentRow);
-        $this->columnWidths[$i] = max(strlen($text), Cli::val($i, $this->columnWidths, 0)); // max column width
+        $this->columnWidths[$i] = max(
+            strlen($text),
+            Cli::val($i, $this->columnWidths, 0)
+        ); // max column width
 
         $this->currentRow[$i] = [$text, $wrap];
         return $this;
@@ -132,7 +147,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function cell(string $text): static {
+    public function cell(string $text): static
+    {
         return $this->addCell($text);
     }
 
@@ -142,7 +158,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function bold(string $text): static {
+    public function bold(string $text): static
+    {
         return $this->addCell($text, ["\033[1m", "\033[0m"]);
     }
 
@@ -152,7 +169,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function red(string $text): static {
+    public function red(string $text): static
+    {
         return $this->addCell($text, ["\033[1;31m", "\033[0m"]);
     }
 
@@ -162,7 +180,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function green(string $text): static {
+    public function green(string $text): static
+    {
         return $this->addCell($text, ["\033[1;32m", "\033[0m"]);
     }
 
@@ -172,7 +191,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function blue(string $text): static {
+    public function blue(string $text): static
+    {
         return $this->addCell($text, ["\033[1;34m", "\033[0m"]);
     }
 
@@ -182,7 +202,8 @@ class Table {
      * @param string $text The text of the cell.
      * @return $this
      */
-    public function purple(string $text): static {
+    public function purple(string $text): static
+    {
         return $this->addCell($text, ["\033[0;35m", "\033[0m"]);
     }
 
@@ -191,7 +212,8 @@ class Table {
      *
      * @return void
      */
-    public function reset(): void {
+    public function reset(): void
+    {
         $this->columnWidths = [];
         $this->rows = [];
         $this->currentRow = null;
@@ -202,9 +224,10 @@ class Table {
      *
      * @return $this
      */
-    public function row(): static {
+    public function row(): static
+    {
         $this->rows[] = [];
-        $this->currentRow =& $this->rows[count($this->rows) - 1];
+        $this->currentRow = &$this->rows[count($this->rows) - 1];
         return $this;
     }
 
@@ -213,10 +236,14 @@ class Table {
      *
      * @return void
      */
-    public function write(): void {
+    public function write(): void
+    {
         // Determine the width of the last column.
         $columnWidths = array_sum($this->columnWidths);
-        $totalWidth = $this->indent + $columnWidths + $this->padding * (count($this->columnWidths) - 1);
+        $totalWidth =
+            $this->indent +
+            $columnWidths +
+            $this->padding * (count($this->columnWidths) - 1);
 
         $lastWidth = end($this->columnWidths) + $this->maxWidth - $totalWidth;
         $lastWidth = max($lastWidth, 10); // min width of 10
@@ -229,10 +256,14 @@ class Table {
 
             // Split the cells into lines.
             foreach ($row as $i => $cell) {
-                list($text,) = $cell;
+                list($text) = $cell;
                 $width = $this->columnWidths[$i];
 
-                $lines = Cli::breakLines($text, $width, $i < count($this->columnWidths) - 1);
+                $lines = Cli::breakLines(
+                    $text,
+                    $width,
+                    $i < count($this->columnWidths) - 1
+                );
                 $rowLines[] = $lines;
                 $lineCount = max($lineCount, count($lines));
             }
@@ -248,16 +279,22 @@ class Table {
                                 $wrap = $row[$j][1];
                             } else {
                                 // if we're out of array, use the latest wraps
-                                $wrap = $row[count($row)-1][1];
+                                $wrap = $row[count($row) - 1][1];
                             }
 
-                            echo str_repeat(' ', $padding).$wrap[0].$lines[$i].$wrap[1];
+                            echo str_repeat(" ", $padding) .
+                                $wrap[0] .
+                                $lines[$i] .
+                                $wrap[1];
                         } else {
-                            echo str_repeat(' ', $padding).$lines[$i];
+                            echo str_repeat(" ", $padding) . $lines[$i];
                         }
                     } elseif ($j < count($this->columnWidths) - 1) {
                         // This is an empty line. Write the spaces.
-                        echo str_repeat(' ', $padding + $this->columnWidths[$j]);
+                        echo str_repeat(
+                            " ",
+                            $padding + $this->columnWidths[$j]
+                        );
                     }
                 }
                 echo PHP_EOL;
