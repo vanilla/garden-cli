@@ -11,17 +11,19 @@ use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
+use Throwable;
 
 /**
  * A logger that logs to a stream.
  */
-class StreamLogger implements LoggerInterface {
+class StreamLogger implements LoggerInterface
+{
     use LoggerTrait;
 
     /**
      * @var string The line format.
      */
-    private $lineFormat = '[{time}] {message}';
+    private string $lineFormat = "[{time}] {message}";
 
     /**
      * @var callable The level formatting function.
@@ -41,7 +43,7 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var bool Whether or not to format output.
      */
-    private $colorizeOutput;
+    private bool $colorizeOutput;
 
     /**
      * @var resource The output file handle.
@@ -51,21 +53,21 @@ class StreamLogger implements LoggerInterface {
     /**
      * @var bool Whether or not the console is on a new line.
      */
-    private $inBegin;
+    private bool $inBegin = false;
 
     /**
      * @var bool Whether or not to show durations for tasks.
      */
-    private $showDurations = true;
+    private bool $showDurations = true;
 
     /**
      * @var bool Whether or not to buffer begin logs.
      */
-    private $bufferBegins = true;
+    private bool $bufferBegins = true;
 
-    private $wraps = [
+    private array $wraps = [
         LogLevel::DEBUG => ["\033[0;37m", "\033[0m"],
-        LogLevel::INFO => ['', ''],
+        LogLevel::INFO => ["", ""],
         LogLevel::NOTICE => ["\033[1m", "\033[0m"],
         LogLevel::WARNING => ["\033[1;33m", "\033[0m"],
         LogLevel::ERROR => ["\033[1;31m", "\033[0m"],
@@ -84,23 +86,30 @@ class StreamLogger implements LoggerInterface {
      *
      * @param mixed $out Either a path or a stream resource for the output.
      */
-    public function __construct($out = STDOUT) {
+    public function __construct($out = STDOUT)
+    {
         if (is_string($out)) {
             try {
-                $this->defaultStream = $out = fopen($out, 'a+');
-            } catch (\Throwable $ex) {
-                throw new \InvalidArgumentException($ex->getMessage(), 500);
+                $this->defaultStream = $out = fopen($out, "a+");
+            } catch (Throwable $ex) {
+                throw new InvalidArgumentException($ex->getMessage(), 500);
             }
             if (!is_resource($out)) {
-                throw new \InvalidArgumentException("The supplied path could not be opened: $out", 500);
+                throw new InvalidArgumentException(
+                    "The supplied path could not be opened: $out",
+                    500
+                );
             }
         } elseif (!is_resource($out)) {
-            throw new \InvalidArgumentException('The value supplied for $out must be either a stream resource or a path.', 500);
+            throw new InvalidArgumentException(
+                'The value supplied for $out must be either a stream resource or a path.',
+                500
+            );
         }
 
         $this->outputHandle = $out;
         $this->colorizeOutput = Cli::guessFormatOutput($this->outputHandle);
-        $this->setTimeFormat('%F %T');
+        $this->setTimeFormat("%F %T");
         $this->setLevelFormat(function ($l) {
             return $l;
         });
@@ -115,7 +124,8 @@ class StreamLogger implements LoggerInterface {
      * @return $this
      * @see date()
      */
-    public function setTimeFormat($format): self {
+    public function setTimeFormat(callable|string $format): self
+    {
         if (is_string($format)) {
             $this->timeFormatter = function ($t) use ($format): string {
                 return date($format, intval($t));
@@ -130,7 +140,8 @@ class StreamLogger implements LoggerInterface {
     /**
      * Clean up the default stream if it was use.
      */
-    public function __destruct() {
+    public function __destruct()
+    {
         if (is_resource($this->defaultStream)) {
             fclose($this->defaultStream);
         }
@@ -145,16 +156,20 @@ class StreamLogger implements LoggerInterface {
      *
      * @return void
      */
-    public function log($level, $message, array $context = array()) {
+    public function log($level, $message, array $context = []): void
+    {
         if (!isset($this->wraps[$level])) {
-            throw new InvalidArgumentException("Invalid log level: $level", 400);
+            throw new InvalidArgumentException(
+                "Invalid log level: $level",
+                400
+            );
         }
 
-        $msg = $this->replaceContext($message, $context);
+        $msg = $this->replaceContext((string) $message, $context);
 
         $eol = true;
         $fullLine = true;
-        $str = ''; // queue everything in a string to avoid race conditions
+        $str = ""; // queue everything in a string to avoid race conditions
 
         if ($this->bufferBegins()) {
             if (!empty($context[TaskLogger::FIELD_BEGIN])) {
@@ -164,9 +179,12 @@ class StreamLogger implements LoggerInterface {
                     $this->inBegin = true;
                 }
                 $eol = false;
-            } elseif (!empty($context[TaskLogger::FIELD_END]) && strpos($msg, "\n") === false) {
+            } elseif (
+                !empty($context[TaskLogger::FIELD_END]) &&
+                strpos($msg, "\n") === false
+            ) {
                 if ($this->inBegin) {
-                    $msg = ' '.$msg;
+                    $msg = " " . $msg;
                     $fullLine = false;
                     $this->inBegin = false;
                 }
@@ -183,7 +201,10 @@ class StreamLogger implements LoggerInterface {
         }
 
         if (!is_resource($this->outputHandle) || feof($this->outputHandle)) {
-            trigger_error('The StreamLogger output handle is not valid.', E_USER_WARNING);
+            trigger_error(
+                "The StreamLogger output handle is not valid.",
+                E_USER_WARNING
+            );
         } else {
             fwrite($this->outputHandle, $str);
         }
@@ -198,15 +219,20 @@ class StreamLogger implements LoggerInterface {
      * @param array $context The context data.
      * @return string Returns the formatted message.
      */
-    private function replaceContext(string $format, array $context): string {
-        return preg_replace_callback('`({[^\s{}]+})`', function ($m) use ($context) {
-            $field = trim($m[1], '{}');
-            if (array_key_exists($field, $context)) {
-                return $context[$field];
-            } else {
-                return $m[1];
-            }
-        }, $format);
+    private function replaceContext(string $format, array $context): string
+    {
+        return preg_replace_callback(
+            "`({[^\s{}]+})`",
+            function ($m) use ($context) {
+                $field = trim($m[1], "{}");
+                if (array_key_exists($field, $context)) {
+                    return $context[$field];
+                } else {
+                    return $m[1];
+                }
+            },
+            $format
+        );
     }
 
     /**
@@ -216,7 +242,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return bool Returns the bufferBegins.
      */
-    public function bufferBegins(): bool {
+    public function bufferBegins(): bool
+    {
         return $this->bufferBegins;
     }
 
@@ -229,16 +256,24 @@ class StreamLogger implements LoggerInterface {
      * @param bool $fullLine Whether or not this is a full line message.
      * @return string Returns a formatted message.
      */
-    private function fullMessageStr(string $level, string $message, array $context, bool $fullLine = true): string {
+    private function fullMessageStr(
+        string $level,
+        string $message,
+        array $context,
+        bool $fullLine = true
+    ): string {
         $levelStr = call_user_func($this->getLevelFormat(), $level);
 
-        $timeStr = call_user_func($this->getTimeFormat(), $context[TaskLogger::FIELD_TIME] ?? microtime(true));
+        $timeStr = call_user_func(
+            $this->getTimeFormat(),
+            $context[TaskLogger::FIELD_TIME] ?? microtime(true)
+        );
 
         $indent = $context[TaskLogger::FIELD_INDENT] ?? 0;
         if ($indent <= 0) {
-            $indentStr = '';
+            $indentStr = "";
         } else {
-            $indentStr = str_repeat('  ', $indent - 1).'- ';
+            $indentStr = str_repeat("  ", $indent - 1) . "- ";
         }
 
         // Explode on "\n" because the input string may have a variety of newlines.
@@ -247,23 +282,29 @@ class StreamLogger implements LoggerInterface {
             foreach ($lines as &$line) {
                 $line = rtrim($line);
                 $line = $this->replaceContext($this->getLineFormat(), [
-                    'level' => $levelStr,
-                    'time' => $timeStr,
-                    'message' => $indentStr.$line
+                    "level" => $levelStr,
+                    "time" => $timeStr,
+                    "message" => $indentStr . $line,
                 ]);
             }
         }
         $result = implode($this->getEol(), $lines);
 
-        $wrap = $this->wraps[$level] ?? ['', ''];
+        $wrap = $this->wraps[$level] ?? ["", ""];
         $result = $this->formatString($result, $wrap);
 
-        if (isset($context[TaskLogger::FIELD_DURATION]) && $this->showDurations()) {
+        if (
+            isset($context[TaskLogger::FIELD_DURATION]) &&
+            $this->showDurations()
+        ) {
             if ($result && !preg_match('`\s$`', $result)) {
-                $result .= ' ';
+                $result .= " ";
             }
 
-            $result .= $this->formatString($this->formatDuration($context[TaskLogger::FIELD_DURATION]), ["\033[1;34m", "\033[0m"]);
+            $result .= $this->formatString(
+                $this->formatDuration($context[TaskLogger::FIELD_DURATION]),
+                ["\033[1;34m", "\033[0m"]
+            );
         }
 
         return $result;
@@ -274,7 +315,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return callable Returns the levelFormat.
      */
-    public function getLevelFormat(): callable {
+    public function getLevelFormat(): callable
+    {
         return $this->levelFormat;
     }
 
@@ -284,7 +326,8 @@ class StreamLogger implements LoggerInterface {
      * @param callable $levelFormat The new level format.
      * @return $this
      */
-    public function setLevelFormat(callable $levelFormat): self {
+    public function setLevelFormat(callable $levelFormat): self
+    {
         $this->levelFormat = $levelFormat;
         return $this;
     }
@@ -295,7 +338,8 @@ class StreamLogger implements LoggerInterface {
      * @return callable Returns the date format.
      * @see strftime()
      */
-    public function getTimeFormat(): callable {
+    public function getTimeFormat(): callable
+    {
         return $this->timeFormatter;
     }
 
@@ -311,7 +355,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return string Returns the lineFormat.
      */
-    public function getLineFormat(): string {
+    public function getLineFormat(): string
+    {
         return $this->lineFormat;
     }
 
@@ -321,7 +366,8 @@ class StreamLogger implements LoggerInterface {
      * @param string $lineFormat The new line format.
      * @return $this
      */
-    public function setLineFormat(string $lineFormat): self {
+    public function setLineFormat(string $lineFormat): self
+    {
         $this->lineFormat = $lineFormat;
         return $this;
     }
@@ -331,7 +377,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return string Returns the eol string.
      */
-    public function getEol(): string {
+    public function getEol(): string
+    {
         return $this->eol;
     }
 
@@ -341,9 +388,13 @@ class StreamLogger implements LoggerInterface {
      * @param string $eol The end of line string to use.
      * @return $this
      */
-    public function setEol(string $eol): self {
-        if (strpos($eol, "\n") === false) {
-            throw new \InvalidArgumentException('The EOL must include the "\n" character."', 500);
+    public function setEol(string $eol): self
+    {
+        if (!str_contains($eol, "\n")) {
+            throw new \InvalidArgumentException(
+                'The EOL must include the "\n" character."',
+                500
+            );
         }
 
         $this->eol = $eol;
@@ -357,7 +408,8 @@ class StreamLogger implements LoggerInterface {
      * @param string[] $wrap The format to wrap in the form ['before', 'after'].
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
-    private function formatString(string $text, array $wrap): string {
+    private function formatString(string $text, array $wrap): string
+    {
         if ($this->colorizeOutput()) {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
@@ -370,7 +422,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return boolean Returns the showDurations.
      */
-    public function showDurations(): bool {
+    public function showDurations(): bool
+    {
         return $this->showDurations;
     }
 
@@ -381,28 +434,29 @@ class StreamLogger implements LoggerInterface {
      * @return string Returns the duration formatted for humans.
      * @see microtime()
      */
-    private function formatDuration(float $duration): string {
+    private function formatDuration(float $duration): string
+    {
         if ($duration < 1.0e-3) {
             $n = number_format($duration * 1.0e6, 0);
-            $sx = 'μs';
+            $sx = "μs";
         } elseif ($duration < 1) {
             $n = number_format($duration * 1000, 0);
-            $sx = 'ms';
+            $sx = "ms";
         } elseif ($duration < 60) {
             $n = number_format($duration, 1);
-            $sx = 's';
+            $sx = "s";
         } elseif ($duration < 3600) {
             $n = number_format($duration / 60, 1);
-            $sx = 'm';
+            $sx = "m";
         } elseif ($duration < 86400) {
             $n = number_format($duration / 3600, 1);
-            $sx = 'h';
+            $sx = "h";
         } else {
             $n = number_format($duration / 86400, 1);
-            $sx = 'd';
+            $sx = "d";
         }
 
-        return rtrim($n, '0.').$sx;
+        return rtrim($n, "0.") . $sx;
     }
 
     /**
@@ -410,7 +464,8 @@ class StreamLogger implements LoggerInterface {
      *
      * @return bool Returns the format output setting.
      */
-    public function colorizeOutput(): bool {
+    public function colorizeOutput(): bool
+    {
         return $this->colorizeOutput;
     }
 
@@ -420,7 +475,8 @@ class StreamLogger implements LoggerInterface {
      * @param bool $showDurations
      * @return $this
      */
-    public function setShowDurations(bool $showDurations): self {
+    public function setShowDurations(bool $showDurations): self
+    {
         $this->showDurations = $showDurations;
         return $this;
     }
@@ -431,7 +487,8 @@ class StreamLogger implements LoggerInterface {
      * @param bool $bufferBegins The new value.
      * @return $this
      */
-    public function setBufferBegins(bool $bufferBegins): self {
+    public function setBufferBegins(bool $bufferBegins): self
+    {
         $this->bufferBegins = $bufferBegins;
         return $this;
     }
@@ -442,7 +499,8 @@ class StreamLogger implements LoggerInterface {
      * @param bool $colorizeOutput The new value.
      * @return $this
      */
-    public function setColorizeOutput(bool $colorizeOutput): self {
+    public function setColorizeOutput(bool $colorizeOutput): self
+    {
         $this->colorizeOutput = $colorizeOutput;
         return $this;
     }

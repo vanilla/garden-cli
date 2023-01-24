@@ -12,7 +12,8 @@ use Garden\Cli\Tests\Fixtures\TestLogger;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
 
-class TaskLoggerTest extends AbstractCliTest {
+class TaskLoggerTest extends AbstractCliTest
+{
     /**
      * @var TestLogger
      */
@@ -26,7 +27,8 @@ class TaskLoggerTest extends AbstractCliTest {
     /**
      * Create a new logger for each test.
      */
-    public function setUp(): void {
+    public function setUp(): void
+    {
         parent::setUp();
         $this->testLogger = new TestLogger();
         $this->log = new TaskLogger($this->testLogger);
@@ -35,63 +37,71 @@ class TaskLoggerTest extends AbstractCliTest {
     /**
      * Test a basic call to the log.
      */
-    public function testBasicLog() {
-        $this->log->log(LogLevel::INFO, 'foo', ['foo' => 'bar']);
+    public function testBasicLog()
+    {
+        $this->log->log(LogLevel::INFO, "foo", ["foo" => "bar"]);
 
         $this->assertLogLevel(LogLevel::INFO);
-        $this->assertLogMessage('foo');
-        $this->assertLogHasContext([TaskLogger::FIELD_INDENT => 0, 'foo' => 'bar']);
+        $this->assertLogMessage("foo");
+        $this->assertLogHasContext([
+            TaskLogger::FIELD_INDENT => 0,
+            "foo" => "bar",
+        ]);
     }
 
     /**
      * I should be able to override the time with the context.
      */
-    public function testTimeOverride() {
-        $this->log->log(LogLevel::INFO, 'foo', [TaskLogger::FIELD_TIME => 1]);
+    public function testTimeOverride()
+    {
+        $this->log->log(LogLevel::INFO, "foo", [TaskLogger::FIELD_TIME => 1]);
         $this->assertLogHasContext([TaskLogger::FIELD_TIME => 1]);
 
-        $this->log->begin(LogLevel::INFO, 'foo', [TaskLogger::FIELD_TIME => 2]);
+        $this->log->begin(LogLevel::INFO, "foo", [TaskLogger::FIELD_TIME => 2]);
         $this->assertLogHasContext([TaskLogger::FIELD_TIME => 2]);
 
-        $this->log->end('foo', [TaskLogger::FIELD_TIME => 3]);
+        $this->log->end("foo", [TaskLogger::FIELD_TIME => 3]);
         $this->assertLogHasContext([TaskLogger::FIELD_TIME => 3]);
     }
 
     /**
      * A level under the min level should not be logged.
      */
-    public function testUnderMinLevel() {
-        $this->log->log(LogLevel::DEBUG, 'foo');
+    public function testUnderMinLevel()
+    {
+        $this->log->log(LogLevel::DEBUG, "foo");
         $this->assertLogCount(0);
     }
 
     /**
      * Test an indent with begin/end.
      */
-    public function testSimpleIndent() {
-        $this->log->beginNotice('a');
-        $this->log->info('b');
-        $this->log->end('c');
+    public function testSimpleIndent()
+    {
+        $this->log->beginNotice("a");
+        $this->log->info("b");
+        $this->log->end("c");
 
         $this->assertLogShape([
-            [LogLevel::NOTICE, 'a', [TaskLogger::FIELD_INDENT => 0]],
-            [LogLevel::INFO, 'b', [TaskLogger::FIELD_INDENT => 1]],
-            [LogLevel::NOTICE, 'c', [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::NOTICE, "a", [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::INFO, "b", [TaskLogger::FIELD_INDENT => 1]],
+            [LogLevel::NOTICE, "c", [TaskLogger::FIELD_INDENT => 0]],
         ]);
     }
 
     /**
      * The end log should be the max level of any item.
      */
-    public function testEndLevelIncrease() {
-        $this->log->beginInfo('a');
-        $this->log->error('b');
-        $this->log->end('c');
+    public function testEndLevelIncrease()
+    {
+        $this->log->beginInfo("a");
+        $this->log->error("b");
+        $this->log->end("c");
 
         $this->assertLogShape([
-            [LogLevel::INFO, 'a', [TaskLogger::FIELD_INDENT => 0]],
-            [LogLevel::ERROR, 'b', [TaskLogger::FIELD_INDENT => 1]],
-            [LogLevel::ERROR, 'c', [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::INFO, "a", [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::ERROR, "b", [TaskLogger::FIELD_INDENT => 1]],
+            [LogLevel::ERROR, "c", [TaskLogger::FIELD_INDENT => 0]],
         ]);
     }
 
@@ -102,12 +112,13 @@ class TaskLoggerTest extends AbstractCliTest {
      * @param string $level The expected log level or an empty string.
      * @dataProvider provideHttpStatusTests
      */
-    public function testEndHttpStatus(int $status, string $level) {
-        $this->log->begin(LogLevel::NOTICE, 'http');
+    public function testEndHttpStatus(int $status, string $level)
+    {
+        $this->log->begin(LogLevel::NOTICE, "http");
 
         $this->log->endHttpStatus($status);
         $this->assertLogLevel($level ?: LogLevel::NOTICE);
-        $this->assertLogMessage(sprintf('%03d', $status));
+        $this->assertLogMessage(sprintf("%03d", $status));
     }
 
     /**
@@ -115,9 +126,10 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @return array Returns a data provider array.
      */
-    public function provideHttpStatusTests() {
+    public function provideHttpStatusTests()
+    {
         $r = [
-            [200, ''],
+            [200, ""],
             [400, LogLevel::ERROR],
             [500, LogLevel::CRITICAL],
             [0, LogLevel::CRITICAL],
@@ -129,66 +141,93 @@ class TaskLoggerTest extends AbstractCliTest {
     /**
      * Beginning a task below the min should still output.
      */
-    public function testBeginBelowMinLevel() {
-        $this->log->beginDebug('a');
-        $this->log->notice('b1');
-        $this->log->critical('b2');
-        $this->log->end('c');
+    public function testBeginBelowMinLevel()
+    {
+        $this->log->beginDebug("a");
+        $this->log->notice("b1");
+        $this->log->critical("b2");
+        $this->log->end("c");
 
         $this->assertLogShape([
-            [LogLevel::DEBUG, 'a', [TaskLogger::FIELD_INDENT => 0]],
-            [LogLevel::NOTICE, 'b1', [TaskLogger::FIELD_INDENT => 1]],
-            [LogLevel::CRITICAL, 'b2', [TaskLogger::FIELD_INDENT => 1]],
-            [LogLevel::CRITICAL, 'c', [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::DEBUG, "a", [TaskLogger::FIELD_INDENT => 0]],
+            [LogLevel::NOTICE, "b1", [TaskLogger::FIELD_INDENT => 1]],
+            [LogLevel::CRITICAL, "b2", [TaskLogger::FIELD_INDENT => 1]],
+            [LogLevel::CRITICAL, "c", [TaskLogger::FIELD_INDENT => 0]],
         ]);
     }
 
     /**
      * Test nesting tasks with printing promotion.
      */
-    public function testNested() {
-        $this->log->beginDebug('a');
-        $this->log->beginDebug('aa');
-        $this->log->debug('aaa');
-        $this->log->alert('aab');
-        $this->log->end('b');
-        $this->log->end('c');
+    public function testNested()
+    {
+        $this->log->beginDebug("a");
+        $this->log->beginDebug("aa");
+        $this->log->debug("aaa");
+        $this->log->alert("aab");
+        $this->log->end("b");
+        $this->log->end("c");
 
         $this->assertLogShape([
-            [LogLevel::DEBUG, 'a', [TaskLogger::FIELD_INDENT => 0, TaskLogger::FIELD_BEGIN => true]],
-            [LogLevel::DEBUG, 'aa', [TaskLogger::FIELD_INDENT => 1, TaskLogger::FIELD_BEGIN => true]],
-            [LogLevel::ALERT, 'aab', [TaskLogger::FIELD_INDENT => 2]],
-            [LogLevel::ALERT, 'b', [TaskLogger::FIELD_INDENT => 1, TaskLogger::FIELD_END => true]],
-            [LogLevel::ALERT, 'c', [TaskLogger::FIELD_INDENT => 0, TaskLogger::FIELD_END => true]],
+            [
+                LogLevel::DEBUG,
+                "a",
+                [
+                    TaskLogger::FIELD_INDENT => 0,
+                    TaskLogger::FIELD_BEGIN => true,
+                ],
+            ],
+            [
+                LogLevel::DEBUG,
+                "aa",
+                [
+                    TaskLogger::FIELD_INDENT => 1,
+                    TaskLogger::FIELD_BEGIN => true,
+                ],
+            ],
+            [LogLevel::ALERT, "aab", [TaskLogger::FIELD_INDENT => 2]],
+            [
+                LogLevel::ALERT,
+                "b",
+                [TaskLogger::FIELD_INDENT => 1, TaskLogger::FIELD_END => true],
+            ],
+            [
+                LogLevel::ALERT,
+                "c",
+                [TaskLogger::FIELD_INDENT => 0, TaskLogger::FIELD_END => true],
+            ],
         ]);
     }
 
     /**
      * Logging an end with no begin should work, with exceptions.
      */
-    public function testEndNoBegin() {
-        @$this->log->end('foo');
+    public function testEndNoBegin()
+    {
+        @$this->log->end("foo");
         $this->assertLogLevel(LogLevel::INFO);
         $this->assertLogHasContext([TaskLogger::FIELD_END => true]);
-        $this->assertLogMessage('foo');
+        $this->assertLogMessage("foo");
 
         $this->expectNotice();
-        $this->log->end('foo');
+        $this->log->end("foo");
     }
 
     /**
      */
-    public function testInvalidLevelBegin() {
+    public function testInvalidLevelBegin()
+    {
         $this->expectException(InvalidArgumentException::class);
-        $this->log->begin('invalid', 'a');
+        $this->log->begin("invalid", "a");
     }
 
     /**
      *
      */
-    public function testInvalidLevelEnd() {
+    public function testInvalidLevelEnd()
+    {
         $this->expectNotice();
-        $this->log->end('a', [TaskLogger::FIELD_LEVEL => 'invalid']);
+        $this->log->end("a", [TaskLogger::FIELD_LEVEL => "invalid"]);
     }
 
     /**
@@ -197,13 +236,14 @@ class TaskLoggerTest extends AbstractCliTest {
      * @param string $level The log level to test.
      * @dataProvider provideLogLevels
      */
-    public function testSpecificBegins(string $level) {
+    public function testSpecificBegins(string $level)
+    {
         $this->log->setMinLevel($level);
 
         $method = "begin{$level}";
-        call_user_func([$this->log, $method], 'foo');
+        call_user_func([$this->log, $method], "foo");
         $this->assertLogLevel($level);
-        $this->assertLogMessage('foo');
+        $this->assertLogMessage("foo");
     }
 
     /**
@@ -211,7 +251,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @return array Returns a data provider array.
      */
-    public function provideLogLevels() {
+    public function provideLogLevels()
+    {
         $r = [
             [LogLevel::DEBUG],
             [LogLevel::INFO],
@@ -231,7 +272,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @param int $count The expected count.
      */
-    protected function assertLogCount(int $count) {
+    protected function assertLogCount(int $count)
+    {
         $this->assertCount($count, $this->testLogger->log);
     }
 
@@ -240,7 +282,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @param array $expected The expected context.
      */
-    protected function assertLogHasContext(array $expected) {
+    protected function assertLogHasContext(array $expected)
+    {
         if (empty($this->testLogger->log)) {
             $this->fail("The log is empty");
         }
@@ -253,7 +296,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @param string $expected The expected log level.
      */
-    protected function assertLogLevel(string $expected) {
+    protected function assertLogLevel(string $expected)
+    {
         if (empty($this->testLogger->log)) {
             $this->fail("The log is empty");
         }
@@ -266,7 +310,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @param string $expected The expected message.
      */
-    protected function assertLogMessage(string $expected) {
+    protected function assertLogMessage(string $expected)
+    {
         if (empty($this->testLogger->log)) {
             $this->fail("The log is empty");
         }
@@ -279,7 +324,8 @@ class TaskLoggerTest extends AbstractCliTest {
      *
      * @param array $expected The expected log entries.
      */
-    protected function assertLogShape(array $expected) {
+    protected function assertLogShape(array $expected)
+    {
         $this->assertArraySubsetRecursive($expected, $this->testLogger->log);
     }
 }

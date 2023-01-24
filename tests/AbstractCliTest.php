@@ -7,10 +7,10 @@
 
 namespace Garden\Cli\Tests;
 
-
 use PHPUnit\Framework\TestCase;
 
-abstract class AbstractCliTest extends TestCase {
+abstract class AbstractCliTest extends TestCase
+{
     /**
      * Assert that a deep array is a subset of another deep array.
      *
@@ -18,7 +18,11 @@ abstract class AbstractCliTest extends TestCase {
      * @param array $array The array to test against.
      * @param string $message A message to display on the test.
      */
-    public static function assertArraySubsetRecursive(array $subset, array $array, $message = ''): void {
+    public static function assertArraySubsetRecursive(
+        array $subset,
+        array $array,
+        $message = ""
+    ): void {
         self::filterArraySubset($array, $subset);
         self::assertSame($subset, $array, $message);
     }
@@ -31,14 +35,21 @@ abstract class AbstractCliTest extends TestCase {
      * @param array $parent The subset to filter.
      * @param array $subset The parent array.
      */
-    private static function filterArraySubset(array &$parent, array &$subset): void {
+    private static function filterArraySubset(
+        array &$parent,
+        array &$subset
+    ): void {
         $parent = array_intersect_key($parent, $subset);
 
         ksort($parent);
         ksort($subset);
 
         foreach ($parent as $key => &$value) {
-            if (is_array($value) && isset($subset[$key]) && is_array($subset[$key])) {
+            if (
+                is_array($value) &&
+                isset($subset[$key]) &&
+                is_array($subset[$key])
+            ) {
                 // Recurse into the array.
                 self::filterArraySubset($value, $subset[$key]);
             }

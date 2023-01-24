@@ -7,88 +7,65 @@
 
 namespace Garden\Cli;
 
+use Exception;
 use Garden\Cli\Schema\CommandSchema;
 use Garden\Cli\Schema\OptSchema;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * A general purpose command line parser.
  */
-class Cli {
+class Cli
+{
     /// Constants ///
 
-    const META = '__meta';
-    const ARGS = '__args';
+    const META = "__meta";
+    const ARGS = "__args";
 
     const COMMAND_ARGS_NONE = 0;
     const COMMAND_ARGS_OPTIONAL = 1;
     const COMMAND_ARGS_REQUIRED = 2;
 
-    const TYPE_INTEGER = 'integer';
-    const TYPE_STRING = 'string';
-    const TYPE_BOOLEAN = 'boolean';
+    const TYPE_INTEGER = "integer";
+    const TYPE_STRING = "string";
+    const TYPE_BOOLEAN = "boolean";
 
     /// Properties ///
     /**
      * @var CommandSchema[] All of the schemas, indexed by command pattern.
      */
-    protected $commandSchemas;
+    protected array $commandSchemas;
 
     /**
      * @var CommandSchema A pointer to the current schema.
      */
-    protected $currentSchema;
+    protected CommandSchema $currentSchema;
 
     /**
      * @var bool Whether or not to format output with console codes.
      */
-    protected $formatOutput;
+    protected bool $formatOutput = false;
 
-    protected static $types = [
-        'i' => self::TYPE_INTEGER,
-        's' => self::TYPE_STRING,
-        'b' => self::TYPE_BOOLEAN,
+    protected static array $types = [
+        "i" => self::TYPE_INTEGER,
+        "s" => self::TYPE_STRING,
+        "b" => self::TYPE_BOOLEAN,
     ];
-
 
     /// Methods ///
 
     /**
      * Creates a {@link Cli} instance representing a command line parser for a given schema.
      */
-    public function __construct() {
-        $this->commandSchemas = ['*' => new CommandSchema()];
+    public function __construct()
+    {
+        $this->commandSchemas = ["*" => new CommandSchema()];
 
         // Select the current schema.
-        $this->currentSchema = $this->commandSchemas['*'];
+        $this->currentSchema = $this->commandSchemas["*"];
 
         $this->formatOutput = static::guessFormatOutput();
-    }
-
-    /**
-     * Backwards compatibility for the **format** property.
-     *
-     * @param string $name Must be **format**.
-     * @return bool|null Returns {@link getFormatOutput()} or null if {@link $name} isn't **format**.
-     */
-    public function __get($name) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->getFormatOutput() instead.", E_USER_DEPRECATED);
-            return $this->getFormatOutput();
-        }
-        return null;
-    }
-
-    /**
-     * Backwards compatibility for the **format** property.
-     *
-     * @param string $name Must be **format**.
-     * @param bool $value One of **true** or **false**.
-     */
-    public function __set($name, $value) {
-        if ($name === 'format') {
-            trigger_error("Cli->format is deprecated. Use Cli->setFormatOutput() instead.", E_USER_DEPRECATED);
-            $this->setFormatOutput($value);
-        }
     }
 
     /**
@@ -96,7 +73,8 @@ class Cli {
      *
      * @return boolean Returns **true** if output should be formatted or **false** otherwise.
      */
-    public function getFormatOutput() {
+    public function getFormatOutput(): bool
+    {
         return $this->formatOutput;
     }
 
@@ -106,7 +84,8 @@ class Cli {
      * @param boolean $formatOutput Whether or not to format output.
      * @return $this
      */
-    public function setFormatOutput($formatOutput) {
+    public function setFormatOutput(bool $formatOutput): static
+    {
         $this->formatOutput = $formatOutput;
         return $this;
     }
@@ -120,10 +99,11 @@ class Cli {
      *
      * @return void
      */
-    private function addArg(CommandSchema $schema, Args $args, $arg): void {
+    private function addArg(CommandSchema $schema, Args $args, $arg): void
+    {
         $argsCount = count($args->getArgs());
         $schemaArgs = array_keys($schema->getArgs());
-        $name = isset($schemaArgs[$argsCount]) ? $schemaArgs[$argsCount] : $argsCount;
+        $name = $schemaArgs[$argsCount] ?? $argsCount;
 
         $args->addArg($arg, $name);
     }
@@ -136,7 +116,8 @@ class Cli {
      * @param array $args The constructor arguments, if any.
      * @return static Returns a new Cli object.
      */
-    public static function create(...$args) {
+    public static function create(...$args)
+    {
         /** @psalm-suppress TooManyArguments **/
         return new static(...$args);
     }
@@ -151,7 +132,11 @@ class Cli {
      *
      * @psalm-return array<int, string>
      */
-    public static function breakLines($text, $width, $addSpaces = true): array {
+    public static function breakLines(
+        string $text,
+        int $width,
+        bool $addSpaces = true
+    ): array {
         $rawLines = explode("\n", $text);
         $lines = [];
 
@@ -174,26 +159,30 @@ class Cli {
      *
      * @psalm-return array<int, string>
      */
-    protected static function breakString(string $line, int $width, bool $addSpaces = true): array {
-        $words = explode(' ', $line);
+    protected static function breakString(
+        string $line,
+        int $width,
+        bool $addSpaces = true
+    ): array {
+        $words = explode(" ", $line);
         $result = [];
 
-        $line = '';
+        $line = "";
         foreach ($words as $word) {
-            $candidate = trim($line.' '.$word);
+            $candidate = trim($line . " " . $word);
 
             // Check for a new line.
             if (strlen($candidate) > $width) {
-                if ($line === '') {
+                if ($line === "") {
                     // The word is longer than a line.
                     if ($addSpaces) {
-                        $result[] = (string)substr($candidate, 0, $width);
+                        $result[] = (string) substr($candidate, 0, $width);
                     } else {
                         $result[] = $candidate;
                     }
                 } else {
                     if ($addSpaces) {
-                        $line .= str_repeat(' ', $width - strlen($line));
+                        $line .= str_repeat(" ", $width - strlen($line));
                     }
 
                     // Start a new line.
@@ -208,7 +197,7 @@ class Cli {
         // Add the remaining line.
         if ($line) {
             if ($addSpaces) {
-                $line .= str_repeat(' ', $width - strlen($line));
+                $line .= str_repeat(" ", $width - strlen($line));
             }
 
             // Start a new line.
@@ -224,8 +213,9 @@ class Cli {
      * @param string|null $str The description for the current schema or null to get the current description.
      * @return $this
      */
-    public function description($str = null) {
-        return $this->meta('description', $str);
+    public function description(?string $str = null): static
+    {
+        return $this->meta("description", $str);
     }
 
     /**
@@ -234,12 +224,13 @@ class Cli {
      * @param string $name Check for the specific command name.
      * @return bool Returns true if the schema has a command.
      */
-    public function hasCommand($name = '') {
+    public function hasCommand(string $name = ""): bool
+    {
         if ($name) {
             return array_key_exists($name, $this->commandSchemas);
         } else {
             foreach ($this->commandSchemas as $pattern => $opts) {
-                if (strpos($pattern, '*') === false) {
+                if (!str_contains($pattern, "*")) {
                     return true;
                 }
             }
@@ -253,7 +244,8 @@ class Cli {
      * @param string $command The name of the command or an empty string for any command.
      * @return bool Returns true if the command has options. False otherwise.
      */
-    public function hasOptions($command = '') {
+    public function hasOptions(string $command = ""): bool
+    {
         if ($command) {
             $def = $this->getSchema($command);
             return $def->hasOpts();
@@ -273,7 +265,8 @@ class Cli {
      * @param string $command The command name to check.
      * @return int Returns one of the following `COMMAND_ARGS_*` constants.
      */
-    public function hasArgs($command = ''): int {
+    public function hasArgs(string $command = ""): int
+    {
         $args = null;
 
         if ($command) {
@@ -294,7 +287,7 @@ class Cli {
         }
 
         foreach ($args as $arg) {
-            if (!Cli::val('required', $arg)) {
+            if (!Cli::val("required", $arg)) {
                 return self::COMMAND_ARGS_OPTIONAL;
             }
         }
@@ -307,8 +300,9 @@ class Cli {
      * @param string $pattern The pattern being evaluated.
      * @return bool Returns `true` if `$pattern` is a command, `false` otherwise.
      */
-    public static function isCommand($pattern) {
-        return strpos($pattern, '*') === false;
+    public static function isCommand(string $pattern): bool
+    {
+        return !str_contains($pattern, "*");
     }
 
     /**
@@ -324,9 +318,10 @@ class Cli {
      *
      * @return Args Returns an {@see Args} instance when a command should be executed or `null` when one should not be executed.
      *
-     * @throws \Exception Throws an exception when {@link $exit} is false and the help or errors need to be displayed.
+     * @throws Exception Throws an exception when {@link $exit} is false and the help or errors need to be displayed.
      */
-    public function parse($argv = null, $exit = true): Args {
+    public function parse(array $argv = null, bool $exit = true): Args
+    {
         $formatOutputBak = $this->formatOutput;
         // Only format commands if we are exiting.
         if (!$exit) {
@@ -345,7 +340,7 @@ class Cli {
             $this->writeUsage($args);
             $this->writeCommands();
             $result = null;
-        } elseif ($args->getOpt('help') || $args->getOpt('?')) {
+        } elseif ($args->getOpt("help") || $args->getOpt("?")) {
             // Write the help.
             $this->writeUsage($args);
             $this->writeHelp($args->getCommand());
@@ -359,7 +354,7 @@ class Cli {
             $this->formatOutput = $formatOutputBak;
             $output = ob_get_clean();
             if ($result === null) {
-                throw new \InvalidArgumentException(trim($output));
+                throw new InvalidArgumentException(trim($output));
             }
         } elseif ($result === null) {
             exit();
@@ -375,27 +370,28 @@ class Cli {
      *
      * @param array|null $argv An array of arguments passed in a form compatible with the global `$argv` variable.
      * @return Args Returns the raw parsed arguments.
-     * @throws \Exception Throws an exception when {@see $argv} isn't an array.
+     * @throws Exception Throws an exception when {@see $argv} isn't an array.
      */
-    protected function parseRaw($argv = null) {
+    protected function parseRaw(?array $argv = null): Args
+    {
         if ($argv === null) {
-            $argv = $GLOBALS['argv'];
+            $argv = $GLOBALS["argv"];
         }
 
         if (!is_array($argv)) {
-            throw new \Exception(__METHOD__ . " expects an array", 400);
+            throw new Exception(__METHOD__ . " expects an array", 400);
         }
 
         $path = array_shift($argv);
         $hasCommand = $this->hasCommand();
 
         $parsed = new Args();
-        $parsed->setMeta('path', $path);
-        $parsed->setMeta('filename', basename($path));
+        $parsed->setMeta("path", $path);
+        $parsed->setMeta("filename", basename($path));
 
         if (count($argv)) {
             // Get possible command.
-            if (substr($argv[0], 0, 1) != '-') {
+            if (!str_starts_with($argv[0], "-")) {
                 $arg0 = array_shift($argv);
                 if ($hasCommand) {
                     $parsed->setCommand($arg0);
@@ -423,34 +419,48 @@ class Cli {
                 $str = $argv[$i];
 
                 // Parse the help command as a boolean since it is not part of the schema!
-                if (in_array($str, ['-?', '--help'])) {
-                    $parsed->setOpt('help', true);
+                if (in_array($str, ["-?", "--help"])) {
+                    $parsed->setOpt("help", true);
                     continue;
                 }
 
-                if ($str === '--') {
+                if ($str === "--") {
                     // --
                     $i++;
                     break;
-                } elseif (strlen($str) > 2 && substr($str, 0, 2) == '--') {
+                } elseif (strlen($str) > 2 && str_starts_with($str, "--")) {
                     // --foo
                     $str = substr($str, 2);
-                    $parts = explode('=', $str);
+                    $parts = explode("=", $str);
                     $key = $parts[0];
-                    $v = '';
+                    $v = "";
 
                     // Has a =, so pick the second piece
                     if (count($parts) == 2) {
                         $v = $parts[1];
-                    // Does not have an =
+                        // Does not have an =
                     } else {
                         // If there is a value (even if there are no equals)
-                        if (isset($argv[$i + 1]) && preg_match('/^--?.+/', $argv[$i + 1]) == 0) {
+                        if (
+                            isset($argv[$i + 1]) &&
+                            preg_match("/^--?.+/", $argv[$i + 1]) == 0
+                        ) {
                             // so choose the next arg as its value if any,
                             $v = $argv[$i + 1];
                             // If this is a boolean we need to coerce the value
                             if (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
-                                if (in_array($v, ['0', '1', 'true', 'false', 'on', 'off', 'yes', 'no'])) {
+                                if (
+                                    in_array($v, [
+                                        "0",
+                                        "1",
+                                        "true",
+                                        "false",
+                                        "on",
+                                        "off",
+                                        "yes",
+                                        "no",
+                                    ])
+                                ) {
                                     // The next arg looks like a boolean to me.
                                     $i++;
                                 } else {
@@ -460,19 +470,23 @@ class Cli {
                             } else {
                                 $i++;
                             }
-                        // If there is no value but we have a no- before the command
-                        } elseif (strpos($key, 'no-') === 0) {
-                            $tmpKey = str_replace('no-', '', $key);
-                            if (Cli::val($tmpKey, $types) === self::TYPE_BOOLEAN) {
+                            // If there is no value but we have a no- before the command
+                        } elseif (str_starts_with($key, "no-")) {
+                            $tmpKey = str_replace("no-", "", $key);
+                            if (
+                                Cli::val($tmpKey, $types) === self::TYPE_BOOLEAN
+                            ) {
                                 $key = $tmpKey;
                                 $v = false;
                             }
-                        } elseif (Cli::val($key, $types) === self::TYPE_BOOLEAN) {
+                        } elseif (
+                            Cli::val($key, $types) === self::TYPE_BOOLEAN
+                        ) {
                             $v = true;
                         }
                     }
                     $this->pushOpt($parsed, $key, $v);
-                } elseif (strlen($str) == 2 && $str[0] == '-') {
+                } elseif (strlen($str) == 2 && $str[0] == "-") {
                     // -a
 
                     $key = $str[1];
@@ -491,7 +505,7 @@ class Cli {
                             } else {
                                 $v = true;
                             }
-                        } elseif (!preg_match('/^--?.+/', $argv[$i + 1])) {
+                        } elseif (!preg_match("/^--?.+/", $argv[$i + 1])) {
                             // The next arg is not an opt.
                             $v = $nextArg;
                             $i++;
@@ -502,19 +516,23 @@ class Cli {
                     }
 
                     if ($v === null) {
-                        $v = Cli::val($type, [self::TYPE_BOOLEAN => true, self::TYPE_INTEGER => 1, self::TYPE_STRING => '']);
+                        $v = Cli::val($type, [
+                            self::TYPE_BOOLEAN => true,
+                            self::TYPE_INTEGER => 1,
+                            self::TYPE_STRING => "",
+                        ]);
                     }
 
-                    $this->pushOpt($parsed, $key, $v);
-                } elseif (strlen($str) > 1 && $str[0] == '-') {
+                    $this->pushOpt($parsed, (string) $key, $v);
+                } elseif (strlen($str) > 1 && $str[0] == "-") {
                     // -abcdef
                     for ($j = 1; $j < strlen($str); $j++) {
-                        $opt = $str[$j];
+                        $opt = (string) $str[$j];
                         $remaining = substr($str, $j + 1);
                         $type = Cli::val($opt, $types, self::TYPE_BOOLEAN);
 
                         // Check for an explicit equals sign.
-                        if (substr($remaining, 0, 1) === '=') {
+                        if (str_starts_with($remaining, "=")) {
                             $remaining = substr($remaining, 1);
                             if ($type === self::TYPE_BOOLEAN) {
                                 // Bypass the boolean flag checking below.
@@ -524,7 +542,7 @@ class Cli {
                         }
 
                         if ($type === self::TYPE_BOOLEAN) {
-                            if (preg_match('`^([01])`', $remaining, $matches)) {
+                            if (preg_match("`^([01])`", $remaining, $matches)) {
                                 // Treat the 0 or 1 as a true or false.
                                 $this->pushOpt($parsed, $opt, $matches[1]);
                                 $j += strlen($matches[1]);
@@ -537,7 +555,7 @@ class Cli {
                             $this->pushOpt($parsed, $opt, $remaining);
                             break;
                         } elseif ($type === self::TYPE_INTEGER) {
-                            if (preg_match('`^(\d+)`', $remaining, $matches)) {
+                            if (preg_match("`^(\d+)`", $remaining, $matches)) {
                                 // Treat the option as a set with no = sign.
                                 $this->pushOpt($parsed, $opt, $matches[1]);
                                 $j += strlen($matches[1]);
@@ -548,7 +566,10 @@ class Cli {
                             }
                         } else {
                             // This should not happen unless we've put a bug in our code.
-                            throw new \Exception("Invalid type $type for $opt.", 500);
+                            throw new Exception(
+                                "Invalid type $type for $opt.",
+                                500
+                            );
                         }
                     }
                 } else {
@@ -571,9 +592,10 @@ class Cli {
      *
      * @param Args $args The arguments that were returned from {@link Cli::parseRaw()}.
      * @return Args|null
-     * @throws \Exception Throws an exception when validation fails and exceptions are configured.
+     * @throws Exception Throws an exception when validation fails and exceptions are configured.
      */
-    public function validate(Args $args) {
+    public function validate(Args $args): ?Args
+    {
         $isValid = true;
         $command = $args->getCommand();
         $valid = new Args($command);
@@ -583,7 +605,7 @@ class Cli {
 
         // Check to see if the command is correct.
         if ($command && !$this->hasCommand($command) && $this->hasCommand()) {
-            echo $this->red("Invalid command: $command.".PHP_EOL);
+            echo $this->red("Invalid command: $command." . PHP_EOL);
             $isValid = false;
         }
 
@@ -612,21 +634,21 @@ class Cli {
         if (count($missing)) {
             $isValid = false;
             foreach ($missing as $key => $v) {
-                echo $this->red("Missing required option: $key".PHP_EOL);
+                echo $this->red("Missing required option: $key" . PHP_EOL);
             }
         }
 
         foreach ($schema->getArgs() as $name => $arg) {
-            if (!empty($arg['required']) && !$valid->hasArg($name)) {
+            if (!empty($arg["required"]) && !$valid->hasArg($name)) {
                 $isValid = false;
-                echo $this->red("Missing required arg: $name".PHP_EOL);
+                echo $this->red("Missing required arg: $name" . PHP_EOL);
             }
         }
 
         if (count($opts)) {
             $isValid = false;
             foreach ($opts as $key => $v) {
-                echo $this->red("Invalid option: $key".PHP_EOL);
+                echo $this->red("Invalid option: $key" . PHP_EOL);
             }
         }
 
@@ -644,7 +666,8 @@ class Cli {
      * @param string $command The name of the command. This can be left blank if there is no command.
      * @return CommandSchema Returns the schema that matches the command.
      */
-    public function getSchema($command = ''): CommandSchema {
+    public function getSchema(string $command = ""): CommandSchema
+    {
         $matches = [];
         foreach ($this->commandSchemas as $pattern => $schema) {
             if (fnmatch($pattern, $command)) {
@@ -671,7 +694,8 @@ class Cli {
      * @param mixed $value Set a new value for the meta key.
      * @return $this|mixed Returns the current value of the meta item or `$this` for fluent setting.
      */
-    public function meta($name, $value = null) {
+    public function meta(string $name, $value = null)
+    {
         if ($value !== null) {
             $this->currentSchema->setMeta($name, $value);
             return $this;
@@ -690,7 +714,13 @@ class Cli {
      * @param array $meta Additional information to attach to the opt.
      * @return $this
      */
-    public function opt($name, $description, $required = false, $type = 'string', array $meta = []) {
+    public function opt(
+        string $name,
+        string $description,
+        bool $required = false,
+        string $type = "string",
+        array $meta = []
+    ): static {
         $opt = new OptSchema($name, $description, $required, $type, $meta);
         $this->currentSchema->addOpt($opt);
         return $this;
@@ -702,7 +732,8 @@ class Cli {
      * @param OptSchema $opt
      * @return $this
      */
-    public function addOpt(OptSchema $opt): self {
+    public function addOpt(OptSchema $opt): self
+    {
         $this->currentSchema->addOpt($opt);
         return $this;
     }
@@ -715,12 +746,12 @@ class Cli {
      * @param bool $required Whether or not the arg is required.
      * @return $this
      */
-    public function arg($name, $description, $required = false) {
-        $this->currentSchema->addMeta(
-            Cli::ARGS,
-            $name,
-            ['description' => $description, 'required' => $required]
-        );
+    public function arg($name, $description, $required = false)
+    {
+        $this->currentSchema->addMeta(Cli::ARGS, $name, [
+            "description" => $description,
+            "required" => $required,
+        ]);
         return $this;
     }
 
@@ -730,7 +761,8 @@ class Cli {
      * @param string $pattern The command pattern.
      * @return $this
      */
-    public function command($pattern) {
+    public function command($pattern)
+    {
         if (!isset($this->commandSchemas[$pattern])) {
             $this->commandSchemas[$pattern] = new CommandSchema();
         }
@@ -748,14 +780,15 @@ class Cli {
      * @param bool|null $boolValue Set the boolean value of the value being checked.
      * @return bool Returns **true** if the value is boolean or **false** otherwise.
      */
-    protected function isStrictBoolean($value, &$boolValue = null) {
+    protected function isStrictBoolean($value, &$boolValue = null): bool
+    {
         if ($value === true || $value === false) {
             $boolValue = $value;
             return true;
-        } elseif (in_array($value, ['0', 'false', 'off', 'no'])) {
+        } elseif (in_array($value, ["0", "false", "off", "no"])) {
             $boolValue = false;
             return true;
-        } elseif (in_array($value, ['1', 'true', 'on', 'yes'])) {
+        } elseif (in_array($value, ["1", "true", "on", "yes"])) {
             $boolValue = true;
             return true;
         } else {
@@ -770,7 +803,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns the text surrounded by formatting commands.
      */
-    public function bold($text) {
+    public function bold($text)
+    {
         return $this->formatString($text, ["\033[1m", "\033[0m"]);
     }
 
@@ -780,7 +814,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns the text surrounded by formatting commands.
      */
-    public static function boldText($text) {
+    public static function boldText(string $text): string
+    {
         return "\033[1m{$text}\033[0m";
     }
 
@@ -790,7 +825,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public function red($text) {
+    public function red(string $text): string
+    {
         return $this->formatString($text, ["\033[1;31m", "\033[0m"]);
     }
 
@@ -800,7 +836,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public static function redText($text) {
+    public static function redText(string $text): string
+    {
         return "\033[1;31m{$text}\033[0m";
     }
 
@@ -810,7 +847,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public function green($text) {
+    public function green(string $text): string
+    {
         return $this->formatString($text, ["\033[1;32m", "\033[0m"]);
     }
 
@@ -820,7 +858,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public static function greenText($text) {
+    public static function greenText(string $text): string
+    {
         return "\033[1;32m{$text}\033[0m";
     }
 
@@ -830,7 +869,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public function blue($text) {
+    public function blue(string $text): string
+    {
         return $this->formatString($text, ["\033[1;34m", "\033[0m"]);
     }
 
@@ -840,7 +880,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public static function blueText($text) {
+    public static function blueText(string $text): string
+    {
         return "\033[1;34m{$text}\033[0m";
     }
 
@@ -850,7 +891,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public function purple($text) {
+    public function purple(string $text): string
+    {
         return $this->formatString($text, ["\033[0;35m", "\033[0m"]);
     }
 
@@ -860,7 +902,8 @@ class Cli {
      * @param string $text The text to format.
      * @return string Returns  text surrounded by formatting commands.
      */
-    public static function purpleText($text) {
+    public static function purpleText(string $text): string
+    {
         return "\033[0;35m{$text}\033[0m";
     }
 
@@ -871,7 +914,8 @@ class Cli {
      * @param string[] $wrap The format to wrap in the form ['before', 'after'].
      * @return string Returns the string formatted according to {@link Cli::$format}.
      */
-    protected function formatString($text, array $wrap) {
+    protected function formatString(string $text, array $wrap): string
+    {
         if ($this->formatOutput) {
             return "{$wrap[0]}$text{$wrap[1]}";
         } else {
@@ -885,16 +929,20 @@ class Cli {
      * If the current environment is being redirected to a file then output should not be formatted. Also, Windows
      * machines do not support terminal colors so formatting should be suppressed on them too.
      *
-     * @param mixed $stream The stream to interrogate for output format support.
+     * @param mixed|resource $stream The stream to interrogate for output format support.
      * @return bool Returns **true** if the output can be formatter or **false** otherwise.
      */
-    public static function guessFormatOutput($stream = STDOUT) {
-        if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
+    public static function guessFormatOutput($stream = STDOUT): bool
+    {
+        if (defined("PHP_WINDOWS_VERSION_MAJOR")) {
             return false;
-        } elseif (function_exists('posix_isatty')) {
+        } elseif (
+            function_exists("posix_isatty") &&
+            (is_int($stream) || is_resource($stream))
+        ) {
             try {
                 return @posix_isatty($stream);
-            } catch (\Throwable $ex) {
+            } catch (Throwable $ex) {
                 return false;
             }
         } else {
@@ -909,10 +957,11 @@ class Cli {
      *
      * @return void
      */
-    public static function sleep($seconds): void {
+    public static function sleep(int $seconds): void
+    {
         for ($i = 0; $i < $seconds; $i++) {
             sleep(1);
-            echo '.';
+            echo ".";
         }
     }
 
@@ -925,12 +974,24 @@ class Cli {
      * @param OptSchema|null $def The schema for the opt to aid error messages.
      * @return bool
      */
-    protected function validateType(&$value, $type, $name = '', OptSchema $def = null): bool {
+    protected function validateType(
+        &$value,
+        string $type,
+        string $name = "",
+        OptSchema $def = null
+    ): bool {
         if ($def !== null && $def->isArray()) {
-            $value = (array)$value;
+            $value = (array) $value;
             $r = true;
             foreach ($value as $i => &$item) {
-                $r = $r && $this->validateScalarType($item, $type, "{$name}[$i]", $def);
+                $r =
+                    $r &&
+                    $this->validateScalarType(
+                        $item,
+                        $type,
+                        "{$name}[$i]",
+                        $def
+                    );
             }
         } else {
             if (is_array($value)) {
@@ -950,17 +1011,30 @@ class Cli {
      * @param string $name The name of the option if you want to print an error message.
      * @param OptSchema|null $def The option def if you want to print an error message.
      * @return bool Returns `true` if the value is the correct type.
-     * @throws \Exception Throws an exception when {@see $type} is not a known value.
+     * @throws Exception Throws an exception when {@see $type} is not a known value.
      */
-    private function validateScalarType(&$value, $type, $name = '', ?OptSchema $def = null): bool {
+    private function validateScalarType(
+        &$value,
+        string $type,
+        string $name = "",
+        ?OptSchema $def = null
+    ): bool {
         switch ($type) {
             case self::TYPE_BOOLEAN:
                 if (is_bool($value)) {
                     $valid = true;
-                } elseif (in_array($value, [null, '', 0, '0', 'false', 'no', 'disabled'], true)) {
+                } elseif (
+                    in_array(
+                        $value,
+                        [null, "", 0, "0", "false", "no", "disabled"],
+                        true
+                    )
+                ) {
                     $value = false;
                     $valid = true;
-                } elseif (in_array($value, [1, '1', 'true', 'yes', 'enabled'], true)) {
+                } elseif (
+                    in_array($value, [1, "1", "true", "yes", "enabled"], true)
+                ) {
                     $value = true;
                     $valid = true;
                 } else {
@@ -969,24 +1043,26 @@ class Cli {
                 break;
             case self::TYPE_INTEGER:
                 if (is_numeric($value)) {
-                    $value = (int)$value;
+                    $value = (int) $value;
                     $valid = true;
                 } else {
                     $valid = false;
                 }
                 break;
             case self::TYPE_STRING:
-                $value = (string)$value;
+                $value = (string) $value;
                 $valid = true;
                 break;
             default:
-                throw new \Exception("Unknown type: $type.", 400);
+                throw new Exception("Unknown type: $type.", 400);
         }
 
         if (!$valid && $name) {
-            $short = $def !== null ? $def->getShortName() : '';
-            $nameStr = "--$name".($short ? " (-$short)" : '');
-            echo $this->red("The value of $nameStr is not a valid $type.".PHP_EOL);
+            $short = $def !== null ? $def->getShortName() : "";
+            $nameStr = "--$name" . ($short ? " (-$short)" : "");
+            echo $this->red(
+                "The value of $nameStr is not a valid $type." . PHP_EOL
+            );
         }
 
         return $valid;
@@ -997,8 +1073,9 @@ class Cli {
      *
      * @return void
      */
-    protected function writeCommands(): void {
-        echo static::bold("COMMANDS").PHP_EOL;
+    protected function writeCommands(): void
+    {
+        echo static::bold("COMMANDS") . PHP_EOL;
 
         $table = new Table();
         foreach ($this->commandSchemas as $pattern => $schema) {
@@ -1019,7 +1096,8 @@ class Cli {
      *
      * @return void
      */
-    public function writeHelp($command = ''): void {
+    public function writeHelp(string $command = ""): void
+    {
         $schema = $this->getSchema($command);
         $this->writeSchemaHelp($schema);
     }
@@ -1031,18 +1109,28 @@ class Cli {
      *
      * @return void
      */
-    protected function writeSchemaHelp(CommandSchema $schema): void {
+    protected function writeSchemaHelp(CommandSchema $schema): void
+    {
         // Write the command description.
         $description = $schema->getDescription();
 
         if ($description) {
-            echo implode("\n", Cli::breakLines($description, 80, false)).PHP_EOL.PHP_EOL;
+            echo implode("\n", Cli::breakLines($description, 80, false)) .
+                PHP_EOL .
+                PHP_EOL;
         }
 
         // Add the help.
-        $schema->addOpt(new OptSchema('help:?', 'Display this help.', false, self::TYPE_BOOLEAN));
+        $schema->addOpt(
+            new OptSchema(
+                "help:?",
+                "Display this help.",
+                false,
+                self::TYPE_BOOLEAN
+            )
+        );
 
-        echo Cli::bold('OPTIONS').PHP_EOL;
+        echo Cli::bold("OPTIONS") . PHP_EOL;
 
         $table = new Table();
         $table->setFormatOutput($this->formatOutput);
@@ -1072,7 +1160,7 @@ class Cli {
 
         $args = $schema->getArgs();
         if (!empty($args)) {
-            echo Cli::bold('ARGUMENTS').PHP_EOL;
+            echo Cli::bold("ARGUMENTS") . PHP_EOL;
 
             $table = new Table();
             $table->setFormatOutput($this->formatOutput);
@@ -1080,13 +1168,13 @@ class Cli {
             foreach ($args as $argName => $arg) {
                 $table->row();
 
-                if (Cli::val('required', $arg)) {
+                if (Cli::val("required", $arg)) {
                     $table->bold($argName);
                 } else {
                     $table->cell($argName);
                 }
 
-                $table->cell(Cli::val('description', $arg, ''));
+                $table->cell(Cli::val("description", $arg, ""));
             }
             $table->write();
             echo PHP_EOL;
@@ -1100,15 +1188,19 @@ class Cli {
      *
      * @return void
      */
-    protected function writeUsage(Args $args): void {
-        if ($filename = $args->getMeta('filename')) {
-            echo static::bold("usage: ").$filename;
+    protected function writeUsage(Args $args): void
+    {
+        if ($filename = $args->getMeta("filename")) {
+            echo static::bold("usage: ") . $filename;
 
             if ($this->hasCommand()) {
-                if ($args->getCommand() && isset($this->commandSchemas[$args->getCommand()])) {
-                    echo ' '.$args->getCommand();
+                if (
+                    $args->getCommand() &&
+                    isset($this->commandSchemas[$args->getCommand()])
+                ) {
+                    echo " " . $args->getCommand();
                 } else {
-                    echo ' <command>';
+                    echo " <command>";
                 }
             }
 
@@ -1120,7 +1212,7 @@ class Cli {
                 echo $hasArgs === 2 ? " <args>" : " [<args>]";
             }
 
-            echo PHP_EOL.PHP_EOL;
+            echo PHP_EOL . PHP_EOL;
         }
     }
 
@@ -1134,7 +1226,11 @@ class Cli {
      * @param mixed $default The default value to return if the key doesn't exist.
      * @return mixed The item from the array or `$default` if the array key doesn't exist.
      */
-    public static function val($key, array $array, $default = null) {
+    public static function val(
+        string|int $key,
+        array $array,
+        $default = null
+    ): mixed {
         // isset() is a micro-optimization - it is fast but fails for null values.
         if (isset($array[$key])) {
             return $array[$key];
@@ -1157,9 +1253,13 @@ class Cli {
      * @param string $key The option key.
      * @param mixed $value The value of the option.
      */
-    private function pushOpt(Args $args, string $key, $value): void {
+    private function pushOpt(Args $args, string $key, $value): void
+    {
         if ($args->hasOpt($key)) {
-            $args->setOpt($key, array_merge((array)$args->getOpt($key, []), [$value]));
+            $args->setOpt(
+                $key,
+                array_merge((array) $args->getOpt($key, []), [$value])
+            );
         } else {
             $args->setOpt($key, $value);
         }
@@ -1172,9 +1272,13 @@ class Cli {
      * @param string $key The key of the opt.
      * @param mixed $value The value to merge.
      */
-    private function mergeOpt(Args $args, string $key, $value): void {
+    private function mergeOpt(Args $args, string $key, $value): void
+    {
         if (is_array($value)) {
-            $args->setOpt($key, array_merge((array)$args->getOpt($key, []), $value));
+            $args->setOpt(
+                $key,
+                array_merge((array) $args->getOpt($key, []), $value)
+            );
         } else {
             $args->setOpt($key, $value);
         }
@@ -1188,15 +1292,14 @@ class Cli {
      * @param OptSchema $def The option definition.
      * @return array|mixed Returns the extracted opts.
      */
-    private function extractOpt(array &$opts, string $key, OptSchema $def) {
+    private function extractOpt(array &$opts, string $key, OptSchema $def)
+    {
         $r = [];
         $unset = [];
 
         foreach ($opts as $k => $v) {
-            if ($k === $def->getName() ||
-                $k === $def->getShortName()
-            ) {
-                $r = array_merge($r, (array)$v);
+            if ($k === $def->getName() || $k === $def->getShortName()) {
+                $r = array_merge($r, (array) $v);
                 $unset[] = $k;
             }
         }

@@ -10,27 +10,50 @@ namespace Garden\Cli\Tests\App;
 use Garden\Cli\Application\Identifier;
 use PHPUnit\Framework\TestCase;
 
-class IdentifierTest extends TestCase {
+class IdentifierTest extends TestCase
+{
     /**
      * @param array $parts
      * @dataProvider provideIdentifiers
      */
-    public function testFrom(string $camel, string $pascal, string $snake, string $kebab): void {
+    public function testFrom(
+        string $camel,
+        string $pascal,
+        string $snake,
+        string $kebab
+    ): void {
         $camelID = Identifier::fromCamel($camel);
         $pascalID = Identifier::fromPascal($pascal);
         $snakeID = Identifier::fromSnake($snake);
         $kebabID = Identifier::fromKebab($kebab);
 
-        $this->assertSame($camelID->getParts(), $pascalID->getParts(), "camel !== pascal");
-        $this->assertSame($pascalID->getParts(), $snakeID->getParts(), "pascal !== snake");
-        $this->assertSame($snakeID->getParts(), $kebabID->getParts(), "snake !== kebab");
+        $this->assertSame(
+            $camelID->getParts(),
+            $pascalID->getParts(),
+            "camel !== pascal"
+        );
+        $this->assertSame(
+            $pascalID->getParts(),
+            $snakeID->getParts(),
+            "pascal !== snake"
+        );
+        $this->assertSame(
+            $snakeID->getParts(),
+            $kebabID->getParts(),
+            "snake !== kebab"
+        );
     }
 
     /**
      * @param array $parts
      * @dataProvider provideIdentifiers
      */
-    public function testTo(string $camel, string $pascal, string $snake, string $kebab): void {
+    public function testTo(
+        string $camel,
+        string $pascal,
+        string $snake,
+        string $kebab
+    ): void {
         $id = Identifier::fromCamel($camel);
 
         $this->assertSame($camel, $id->toCamel());
@@ -39,11 +62,12 @@ class IdentifierTest extends TestCase {
         $this->assertSame($kebab, $id->toKebab());
     }
 
-    public function provideIdentifiers(): array {
+    public function provideIdentifiers(): array
+    {
         $r = [
-            ['one', 'One', 'one', 'one'],
-            ['addFoo', 'AddFoo', 'add_foo', 'add-foo'],
-            ['addFoo10', 'AddFoo10', 'add_foo_10', 'add-foo-10'],
+            ["one", "One", "one", "one"],
+            ["addFoo", "AddFoo", "add_foo", "add-foo"],
+            ["addFoo10", "AddFoo10", "add_foo_10", "add-foo-10"],
         ];
 
         return array_column($r, null, 0);
@@ -54,7 +78,8 @@ class IdentifierTest extends TestCase {
      * @param string $expected
      * @dataProvider provideBaseNames
      */
-    public function testFromBasename($class, string $expected): void {
+    public function testFromBasename($class, string $expected): void
+    {
         $actual = Identifier::fromClassBasename($class);
         $this->assertSame($expected, $actual->toKebab());
     }
@@ -62,11 +87,12 @@ class IdentifierTest extends TestCase {
     /**
      * @return array
      */
-    public function provideBaseNames(): array {
+    public function provideBaseNames(): array
+    {
         return [
-            'object' => [$this, 'identifier-test'],
-            'class name' => [self::class, 'identifier-test'],
-            'old school' => ['Some_Old_ClassName', 'class-name'],
+            "object" => [$this, "identifier-test"],
+            "class name" => [self::class, "identifier-test"],
+            "old school" => ["Some_Old_ClassName", "class-name"],
         ];
     }
 }

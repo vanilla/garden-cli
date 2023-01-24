@@ -7,10 +7,9 @@
 
 namespace Garden\Cli\Tests\Fixtures;
 
-
 /**
  * Do something real.
  */
-class RealCommand extends TestCommands {
-
+class RealCommand extends TestCommands
+{
 }

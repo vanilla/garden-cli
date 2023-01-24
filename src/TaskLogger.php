@@ -15,17 +15,18 @@ use Psr\Log\LogLevel;
 /**
  * A helper class to format CLI output in a log-style format.
  */
-class TaskLogger implements LoggerInterface {
+class TaskLogger implements LoggerInterface
+{
     use LoggerTrait;
 
-    const FIELD_INDENT = '_indent';
-    const FIELD_TIME = '_time';
-    const FIELD_BEGIN = '_begin';
-    const FIELD_END = '_end';
-    const FIELD_DURATION = '_duration';
-    const FIELD_LEVEL = '_level';
+    const FIELD_INDENT = "_indent";
+    const FIELD_TIME = "_time";
+    const FIELD_BEGIN = "_begin";
+    const FIELD_END = "_end";
+    const FIELD_DURATION = "_duration";
+    const FIELD_LEVEL = "_level";
 
-    private static $levels = [
+    private static array $levels = [
         LogLevel::DEBUG,
         LogLevel::INFO,
         LogLevel::NOTICE,
@@ -38,15 +39,15 @@ class TaskLogger implements LoggerInterface {
     /**
      * @var string The minimum level deep to output.
      */
-    private $minLevel = LogLevel::INFO;
+    private string $minLevel = LogLevel::INFO;
     /**
      * @var array An array of currently running tasks.
      */
-    private $taskStack = [];
+    private array $taskStack = [];
     /**
      * @var LoggerInterface The logger to ultimately log the information to.
      */
-    private $logger;
+    private LoggerInterface|StreamLogger $logger;
 
     /**
      * TaskLogger constructor.
@@ -54,7 +55,10 @@ class TaskLogger implements LoggerInterface {
      * @param LoggerInterface $logger The logger to ultimately log the information to.
      * @param string $minLevel The minimum error level that will be logged. One of the **LogLevel** constants.
      */
-    public function __construct(LoggerInterface $logger = null, $minLevel = LogLevel::INFO) {
+    public function __construct(
+        LoggerInterface $logger = null,
+        string $minLevel = LogLevel::INFO
+    ) {
         if ($logger === null) {
             $logger = new StreamLogger();
         }
@@ -69,7 +73,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginDebug(string $message, array $context = []) {
+    public function beginDebug(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::DEBUG, $message, $context);
     }
 
@@ -81,9 +86,14 @@ class TaskLogger implements LoggerInterface {
      * @param array $context The log context.
      * @return $this
      */
-    public function begin(string $level, string $message, array $context = []) {
+    public function begin(
+        string $level,
+        string $message,
+        array $context = []
+    ): static {
         $output = $this->compareLevel($level, $this->getMinLevel()) >= 0;
-        $context = [self::FIELD_BEGIN => true] + $context + [self::FIELD_TIME => microtime(true)];
+        $context = [self::FIELD_BEGIN => true] +
+            $context + [self::FIELD_TIME => microtime(true)];
         $task = [$level, $message, $context, $output];
 
         if ($output) {
@@ -102,7 +112,8 @@ class TaskLogger implements LoggerInterface {
      * @param string $b The second log level to compare.
      * @return int Returns -1, 0, or 1.
      */
-    private function compareLevel(string $a, string $b): int {
+    private function compareLevel(string $a, string $b): int
+    {
         $i = array_search($a, static::$levels);
         if ($i === false) {
             throw new InvalidArgumentException("Log level is invalid: $a", 500);
@@ -116,7 +127,8 @@ class TaskLogger implements LoggerInterface {
      *
      * @return string Returns the maxLevel.
      */
-    public function getMinLevel(): string {
+    public function getMinLevel(): string
+    {
         return $this->minLevel;
     }
 
@@ -126,7 +138,8 @@ class TaskLogger implements LoggerInterface {
      * @param string $minLevel One of the PSR logger levels.
      * @return $this
      */
-    public function setMinLevel(string $minLevel) {
+    public function setMinLevel(string $minLevel)
+    {
         $this->minLevel = $minLevel;
         return $this;
     }
@@ -140,7 +153,8 @@ class TaskLogger implements LoggerInterface {
      *
      * @return void
      */
-    public function log($level, $message, array $context = []) {
+    public function log($level, $message, array $context = []): void
+    {
         if ($this->compareLevel($level, $this->getMinLevel()) >= 0) {
             $this->outputTaskStack();
 
@@ -151,7 +165,11 @@ class TaskLogger implements LoggerInterface {
                 }
             }
 
-            $this->logInternal($level, $message, [self::FIELD_INDENT => $this->currentIndent()] + $context);
+            $this->logInternal(
+                $level,
+                (string) $message,
+                [self::FIELD_INDENT => $this->currentIndent()] + $context
+            );
         }
     }
 
@@ -160,11 +178,16 @@ class TaskLogger implements LoggerInterface {
      *
      * @return void
      */
-    private function outputTaskStack(): void {
+    private function outputTaskStack(): void
+    {
         foreach ($this->taskStack as $indent => &$task) {
             list($taskLevel, $taskMessage, $taskContext, $taskOutput) = $task;
             if (!$taskOutput) {
-                $this->logInternal($taskLevel, $taskMessage, [self::FIELD_INDENT => $indent] + $taskContext);
+                $this->logInternal(
+                    $taskLevel,
+                    $taskMessage,
+                    [self::FIELD_INDENT => $indent] + $taskContext
+                );
 
                 $task[3] = true; // mark task as outputted
             }
@@ -180,8 +203,15 @@ class TaskLogger implements LoggerInterface {
      *
      * @return void
      */
-    private function logInternal(string $level, string $message, array $context = []): void {
-        $context = $context + [self::FIELD_INDENT => $this->currentIndent(), self::FIELD_TIME => microtime(true)];
+    private function logInternal(
+        string $level,
+        string $message,
+        array $context = []
+    ): void {
+        $context = $context + [
+            self::FIELD_INDENT => $this->currentIndent(),
+            self::FIELD_TIME => microtime(true),
+        ];
         $this->logger->log($level, $message, $context);
     }
 
@@ -190,7 +220,8 @@ class TaskLogger implements LoggerInterface {
      *
      * @return int Returns the current level.
      */
-    private function currentIndent() {
+    private function currentIndent(): int
+    {
         return count($this->taskStack);
     }
 
@@ -201,7 +232,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginInfo(string $message, array $context = []) {
+    public function beginInfo(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::INFO, $message, $context);
     }
 
@@ -212,7 +244,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginNotice(string $message, array $context = []) {
+    public function beginNotice(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::NOTICE, $message, $context);
     }
 
@@ -223,7 +256,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginWarning(string $message, array $context = []) {
+    public function beginWarning(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::WARNING, $message, $context);
     }
 
@@ -234,7 +268,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginError(string $message, array $context = []) {
+    public function beginError(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::ERROR, $message, $context);
     }
 
@@ -245,7 +280,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginCritical(string $message, array $context = []) {
+    public function beginCritical(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::CRITICAL, $message, $context);
     }
 
@@ -256,7 +292,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginAlert(string $message, array $context = []) {
+    public function beginAlert(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::ALERT, $message, $context);
     }
 
@@ -267,7 +304,8 @@ class TaskLogger implements LoggerInterface {
      * @param array $context Context variables to pass to the message.
      * @return $this
      */
-    public function beginEmergency(string $message, array $context = []) {
+    public function beginEmergency(string $message, array $context = []): static
+    {
         return $this->begin(LogLevel::EMERGENCY, $message, $context);
     }
 
@@ -280,8 +318,9 @@ class TaskLogger implements LoggerInterface {
      * @param int $httpStatus The HTTP status code that represents the completion of a task.
      * @return $this
      */
-    public function endHttpStatus(int $httpStatus) {
-        $statusStr = sprintf('%03d', $httpStatus);
+    public function endHttpStatus(int $httpStatus): static
+    {
+        $statusStr = sprintf("%03d", $httpStatus);
 
         if ($httpStatus == 0 || $httpStatus >= 500) {
             $this->end($statusStr, [self::FIELD_LEVEL => LogLevel::CRITICAL]);
@@ -305,18 +344,27 @@ class TaskLogger implements LoggerInterface {
      *
      * @return $this Returns `$this` for fluent calls.
      */
-    public function end(string $message = '', array $context = []) {
-        $context = [self::FIELD_INDENT => $this->currentIndent() - 1, self::FIELD_END => true] + $context + [self::FIELD_TIME => microtime(true)];
+    public function end(string $message = "", array $context = []): static
+    {
+        $context = [
+            self::FIELD_INDENT => $this->currentIndent() - 1,
+            self::FIELD_END => true,
+        ] +
+            $context + [self::FIELD_TIME => microtime(true)];
         $level = $context[self::FIELD_LEVEL] ?? null;
 
         // Find the task we are finishing.
         $task = end($this->taskStack);
         if ($task !== false) {
             list($taskLevel, $taskMessage, $taskContext, $taskOutput) = $task;
-            $context[self::FIELD_DURATION] = $context[self::FIELD_TIME] - $taskContext[self::FIELD_TIME];
+            $context[self::FIELD_DURATION] =
+                $context[self::FIELD_TIME] - $taskContext[self::FIELD_TIME];
             $level = $level ?: $taskLevel;
         } else {
-            trigger_error('Called TaskLogger::end() without calling TaskFormatter::begin()', E_USER_NOTICE);
+            trigger_error(
+                "Called TaskLogger::end() without calling TaskFormatter::begin()",
+                E_USER_NOTICE
+            );
         }
         $level = $level ?: LogLevel::INFO;
 
@@ -338,7 +386,11 @@ class TaskLogger implements LoggerInterface {
      * @param array $context The log context.
      * @return $this
      */
-    public function endError(string $message, array $context = []) {
-        return $this->end($message, [self::FIELD_LEVEL => LogLevel::ERROR] + $context);
+    public function endError(string $message, array $context = []): static
+    {
+        return $this->end(
+            $message,
+            [self::FIELD_LEVEL => LogLevel::ERROR] + $context
+        );
     }
 }

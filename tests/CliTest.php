@@ -11,25 +11,26 @@ use Garden\Cli\Cli;
 /**
  * Unit tests for the various command line interface classes.
  */
-class CliTest extends AbstractCliTest {
+class CliTest extends AbstractCliTest
+{
     /**
      * Test a cli run with named arguments.
      */
-    public function testArgNames() {
+    public function testArgNames()
+    {
         $cli = new Cli();
-        $cli->description('A cli with named args.')
-            ->arg('from', 'The path from.')
-            ->arg('to', 'The path to.');
+        $cli->description("A cli with named args.")
+            ->arg("from", "The path from.")
+            ->arg("to", "The path to.");
 
-        $args = $cli->parse(['script', '/var/foo.txt', '/var/bar.txt'], false);
+        $args = $cli->parse(["script", "/var/foo.txt", "/var/bar.txt"], false);
 
-        $this->assertSame('/var/foo.txt', $args->getArg('from'));
-        $this->assertSame('/var/bar.txt', $args->getArg('to'));
+        $this->assertSame("/var/foo.txt", $args->getArg("from"));
+        $this->assertSame("/var/bar.txt", $args->getArg("to"));
 
-        $this->assertSame('/var/foo.txt', $args->getArg(0));
-        $this->assertSame('/var/bar.txt', $args->getArg(1));
+        $this->assertSame("/var/foo.txt", $args->getArg(0));
+        $this->assertSame("/var/bar.txt", $args->getArg(1));
     }
-
 
     /**
      * Test a cli run with no commands.
@@ -37,18 +38,22 @@ class CliTest extends AbstractCliTest {
      * @param array $argv The args to test.
      * @dataProvider provideBasicArgvs
      */
-    public function testNoCommandParse(array $argv) {
+    public function testNoCommandParse(array $argv)
+    {
         $cli = $this->getBasicCli();
 
         // Test some basic parsing scenarios.
         $parsed = $cli->parse($argv, false);
 
-        $this->assertEquals([
-            'hello' => 'world',
-            'enabled' => true,
-            'disabled' => false,
-            'count' => 3,
-        ], $parsed->getOpts());
+        $this->assertEquals(
+            [
+                "hello" => "world",
+                "enabled" => true,
+                "disabled" => false,
+                "count" => 3,
+            ],
+            $parsed->getOpts()
+        );
     }
 
     /**
@@ -57,12 +62,13 @@ class CliTest extends AbstractCliTest {
      * @param array $argv The args to test.
      * @dataProvider provideBasicArgForms
      */
-    public function testArgForms(array $argv) {
+    public function testArgForms(array $argv)
+    {
         $cli = $this->getBasicCli();
 
         $parsed = $cli->parse($argv, false);
 
-        $this->assertSame('world', $parsed->getOpt('hello'));
+        $this->assertSame("world", $parsed->getOpt("hello"));
     }
 
     /**
@@ -72,11 +78,12 @@ class CliTest extends AbstractCliTest {
      * @param array $expectedOpts The expected opt output.
      * @dataProvider provideBoolArgForms
      */
-    public function testBoolArgForms(array $argv, array $expectedOpts) {
+    public function testBoolArgForms(array $argv, array $expectedOpts)
+    {
         $cli = new Cli();
-        $cli->opt('boola:a', 'A bool.', false, 'boolean')
-            ->opt('boolb:b', 'Another bool.', false, 'boolean')
-            ->opt('str:s', 'A string', false);
+        $cli->opt("boola:a", "A bool.", false, "boolean")
+            ->opt("boolb:b", "Another bool.", false, "boolean")
+            ->opt("str:s", "A string", false);
 
         $parsed = $cli->parse($argv, false);
 
@@ -90,9 +97,15 @@ class CliTest extends AbstractCliTest {
      * @param array $expectedOpts The expected opt output.
      * @dataProvider provideOptionalArgValueForm
      */
-    public function testArgOptionalValue(array $argv, array $expectedOpts) {
+    public function testArgOptionalValue(array $argv, array $expectedOpts)
+    {
         $cli = new Cli();
-        $cli->opt('optionalFlag:o', 'An optional flag that may take a value.', false, 'string');
+        $cli->opt(
+            "optionalFlag:o",
+            "An optional flag that may take a value.",
+            false,
+            "string"
+        );
 
         // Test some basic parsing scenarios.
         $parsed = $cli->parse($argv, false);
@@ -103,12 +116,13 @@ class CliTest extends AbstractCliTest {
     /**
      * Test a missing option.
      */
-    public function testMissingOpt() {
+    public function testMissingOpt()
+    {
         $cli = $this->getBasicCli();
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Missing required option: hello');
-        $cli->parse(['script', '-e'], false);
+        $this->expectExceptionMessage("Missing required option: hello");
+        $cli->parse(["script", "-e"], false);
     }
 
     /**
@@ -118,8 +132,9 @@ class CliTest extends AbstractCliTest {
      * @param string $message The expected exception message.
      * @dataProvider provideInvalidTypes
      */
-    public function testInvalidTypes(array $argv, $message) {
-        $this->expectException('\Exception');
+    public function testInvalidTypes(array $argv, $message)
+    {
+        $this->expectException("\Exception");
 
         $cli = $this->getBasicCli();
         $cli->parse($argv, false);
@@ -128,7 +143,8 @@ class CliTest extends AbstractCliTest {
     /**
      * Test the help that gets printed with the --help opt.
      */
-    public function testHelp() {
+    public function testHelp()
+    {
         $cli = $this->getBasicCli();
 
         $expectedHelp = <<<EOT
@@ -142,15 +158,16 @@ OPTIONS
   --help, -?       Display this help.
 EOT;
 
-        $this->expectException('\Exception');
+        $this->expectException("\Exception");
 
-        $cli->parse(['script', '--help'], false);
+        $cli->parse(["script", "--help"], false);
     }
 
     /**
      * Test the help that gets printed with long command description
      */
-    public function testLongHelp() {
+    public function testLongHelp()
+    {
         $cli = $this->getLongDescCli();
 
         $expectedHelp = <<<EOT
@@ -162,15 +179,16 @@ COMMANDS
                  long long long long long long long description
 EOT;
 
-        $this->expectException('\Exception');
+        $this->expectException("\Exception");
 
-        $cli->parse(['script', '--help'], false);
+        $cli->parse(["script", "--help"], false);
     }
 
     /**
      * Test the help that gets printed with long command, option and argument descriptions
      */
-    public function testLongCommandHelp() {
+    public function testLongCommandHelp()
+    {
         $cli = $this->getLongDescCli();
 
         $expectedHelp = <<<EOT
@@ -192,15 +210,16 @@ ARGUMENTS
              long long long long long description
 EOT;
 
-        $this->expectException('\Exception');
+        $this->expectException("\Exception");
 
-        $cli->parse(['script', 'command-long', '--help'], false);
+        $cli->parse(["script", "command-long", "--help"], false);
     }
 
     /**
      * Test required option wrapping
      */
-    public function testOptionWrapping() {
+    public function testOptionWrapping()
+    {
         $expectedHelp = <<<EOT
 \033[1mOPTIONS\033[0m
   --count, -c      The count of things.
@@ -213,7 +232,9 @@ EOT;
 EOT;
 
         $this->expectOutputString($expectedHelp);
-        $this->getBasicCli()->setFormatOutput(true)->writeHelp();
+        $this->getBasicCli()
+            ->setFormatOutput(true)
+            ->writeHelp();
     }
 
     /**
@@ -221,14 +242,14 @@ EOT;
      *
      * @return Cli Returns the sample {@link Cli} instance.
      */
-    protected function getBasicCli() {
+    protected function getBasicCli()
+    {
         $cli = new Cli();
 
-        $cli->opt('hello:h', 'Hello world.', true, 'string')
-            ->opt('enabled:e', 'Enabled or not.', false, 'boolean')
-            ->opt('disabled:d', 'Disabled or not', false, 'bool')
-            ->opt('count:c', 'The count of things.', false, 'integer')
-            ;
+        $cli->opt("hello:h", "Hello world.", true, "string")
+            ->opt("enabled:e", "Enabled or not.", false, "boolean")
+            ->opt("disabled:d", "Disabled or not", false, "bool")
+            ->opt("count:c", "The count of things.", false, "integer");
 
         return $cli;
     }
@@ -238,15 +259,16 @@ EOT;
      *
      * @return Cli Returns the sample {@link Cli} instance.
      */
-    protected function getLongDescCli() {
+    protected function getLongDescCli()
+    {
         $cli = new Cli();
 
-        $description = 'Very'.str_repeat(' long ', 30).' description';
+        $description = "Very" . str_repeat(" long ", 30) . " description";
 
-        $cli->command('command-long')
+        $cli->command("command-long")
             ->description($description)
-            ->opt('opt-long', $description, false, 'string')
-            ->arg('arg-long', $description, false, 'string');
+            ->opt("opt-long", $description, false, "string")
+            ->arg("arg-long", $description, false, "string");
 
         return $cli;
     }
@@ -256,13 +278,33 @@ EOT;
      *
      * @return array Returns args for {@link testNoCommandParse()}.
      */
-    public function provideBasicArgvs() {
+    public function provideBasicArgvs()
+    {
         $result = [
-            [['script', '--hello=world', '--enabled', '--disabled', 'false', '--count=3']],
-            [['script', '-h', 'world', '-e', '-d', '0', '-c', '3']],
-            [['script', '-hworld', '-e1', '-d0', '-ccc']],
-            [['script', '--hello', 'world', '-ed0c2c']],
-            [['script', 'filename', '--hello', 'world', '-c3', '--no-disabled', '-e']],
+            [
+                [
+                    "script",
+                    "--hello=world",
+                    "--enabled",
+                    "--disabled",
+                    "false",
+                    "--count=3",
+                ],
+            ],
+            [["script", "-h", "world", "-e", "-d", "0", "-c", "3"]],
+            [["script", "-hworld", "-e1", "-d0", "-ccc"]],
+            [["script", "--hello", "world", "-ed0c2c"]],
+            [
+                [
+                    "script",
+                    "filename",
+                    "--hello",
+                    "world",
+                    "-c3",
+                    "--no-disabled",
+                    "-e",
+                ],
+            ],
         ];
         return $result;
     }
@@ -272,13 +314,14 @@ EOT;
      *
      * @return array Returns args for {@link CliTest::testArgForms()}.
      */
-    public function provideBasicArgForms() {
+    public function provideBasicArgForms()
+    {
         $result = [
-            'long =' => [['script', '--hello=world']],
-            'long space' => [['script', '--hello', 'world']],
-            'short' => [['script', '-hworld']],
-            'short = ' => [['script', '-h=world']],
-            'short space' => [['script', '-h', 'world']],
+            "long =" => [["script", "--hello=world"]],
+            "long space" => [["script", "--hello", "world"]],
+            "short" => [["script", "-hworld"]],
+            "short = " => [["script", "-h=world"]],
+            "short space" => [["script", "-h", "world"]],
         ];
         return $result;
     }
@@ -288,13 +331,29 @@ EOT;
      *
      * @return array Returns an array in the form `[$argv, $expectedOpts]`.
      */
-    public function provideBoolArgForms() {
+    public function provideBoolArgForms()
+    {
         $result = [
-            'plain flags' => [['script', '-ab'], ['boola' => true, 'boolb' => true]],
-            'flags and string' => [['script', '-abswut'], ['boola' => true, 'boolb' => true, 'str' => 'wut']],
-            'flag value and string' => [['script', '-a1b0s=wut'], ['boola' => true, 'boolb' => false, 'str' => 'wut']],
-            'flag followed by opt' => [['script', '-a', '-swut'], ['boola' => true, 'str' => 'wut']],
-            '--no prefix' => [['script', '--no-boola', '--no-boolb'], ['boola' => false, 'boolb' => false]]
+            "plain flags" => [
+                ["script", "-ab"],
+                ["boola" => true, "boolb" => true],
+            ],
+            "flags and string" => [
+                ["script", "-abswut"],
+                ["boola" => true, "boolb" => true, "str" => "wut"],
+            ],
+            "flag value and string" => [
+                ["script", "-a1b0s=wut"],
+                ["boola" => true, "boolb" => false, "str" => "wut"],
+            ],
+            "flag followed by opt" => [
+                ["script", "-a", "-swut"],
+                ["boola" => true, "str" => "wut"],
+            ],
+            "--no prefix" => [
+                ["script", "--no-boola", "--no-boolb"],
+                ["boola" => false, "boolb" => false],
+            ],
         ];
         return $result;
     }
@@ -304,15 +363,34 @@ EOT;
      *
      * @return array Returns an array in the form `[$argv, $expectedOpts]`.
      */
-    public function provideOptionalArgValueForm() {
+    public function provideOptionalArgValueForm()
+    {
         $result = [
-            'nothing' => [['script'], []],
-            'long form - no value' => [['script', '--optionalFlag'], ['optionalFlag' => '']],
-            'short form - no value' => [['script', '-o'], ['optionalFlag' => '']],
-            'long form - w value' => [['script', '--optionalFlag=used'], ['optionalFlag' => 'used']],
-            'short form - w value' => [['script', '-o=used'], ['optionalFlag' => 'used']],
-            'long form - w value - no equal sign' => [['script', '--optionalFlag', 'used'], ['optionalFlag' => 'used']],
-            'short form - w value - no equal sign' => [['script', '-o', 'used'], ['optionalFlag' => 'used']],
+            "nothing" => [["script"], []],
+            "long form - no value" => [
+                ["script", "--optionalFlag"],
+                ["optionalFlag" => ""],
+            ],
+            "short form - no value" => [
+                ["script", "-o"],
+                ["optionalFlag" => ""],
+            ],
+            "long form - w value" => [
+                ["script", "--optionalFlag=used"],
+                ["optionalFlag" => "used"],
+            ],
+            "short form - w value" => [
+                ["script", "-o=used"],
+                ["optionalFlag" => "used"],
+            ],
+            "long form - w value - no equal sign" => [
+                ["script", "--optionalFlag", "used"],
+                ["optionalFlag" => "used"],
+            ],
+            "short form - w value - no equal sign" => [
+                ["script", "-o", "used"],
+                ["optionalFlag" => "used"],
+            ],
         ];
         return $result;
     }
@@ -322,32 +400,36 @@ EOT;
      *
      * @return array Returns an array suitable to be used as a data provider.
      */
-    public function provideInvalidTypes() {
+    public function provideInvalidTypes()
+    {
         $result = [
-            [['script', '-hw', '--enabled=13'], 'The value of --enabled (-e) is not a valid boolean.'],
-            [['script', '-hw', '--enabled=foo'], 'The value of --enabled (-e) is not a valid boolean.'],
-            [['script', '-hw', '--no-enabled', 'foo'], 'The value of --enabled (-e) is not a valid boolean.'],
-            [['script', '-hw', '--count=foo'], 'The value of --count (-c) is not a valid integer.'],
-            [['script', '-hw', '--no-count=22'], 'Cannot apply the --no- prefix on the non boolean --count.'],
-            [['script', '-hw', '-c', 'foo'], 'The value of --count (-c) is not a valid integer.'],
+            [
+                ["script", "-hw", "--enabled=13"],
+                "The value of --enabled (-e) is not a valid boolean.",
+            ],
+            [
+                ["script", "-hw", "--enabled=foo"],
+                "The value of --enabled (-e) is not a valid boolean.",
+            ],
+            [
+                ["script", "-hw", "--no-enabled", "foo"],
+                "The value of --enabled (-e) is not a valid boolean.",
+            ],
+            [
+                ["script", "-hw", "--count=foo"],
+                "The value of --count (-c) is not a valid integer.",
+            ],
+            [
+                ["script", "-hw", "--no-count=22"],
+                "Cannot apply the --no- prefix on the non boolean --count.",
+            ],
+            [
+                ["script", "-hw", "-c", "foo"],
+                "The value of --count (-c) is not a valid integer.",
+            ],
         ];
 
         return $result;
-    }
-
-    /**
-     * Test that the backwards compatibility of the format property works.
-     */
-    public function testFormatCompat() {
-        $cli = new Cli();
-
-        $format = @$cli->format;
-        $format2 = !$format;
-        @$cli->format = $format2;
-        $this->assertSame($format2, $cli->getFormatOutput());
-
-        $this->expectDeprecation();
-        $format = $cli->format;
     }
 
     /**
@@ -357,14 +439,15 @@ EOT;
      * @param array $expectedOpts The expected opts after the command is parsed.
      * @dataProvider provideArrayOptTests
      */
-    public function testArrayOpt(array $argv, array $expectedOpts): void {
+    public function testArrayOpt(array $argv, array $expectedOpts): void
+    {
         $cli = new Cli();
 
-        $cli->opt('int:i', '', false, 'integer[]')
-            ->opt('str:s', '', false, 'string[]')
-            ->opt('bool:b', '', false, 'boolean[]');
+        $cli->opt("int:i", "", false, "integer[]")
+            ->opt("str:s", "", false, "string[]")
+            ->opt("bool:b", "", false, "boolean[]");
 
-        array_unshift($argv, 'script');
+        array_unshift($argv, "script");
 
         $args = $cli->parse($argv);
 
@@ -376,15 +459,16 @@ EOT;
      *
      * @return array Returns a data provider array.
      */
-    public function provideArrayOptTests(): array {
+    public function provideArrayOptTests(): array
+    {
         $r = [
-            [['-i123'], ['int' => [123]]],
-            [['-shello'], ['str' => ['hello']]],
-            [['-b'], ['bool' => [true]]],
-            [['-i1', '-i2'], ['int' => [1, 2]]],
-            [['-sa', '-sb'], ['str' => ['a', 'b']]],
-            [['-b', '--no-bool'], ['bool' => [true, false]]],
-            [['--no-bool', '--no-bool'], ['bool' => [false, false]]],
+            [["-i123"], ["int" => [123]]],
+            [["-shello"], ["str" => ["hello"]]],
+            [["-b"], ["bool" => [true]]],
+            [["-i1", "-i2"], ["int" => [1, 2]]],
+            [["-sa", "-sb"], ["str" => ["a", "b"]]],
+            [["-b", "--no-bool"], ["bool" => [true, false]]],
+            [["--no-bool", "--no-bool"], ["bool" => [false, false]]],
         ];
 
         $result = [];
@@ -392,21 +476,21 @@ EOT;
             $result[$item[0][0]] = $item;
         }
 
-
         return $result;
     }
 
     /**
      * Make sure that required args are checked.
      */
-    public function testRequiredArgs(): void {
+    public function testRequiredArgs(): void
+    {
         $cli = new Cli();
-        $cli->description('A cli with named args.')
-            ->arg('from', 'The path from.')
-            ->arg('to', 'The path to.', true);
+        $cli->description("A cli with named args.")
+            ->arg("from", "The path from.")
+            ->arg("to", "The path to.", true);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing required arg: to');
-        $args = $cli->parse(['script', '/var/foo.txt'], false);
+        $this->expectExceptionMessage("Missing required arg: to");
+        $args = $cli->parse(["script", "/var/foo.txt"], false);
     }
 }

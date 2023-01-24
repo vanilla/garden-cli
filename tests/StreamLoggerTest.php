@@ -10,7 +10,8 @@ namespace Garden\Cli\Tests;
 use Garden\Cli\StreamLogger;
 use Garden\Cli\TaskLogger;
 
-class StreamLoggerTest extends AbstractCliTest {
+class StreamLoggerTest extends AbstractCliTest
+{
     /**
      * @var StreamLogger
      */
@@ -19,26 +20,27 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Create a new logger for each test.
      */
-    public function setUp(): void {
+    public function setUp(): void
+    {
         parent::setUp();
-        $this->log = new StreamLogger('php://output');
-        $this->log
-            ->setShowDurations(false)
-            ->setTimeFormat('k');
+        $this->log = new StreamLogger("php://output");
+        $this->log->setShowDurations(false)->setTimeFormat("k");
     }
 
     /**
      * The log should throw an exception with an invalid path.
      */
-    public function testInvalidStreamPath() {
+    public function testInvalidStreamPath()
+    {
         $this->expectException(\InvalidArgumentException::class);
-        $log = new StreamLogger('');
+        $log = new StreamLogger("");
     }
 
     /**
      * The log should throw an exception with an invalid resource.
      */
-    public function testInvalidStreamResource() {
+    public function testInvalidStreamResource()
+    {
         $this->expectException(\InvalidArgumentException::class);
         $log = new StreamLogger(false);
     }
@@ -46,7 +48,8 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * The EOL must include `\n`.
      */
-    public function testInvalidEOL() {
+    public function testInvalidEOL()
+    {
         $this->expectException(\InvalidArgumentException::class);
         $this->log->setEol(",");
     }
@@ -54,9 +57,10 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test changing the line endings.
      */
-    public function testCustomEol() {
+    public function testCustomEol()
+    {
         $this->log->setEol("\r\n");
-        $this->log->info('foo');
+        $this->log->info("foo");
 
         $this->expectOutputString("[k] foo\r\n");
     }
@@ -64,9 +68,10 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Begin and ends should be on the same line if buffering is true (default).
      */
-    public function testEndSameLine() {
-        $this->log->info('begin', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('end', [TaskLogger::FIELD_END => true]);
+    public function testEndSameLine()
+    {
+        $this->log->info("begin", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("end", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] begin end\n");
     }
@@ -74,10 +79,11 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Begins and ends should be on the same line if buffering is false.
      */
-    public function testEndSameLineSetting() {
+    public function testEndSameLineSetting()
+    {
         $this->log->setBufferBegins(false);
-        $this->log->info('begin', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('end', [TaskLogger::FIELD_END => true]);
+        $this->log->info("begin", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("end", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] begin\n[k] end\n");
     }
@@ -85,10 +91,11 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Logging after a buffered begin should undo the buffering.
      */
-    public function testBeginLogEnd() {
-        $this->log->info('begin', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('log');
-        $this->log->info('end', [TaskLogger::FIELD_END => true]);
+    public function testBeginLogEnd()
+    {
+        $this->log->info("begin", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("log");
+        $this->log->info("end", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] begin\n[k] log\n[k] end\n");
     }
@@ -96,11 +103,12 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Logging after a buffered begin should undo the buffering.
      */
-    public function testBeginLogEndNested() {
-        $this->log->info('begin1', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('begin2', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('end1', [TaskLogger::FIELD_END => true]);
-        $this->log->info('end2', [TaskLogger::FIELD_END => true]);
+    public function testBeginLogEndNested()
+    {
+        $this->log->info("begin1", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("begin2", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("end1", [TaskLogger::FIELD_END => true]);
+        $this->log->info("end2", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] begin1\n[k] begin2 end1\n[k] end2\n");
     }
@@ -108,9 +116,10 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * An end with no beginning should output to its own line.
      */
-    public function testEndNoBeginning() {
-        $this->log->info('log');
-        $this->log->info('end', [TaskLogger::FIELD_END => true]);
+    public function testEndNoBeginning()
+    {
+        $this->log->info("log");
+        $this->log->info("end", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] log\n[k] end\n");
     }
@@ -118,9 +127,10 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test log indents.
      */
-    public function testIndentField() {
-        $this->log->info('a', [TaskLogger::FIELD_INDENT => 1]);
-        $this->log->info('b', [TaskLogger::FIELD_INDENT => 2]);
+    public function testIndentField()
+    {
+        $this->log->info("a", [TaskLogger::FIELD_INDENT => 1]);
+        $this->log->info("b", [TaskLogger::FIELD_INDENT => 2]);
 
         $this->expectOutputString("[k] - a\n[k]   - b\n");
     }
@@ -128,10 +138,11 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test log durations.
      */
-    public function testDurationField() {
+    public function testDurationField()
+    {
         $this->log
             ->setShowDurations(true)
-            ->info('a', [TaskLogger::FIELD_DURATION => 1]);
+            ->info("a", [TaskLogger::FIELD_DURATION => 1]);
 
         $this->expectOutputString("[k] a 1s\n");
     }
@@ -139,11 +150,13 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test log times.
      */
-    public function testTimeField() {
+    public function testTimeField()
+    {
         $this->log
-            ->setTimeFormat('Y-m-d H:i:s')
-            ->info('foo', [TaskLogger::FIELD_TIME => strtotime('jan 31 2001 3pm')]);
-
+            ->setTimeFormat("Y-m-d H:i:s")
+            ->info("foo", [
+                TaskLogger::FIELD_TIME => strtotime("jan 31 2001 3pm"),
+            ]);
 
         $this->expectOutputString("[2001-01-31 15:00:00] foo\n");
     }
@@ -151,7 +164,8 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Newlines should be expanded into multiple lines.
      */
-    public function testNewlineExpansion() {
+    public function testNewlineExpansion()
+    {
         $this->log->info("a\nb\nc", [TaskLogger::FIELD_INDENT => 1]);
 
         $this->expectOutputString("[k] - a\n[k] - b\n[k] - c\n");
@@ -160,7 +174,8 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Alternate newlines should be normalized.
      */
-    public function testNewlineExpansionNormalization() {
+    public function testNewlineExpansionNormalization()
+    {
         $this->log->info("a\r\nb");
         $this->expectOutputString("[k] a\n[k] b\n");
     }
@@ -168,9 +183,10 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Newlines on buffered begin/ends should also expand.
      */
-    public function testNewlineExpansionWithBuffering() {
+    public function testNewlineExpansionWithBuffering()
+    {
         $this->log->info("a\nb", [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('c', [TaskLogger::FIELD_END => true]);
+        $this->log->info("c", [TaskLogger::FIELD_END => true]);
 
         $this->expectOutputString("[k] a\n[k] b c\n");
     }
@@ -178,7 +194,8 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Newlines on buffered begin/ends should also expand. Ends should work.
      */
-    public function testNewlineExpansionWithBufferingEnd() {
+    public function testNewlineExpansionWithBufferingEnd()
+    {
         $this->log->info("a", [TaskLogger::FIELD_BEGIN => true]);
         $this->log->info("b\nc", [TaskLogger::FIELD_END => true]);
 
@@ -188,28 +205,33 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test the lower bounds of the various duration types.
      */
-    public function testFormatDurationMinimums() {
-        $fn = \Closure::bind(function ($dur) {
-            return $this->formatDuration($dur);
-        }, $this->log, StreamLogger::class);
+    public function testFormatDurationMinimums()
+    {
+        $fn = \Closure::bind(
+            function ($dur) {
+                return $this->formatDuration($dur);
+            },
+            $this->log,
+            StreamLogger::class
+        );
 
-        $this->assertSame('1μs', $fn(1e-6));
-        $this->assertSame('1ms', $fn(1e-3));
-        $this->assertSame('1s', $fn(1));
-        $this->assertSame('1m', $fn(60));
-        $this->assertSame('1h', $fn(strtotime('1 hour', 0)));
-        $this->assertSame('1d', $fn(strtotime('1 day', 0)));
+        $this->assertSame("1μs", $fn(1e-6));
+        $this->assertSame("1ms", $fn(1e-3));
+        $this->assertSame("1s", $fn(1));
+        $this->assertSame("1m", $fn(60));
+        $this->assertSame("1h", $fn(strtotime("1 hour", 0)));
+        $this->assertSame("1d", $fn(strtotime("1 day", 0)));
     }
 
     /**
      * Test logging to a custom file.
      */
-    public function testCustomFile() {
-        $path = __DIR__.'/testCustomFile.log';
+    public function testCustomFile()
+    {
+        $path = __DIR__ . "/testCustomFile.log";
 
         $log = new StreamLogger($path);
-        $log->setTimeFormat('k')
-            ->info('a');
+        $log->setTimeFormat("k")->info("a");
         unset($log);
 
         $str = file_get_contents($path);
@@ -220,24 +242,26 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Trying to write to a closed file should emit a warning.
      */
-    public function testFileClosed() {
-        $path = __DIR__.'/testCustomFile.log';
-        $fp = fopen($path, 'w+');
+    public function testFileClosed()
+    {
+        $path = __DIR__ . "/testCustomFile.log";
+        $fp = fopen($path, "w+");
 
         $log = new StreamLogger($fp);
         fclose($fp);
         unlink($path);
 
         $this->expectWarning();
-        $log->info('a');
+        $log->info("a");
     }
 
     /**
      * Output strings should be wrapped in format codes when output formatting is on.
      */
-    public function testBasicFormatWrapping() {
+    public function testBasicFormatWrapping()
+    {
         $this->log->setColorizeOutput(true);
-        $this->log->debug('debug');
+        $this->log->debug("debug");
 
         $this->expectOutputString("\033[0;37m[k] debug\033[0m\n");
     }
@@ -245,11 +269,12 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test the level formatter.
      */
-    public function testLevelFormatter() {
+    public function testLevelFormatter()
+    {
         $this->log
-            ->setLineFormat('{level} {message}')
-            ->setLevelFormat('strtoupper')
-            ->info('foo');
+            ->setLineFormat("{level} {message}")
+            ->setLevelFormat("strtoupper")
+            ->info("foo");
 
         $this->expectOutputString("INFO foo\n");
     }
@@ -257,12 +282,13 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Test the time format callback.
      */
-    public function testTimeFormatCallback() {
+    public function testTimeFormatCallback()
+    {
         $this->log
             ->setTimeFormat(function ($t) {
-                return (string)(int)$t;
+                return (string) (int) $t;
             })
-            ->info('foo', [TaskLogger::FIELD_TIME => 1]);
+            ->info("foo", [TaskLogger::FIELD_TIME => 1]);
 
         $this->expectOutputString("[1] foo\n");
     }
@@ -270,10 +296,14 @@ class StreamLoggerTest extends AbstractCliTest {
     /**
      * Reproduce a bug with empty end messages and a duration was missing a space.
      */
-    public function testEndEmptyEndMessageDuration() {
+    public function testEndEmptyEndMessageDuration()
+    {
         $this->log->setShowDurations(true);
-        $this->log->info('a', [TaskLogger::FIELD_BEGIN => true]);
-        $this->log->info('', [TaskLogger::FIELD_END => true, TaskLogger::FIELD_DURATION => 1]);
+        $this->log->info("a", [TaskLogger::FIELD_BEGIN => true]);
+        $this->log->info("", [
+            TaskLogger::FIELD_END => true,
+            TaskLogger::FIELD_DURATION => 1,
+        ]);
 
         $this->expectOutputString("[k] a 1s\n");
     }

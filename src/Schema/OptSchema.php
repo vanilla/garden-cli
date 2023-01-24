@@ -14,38 +14,39 @@ use JsonSerializable;
 /**
  * A data class for the schema of a single command line opt.
  */
-class OptSchema implements JsonSerializable {
+class OptSchema implements JsonSerializable
+{
     use MetaTrait;
 
     /**
      * @var string
      */
-    private $name;
+    private string $name;
 
     /**
      * @var string
      */
-    private $description;
+    private string $description;
 
     /**
      * @var string
      */
-    private $short;
+    private string $short;
 
     /**
      * @var string
      */
-    private $type;
+    private string $type;
 
     /**
      * @var bool
      */
-    private $array;
+    private bool $array;
 
     /**
      * @var bool
      */
-    private $required;
+    private bool $required;
 
     /**
      * OptSchema constructor.
@@ -56,9 +57,15 @@ class OptSchema implements JsonSerializable {
      * @param string $type The data type of the opt.
      * @param array $meta Additional meta information for the opt.
      */
-    public function __construct(string $name, string $description, bool $required = false, string $type = '', array $meta = []) {
+    public function __construct(
+        string $name,
+        string $description,
+        bool $required = false,
+        string $type = "",
+        array $meta = []
+    ) {
         // Break the name up into its long and short form.
-        [$long, $short] = explode(':', $name, 2) + ['', ''];
+        [$long, $short] = explode(":", $name, 2) + ["", ""];
         $this->setName($long);
         $this->setShortName($short);
 
@@ -72,7 +79,8 @@ class OptSchema implements JsonSerializable {
     /**
      * @return string
      */
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name;
     }
 
@@ -82,7 +90,8 @@ class OptSchema implements JsonSerializable {
      * @param string $name
      * @return $this
      */
-    public function setName(string $name) {
+    public function setName(string $name): static
+    {
         $this->name = $name;
         return $this;
     }
@@ -92,7 +101,8 @@ class OptSchema implements JsonSerializable {
      *
      * @return string
      */
-    public function getDescription(): string {
+    public function getDescription(): string
+    {
         return $this->description;
     }
 
@@ -102,7 +112,8 @@ class OptSchema implements JsonSerializable {
      * @param string $description
      * @return $this
      */
-    public function setDescription(string $description) {
+    public function setDescription(string $description): static
+    {
         $this->description = $description;
         return $this;
     }
@@ -112,7 +123,8 @@ class OptSchema implements JsonSerializable {
      *
      * @return string
      */
-    public function getShortName(): string {
+    public function getShortName(): string
+    {
         return $this->short;
     }
 
@@ -122,7 +134,8 @@ class OptSchema implements JsonSerializable {
      * @param string $short
      * @return $this
      */
-    public function setShortName(string $short) {
+    public function setShortName(string $short): static
+    {
         $this->short = $short;
         return $this;
     }
@@ -132,7 +145,8 @@ class OptSchema implements JsonSerializable {
      *
      * @return string
      */
-    public function getType(): string {
+    public function getType(): string
+    {
         return $this->type ?: Cli::TYPE_STRING;
     }
 
@@ -142,30 +156,24 @@ class OptSchema implements JsonSerializable {
      * @param string $type
      * @return $this
      */
-    public function setType(string $type) {
-        if (substr($type, -2) === '[]') {
+    public function setType(string $type): static
+    {
+        if (str_ends_with($type, "[]")) {
             $this->setArray(true);
             $type = substr($type, 0, -2);
         } else {
             $this->setArray(false);
         }
 
-        switch ($type) {
-            case 'str':
-            case Cli::TYPE_STRING:
-                $this->type = Cli::TYPE_STRING;
-                break;
-            case 'bool':
-            case Cli::TYPE_BOOLEAN:
-                $this->type = Cli::TYPE_BOOLEAN;
-                break;
-            case 'int':
-            case Cli::TYPE_INTEGER:
-                $this->type = Cli::TYPE_INTEGER;
-                break;
-            default:
-                throw new InvalidArgumentException("Invalid type: $type. Must be one of string, boolean, or integer.", 422);
-        }
+        $this->type = match ($type) {
+            "str", Cli::TYPE_STRING => Cli::TYPE_STRING,
+            "bool", Cli::TYPE_BOOLEAN => Cli::TYPE_BOOLEAN,
+            "int", Cli::TYPE_INTEGER => Cli::TYPE_INTEGER,
+            default => throw new InvalidArgumentException(
+                "Invalid type: $type. Must be one of string, boolean, or integer.",
+                422
+            ),
+        };
 
         return $this;
     }
@@ -175,7 +183,8 @@ class OptSchema implements JsonSerializable {
      *
      * @return bool
      */
-    public function isArray(): bool {
+    public function isArray(): bool
+    {
         return $this->array;
     }
 
@@ -185,7 +194,8 @@ class OptSchema implements JsonSerializable {
      * @param bool $isArray
      * @return $this
      */
-    public function setArray(bool $isArray) {
+    public function setArray(bool $isArray): static
+    {
         $this->array = $isArray;
         return $this;
     }
@@ -195,7 +205,8 @@ class OptSchema implements JsonSerializable {
      *
      * @return bool
      */
-    public function isRequired(): bool {
+    public function isRequired(): bool
+    {
         return $this->required;
     }
 
@@ -205,7 +216,8 @@ class OptSchema implements JsonSerializable {
      * @param bool $required
      * @return $this
      */
-    public function setRequired(bool $required) {
+    public function setRequired(bool $required): static
+    {
         $this->required = $required;
         return $this;
     }
@@ -215,7 +227,8 @@ class OptSchema implements JsonSerializable {
      *
      * @param OptSchema $opt
      */
-    public function merge(OptSchema $opt): void {
+    public function merge(OptSchema $opt): void
+    {
         $this->name = $opt->name;
         $this->short = $opt->short;
         $this->description = $opt->description;
@@ -228,7 +241,8 @@ class OptSchema implements JsonSerializable {
     /**
      * {@inheritDoc}
      */
-    public function jsonSerialize() {
+    public function jsonSerialize(): array
+    {
         $vars = get_object_vars($this);
         return $vars;
     }

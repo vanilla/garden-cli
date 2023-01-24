@@ -12,22 +12,27 @@ use Garden\Cli\Cli;
 /**
  * A data class for the information describing a command line command or subcommand.
  */
-class CommandSchema {
+class CommandSchema
+{
     use MetaTrait;
 
     /**
      * @var OptSchema[]
      */
-    private $opts;
+    private array $opts;
 
     /**
      * CommandSchema constructor.
      *
      * @param OptSchema[] $schema
      */
-    public function __construct(array $schema = []) {
+    public function __construct(array $schema = [])
+    {
         if (!is_array($meta = $schema[Cli::META] ?? [])) {
-            throw new \InvalidArgumentException("The meta must be an array.", 400);
+            throw new \InvalidArgumentException(
+                "The meta must be an array.",
+                400
+            );
         }
         $this->meta = $meta;
         unset($schema[Cli::META]);
@@ -40,8 +45,10 @@ class CommandSchema {
      *
      * @return string
      */
-    public function getDescription(): string {
-        return $this->meta['description'] ?? '';
+    public function getDescription(): string
+    {
+        $description = $this->meta["description"] ?? "";
+        return is_array($description) ? end($description) : $description;
     }
 
     /**
@@ -49,7 +56,8 @@ class CommandSchema {
      *
      * @return array|mixed
      */
-    public function getArgs() {
+    public function getArgs()
+    {
         return $this->meta[Cli::ARGS] ?? [];
     }
 
@@ -58,7 +66,8 @@ class CommandSchema {
      *
      * @return bool
      */
-    public function hasArgs() {
+    public function hasArgs(): bool
+    {
         return !empty($this->meta[Cli::ARGS]);
     }
 
@@ -67,7 +76,8 @@ class CommandSchema {
      *
      * @return OptSchema[]
      */
-    public function getOpts(): array {
+    public function getOpts(): array
+    {
         return $this->opts;
     }
 
@@ -77,7 +87,8 @@ class CommandSchema {
      * @param string $name
      * @return OptSchema|null
      */
-    public function getOpt(string $name): ?OptSchema {
+    public function getOpt(string $name): ?OptSchema
+    {
         return $this->opts[$name] ?? null;
     }
 
@@ -87,7 +98,8 @@ class CommandSchema {
      * @param string $name The long name of the opt.
      * @return bool
      */
-    public function hasOpt(string $name): bool {
+    public function hasOpt(string $name): bool
+    {
         return isset($this->opts[$name]);
     }
 
@@ -96,7 +108,8 @@ class CommandSchema {
      *
      * @return bool
      */
-    public function hasOpts(): bool {
+    public function hasOpts(): bool
+    {
         return !empty($this->opts);
     }
 
@@ -105,7 +118,8 @@ class CommandSchema {
      *
      * @param CommandSchema $schema
      */
-    public function mergeSchema(CommandSchema $schema) {
+    public function mergeSchema(CommandSchema $schema): void
+    {
         $this->mergeMetaArray($schema->getMetaArray());
 
         /**
@@ -127,7 +141,8 @@ class CommandSchema {
      * @param OptSchema $opt
      * @return $this
      */
-    public function addOpt(OptSchema $opt) {
+    public function addOpt(OptSchema $opt): static
+    {
         $this->opts[$opt->getName()] = $opt;
         return $this;
     }
