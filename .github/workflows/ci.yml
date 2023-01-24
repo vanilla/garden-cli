@@ -1,0 +1,35 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+
+concurrency:
+    # Concurrency is only limited on pull requests. head_ref is only defined on PR triggers so otherwise it will use the random run id and always build all pushes.
+    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    phpunit-tests:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                php-version: ["8.1", "8.2"]
+        steps:
+            - uses: actions/checkout@v3
+            - name: Installing PHP ${{ matrix.php-version }}
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php-version }}
+            - name: Composer Install
+              run: composer install -o
+            - name: PHPUnit
+              run: ./vendor/bin/phpunit -c ./phpunit.xml.dist
+            - name: Static Analysis
+              run: ./vendor/bin/psalm
